@@ -1,0 +1,18 @@
+---
+- name: Pools - Refresh
+  ansible.builtin.command:
+    cmd: "virsh --connect {{ libvirt_uri }} pool-refresh {{ pool.name }}"
+  loop: "{{ libvirt_pools }}"
+  loop_control:
+    loop_var: pool
+  changed_when: false
+
+- name: Pools - Facts
+  community.libvirt.virt_pool:
+    command: facts
+    uri: "{{ libvirt_uri }}"
+
+- name: Pools - Debug
+  ansible.builtin.debug:
+    var: ansible_libvirt_pools
+    verbosity: 1

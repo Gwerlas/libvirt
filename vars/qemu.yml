@@ -1,0 +1,2 @@
+---
+system_wide: "{{ (libvirt_uri | split('/') | last) == 'system' }}"

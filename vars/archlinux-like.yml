@@ -1,0 +1,25 @@
+---
+gids:
+  libvirt:
+    name: libvirt
+    id: 967
+  qemu:
+    name: libvirt-qemu
+    id: 966
+
+packages:
+  daemon:
+    - bridge-utils
+    - dnsmasq
+    - libvirt
+    - libvirt-python
+    - python-lxml
+  clients:
+    - libvirt
+    - virt-install
+  virt_manager:
+    - virt-manager
+  gnome_boxes:
+    - gnome-boxes
+  qemu:
+    - qemu-base

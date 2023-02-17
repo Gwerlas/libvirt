@@ -1,0 +1,15 @@
+{% set mode = network.forward_mode | default('nat') %}
+<network>
+  <name>{{ network.name }}</name>
+  <forward mode='{{ mode }}'/>
+  <bridge name='{{ network.bridge }}'/>
+{% if 'ip' in network %}
+  <ip address='{{ network.ip.address }}' netmask='{{ network.ip.netmask }}'>
+{% if 'dhcp' in network.ip %}
+    <dhcp>
+      <range start='{{ network.ip.dhcp.start }}' end='{{ network.ip.dhcp.end }}'/>
+    </dhcp>
+{% endif %}
+  </ip>
+{% endif %}
+</network>

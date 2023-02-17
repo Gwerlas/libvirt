@@ -1,0 +1,5 @@
+---
+- name: CPU capabilities
+  ansible.builtin.command:
+    cmd: grep -E 'vmx|svm' /proc/cpuinfo
+  changed_when: false

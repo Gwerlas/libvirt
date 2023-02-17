@@ -1,0 +1,15 @@
+---
+- name: Verify VMs
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Get informations
+      community.libvirt.virt:
+        command: info
+        uri: qemu:///session
+      register: result
+    - name: My node is running
+      ansible.builtin.assert:
+        that:
+          - "'my-node' in result"
+          - result['my-node'].state == "running"

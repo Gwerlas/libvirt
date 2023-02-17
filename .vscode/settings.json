@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.yml": "ansible",
+        ".config/*.yml": "yaml",
+        ".gitlab-ci.yml": "yaml",
+        "molecule.yml": "yaml"
+    }
+}  

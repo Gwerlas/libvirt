@@ -1,0 +1,38 @@
+---
+- name: Load variables
+  when: system_wide is undefined
+  ansible.builtin.import_tasks: vars.yml
+
+- name: Backend checkup and settings
+  ansible.builtin.import_tasks: "{{ libvirt_backend }}/checks.yml"
+
+- name: Installation
+  become: true
+  block:
+    - name: Packages
+      ansible.builtin.package:
+        name: "{{ packages_computed }}"
+
+    - name: Server side settings
+      when: "'daemon' in libvirt_install"
+      block:
+        - name: Services
+          ansible.builtin.service:
+            name: "{{ item }}"
+            state: started
+            enabled: true
+          loop: "{{ services }}"
+
+        - name: Users
+          ansible.builtin.user:
+            name: "{{ item }}"
+            append: true
+            groups:
+              - "{{ gids.libvirt.name }}"
+          loop: "{{ libvirt_users }}"
+
+- name: Reset connection to take effect of new groups relationship
+  ansible.builtin.meta: reset_connection
+  
+- name: Backend post installation tasks
+  ansible.builtin.import_tasks: "{{ libvirt_backend }}/post-install.yml"

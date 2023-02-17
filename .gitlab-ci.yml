@@ -1,0 +1,3 @@
+ansible-lint:
+  image: gwerlas/ansible-lint
+  script: ansible-lint

@@ -1,0 +1,23 @@
+<!-- {{ ansible_managed }} -->
+{% set type = pool.type | default('netfs' if 'source' in pool else 'dir') %}
+<pool type="{{ type }}">
+  <name>{{ pool.name }}</name>
+{% if type == 'netfs' %}
+  <source>
+    <host name="{{ pool.source.host }}"/>
+    <dir path="{{ pool.source.dir }}"/>
+    <format type='nfs'/>
+  </source>
+{% endif %}
+  <target>
+    <path>{{ pool.path }}</path>
+    <permissions>
+      <mode>{{ mode }}</mode>
+      <owner>{{ owner_id }}</owner>
+      <group>{{ group_id }}</group>
+{% if 'mode' in ansible_selinux %}
+      <label>system_u:object_r:virt_image_t:s0</label>
+{% endif %}
+    </permissions>
+  </target>
+</pool>

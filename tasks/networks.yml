@@ -1,0 +1,50 @@
+---
+- name: Networks - List
+  community.libvirt.virt_net:
+    command: facts
+    uri: "{{ libvirt_uri }}"
+
+- name: Networks - Create
+  community.libvirt.virt_net:
+    name: "{{ network.name }}"
+    xml: "{{ lookup('template', 'network.xml.j2') }}"
+    command: define
+    uri: "{{ libvirt_uri }}"
+  loop: |
+    {{
+      (
+        (networks | selectattr('state', 'undefined'))
+      + (networks | selectattr('state', 'defined') | selectattr('state', '!=', 'absent'))
+      ) | rejectattr('name', 'in', ansible_libvirt_networks)
+    }}
+  loop_control:
+    loop_var: network
+
+- name: Networks - Update the list
+  community.libvirt.virt_net:
+    command: facts
+    uri: "{{ libvirt_uri }}"
+
+- name: Network - Autostart
+  community.libvirt.virt_net:
+    name: "{{ network.name }}"
+    autostart: "{{ network.autostart | default(true) }}"
+    uri: "{{ libvirt_uri }}"
+  loop: |
+    {{
+      (
+        (networks | selectattr('state', 'undefined'))
+      + (networks | selectattr('state', 'defined') | selectattr('state', '!=', 'absent'))
+      )
+    }}
+  loop_control:
+    loop_var: network
+
+- name: Network - Status
+  community.libvirt.virt_net:
+    name: "{{ network.name }}"
+    state: "{{ network.state | default('active') }}"
+    uri: "{{ libvirt_uri }}"
+  loop: "{{ networks }}"
+  loop_control:
+    loop_var: network

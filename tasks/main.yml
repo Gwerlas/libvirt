@@ -1,0 +1,9 @@
+---
+- name: Load variables
+  ansible.builtin.import_tasks: vars.yml
+
+- name: Installation
+  ansible.builtin.import_tasks: install.yml
+
+- name: Provision the resources
+  ansible.builtin.import_tasks: provision.yml

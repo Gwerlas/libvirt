@@ -1,0 +1,49 @@
+---
+- name: Pools - Facts
+  community.libvirt.virt_pool:
+    command: facts
+    uri: "{{ libvirt_uri }}"
+
+- name: Pools - Items
+  ansible.builtin.set_fact:
+    items: "{{ pools }}"
+
+- name: Pools - Create
+  ansible.builtin.include_tasks: pools/create.yml
+  vars: 
+    pools: |
+      {{
+        (
+          (items | selectattr('state', 'undefined'))
+        + (items | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
+        ) | rejectattr('name', 'in', ansible_libvirt_pools)
+      }}
+
+- name: Pools - Update facts
+  community.libvirt.virt_pool:
+    command: facts
+    uri: "{{ libvirt_uri }}"
+
+- name: Pools - Autostart
+  community.libvirt.virt_pool:
+    name: "{{ pool.name }}"
+    autostart: "{{ pool.autostart }}"
+    uri: "{{ libvirt_uri }}"
+  loop: |
+    {{
+      (
+        (pools | selectattr('state', 'undefined'))
+      + (pools | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
+      ) | selectattr('autostart', 'defined')
+    }}
+  loop_control:
+    loop_var: pool
+
+- name: Pools - Status
+  community.libvirt.virt_pool:
+    name: "{{ pool.name }}"
+    state: "{{ pool.state | default('active') }}"
+    uri: "{{ libvirt_uri }}"
+  loop: "{{ pools }}"
+  loop_control:
+    loop_var: pool

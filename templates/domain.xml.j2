@@ -1,0 +1,72 @@
+{# https://libvirt.org/formatdomain.html #}
+<!-- {{ ansible_managed }} -->
+{% set memory = domain.memory | regex_search('^(\\d+)', '\\1') | first %}
+{% set memory_unit = domain.memory | regex_search('([KMGT]i?B?)$', '\\1') | default(['GiB'], boolean=true) | first %}
+{% set cpu = domain.cpu | default(libvirt_default_cpu) %}
+<domain type="{{ domain.type | default('kvm')}}">
+  <name>{{ domain.name }}</name>
+  <memory unit="{{ memory_unit }}">{{ memory }}</memory>
+{% if 'vcpu' in domain %}
+  <vcpu{% if 'placement' in domain.vcpu %} placement="{{ domain.vcpu.placement }}"{% endif %}>{{ domain.vcpu.quantity | default(1) }}</vcpu>
+{% endif %}
+  <os>
+    <type>hvm</type>
+    <boot dev="network"/>
+    <boot dev="hd"/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+  </features>
+  <cpu{% if 'mode' in cpu %} mode="{{ cpu.mode }}"{% endif %}>
+{% if 'model' in cpu %}
+    <model{% if 'fallback' in cpu.model %} fallback="{{ cpu.model.fallback }}"{% endif %}>
+      {{ cpu.model.name | default('') }}
+    </model>
+{% endif %}
+  </cpu>
+  <clock offset="utc"/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+{% for volume in domain.volumes %}
+    <disk type="volume" device="disk">
+      <driver name="qemu" type="{{ volume.format | default('qcow2') }}"/>
+      <source pool="{{ volume.pool | default('default') }}" volume="{{ volume.name }}"/>
+      <target dev="{{ volume.device | default('vda') }}" bus="virtio"/>
+    </disk>
+{% endfor %}
+    <controller type="pci" index="0" model="pci-root"/>
+{% for network in domain.networks %}
+    <interface type="{{ network.type | default('network')}}">
+{% if 'name' in network %}
+      <source network="{{ network.name }}" />
+{% endif %}
+      <model type="virtio"/>
+    </interface>
+{% endfor %}
+    <serial type="pty">
+      <target port="0"/>
+    </serial>
+    <console type="pty">
+      <target type="serial" port="0"/>
+    </console>
+    <input type="keyboard" bus="ps2"/>
+    <graphics type="vnc" port="-1" autoport="yes" listen="127.0.0.1" keymap="{{ domain.graphics.keymap | default(libvirt_default_keymap) }}">
+      <listen type="address" address="127.0.0.1"/>
+    </graphics>
+    <video>
+      <model type="cirrus" vram="16384" heads="1"/>
+      <address type="pci" domain="0x0000" bus="0x00" slot="0x02" function="0x0"/>
+    </video>
+    <memballoon model="virtio">
+      <address type="pci" domain="0x0000" bus="0x00" slot="0x05" function="0x0"/>
+    </memballoon>
+    <rng model='virtio'>
+      <backend model='random'>/dev/urandom</backend>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </rng>
+  </devices>
+</domain>

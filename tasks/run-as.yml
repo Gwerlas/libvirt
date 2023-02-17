@@ -1,0 +1,19 @@
+---
+- name: Run as - Get user informations
+  ansible.builtin.command:
+    cmd: "getent passwd {{ username }}"
+  changed_when: false
+  register: user_data
+    
+- name: Run as
+  become: true
+  become_user: "{{ username }}"
+  block:
+    - name: Run task
+      ansible.builtin.include_tasks: "{{ task }}"
+      vars:
+        ansible_user_id: "{{ username }}"
+        ansible_user_uid: "{{ (user_data.stdout | split(':'))[2] }}"
+        ansible_user_gecos: "{{ (user_data.stdout | split(':'))[4] }}"
+        ansible_user_dir: "{{ (user_data.stdout | split(':'))[5] }}"
+        ansible_user_shell: "{{ (user_data.stdout | split(':'))[6] }}"

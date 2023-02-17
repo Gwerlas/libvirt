@@ -1,0 +1,9 @@
+---
+- name: Migrate libvirt ressources
+  listen: libvirt system migrate
+  become: true
+  become_user: "{{ item }}"
+  ansible.builtin.command:
+    cmd: libvirt system migrate
+  changed_when: true
+  with_items: "{{ libvirt_users }}"

@@ -1,0 +1,35 @@
+galaxy_info:
+  author: Yoann Colin
+  namespace: gwerlas
+  description: Install, configure and provision libvirt resources
+
+  issue_tracker_url: https://gitlab.com/gwerlas/ansible/roles/libvirt/-/issues
+
+  license: BSD-3-Clause
+
+  min_ansible_version: "2.10"
+
+  platforms:
+    - name: ArchLinux
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+    - name: Fedora
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+
+  galaxy_tags:
+    - libvirt
+
+dependencies: []

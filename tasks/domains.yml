@@ -1,0 +1,30 @@
+---
+- name: Domains - List VMs
+  community.libvirt.virt:
+    command: list_vms
+    uri: "{{ libvirt_uri }}"
+  register: result
+
+- name: Domains - Create domain
+  community.libvirt.virt:
+    command: define
+    xml: "{{ lookup('template', 'domain.xml.j2') }}"
+    uri: "{{ libvirt_uri }}"
+  loop: |
+    {{
+      (
+        (domains | selectattr('state', 'undefined'))
+      + (domains | selectattr('state', 'defined') | selectattr('state', '!=', 'destroyed'))
+      ) | rejectattr('name', 'in', result.list_vms)
+    }}
+  loop_control:
+    loop_var: domain
+
+- name: Domains - Status
+  community.libvirt.virt:
+    name: "{{ domain.name }}"
+    state: "{{ domain.state | default('running') }}"
+    uri: "{{ libvirt_uri }}"
+  loop: "{{ domains }}"
+  loop_control:
+    loop_var: domain

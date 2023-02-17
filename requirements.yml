@@ -1,0 +1,4 @@
+collections:
+  - name: community.libvirt
+roles:
+  - name: gwerlas.system

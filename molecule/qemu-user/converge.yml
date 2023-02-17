@@ -1,0 +1,26 @@
+---
+- name: Qemu domains on user session
+  hosts: all
+  roles:
+    - role: gwerlas.libvirt
+      vars:
+        libvirt_uri: qemu:///session
+
+        libvirt_pools:
+          - name: data-dir
+            path: /home/vagrant/images
+
+        libvirt_domains:
+          - name: my-node
+            type: qemu
+            memory: 128M
+            cpu:
+              mode: custom
+            volumes:
+              - name: os
+              - name: data
+                size: 2G
+                device: vdb
+                pool: data-dir
+            networks:
+              - type: user

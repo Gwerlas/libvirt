@@ -1,0 +1,83 @@
+---
+- name: Verify role without any options
+  hosts: all
+  vars:
+    cirros_version: 0.4.0
+    files:
+      - file: disk.img
+        md5: 443b7623e27ecf03dc9e01ee93f67afe
+      - file: initramfs
+        md5: 89f0a4f85c5ff10b05c15b9964a174e6
+      - file: kernel
+        md5: ab34153f95d41544e9c35e9747cbe1de
+  tasks:
+    - name: Local files       # noqa run-once
+      delegate_to: localhost
+      run_once: true
+      block:
+        - name: Temp dir
+          ansible.builtin.tempfile:
+            state: directory
+          register: tmpdir
+
+        - name: Get CirrOS files
+          ansible.builtin.get_url:
+            url: "https://download.cirros-cloud.net/{{ cirros_version }}/cirros-{{ cirros_version }}-x86_64-{{ item.file }}"
+            checksum: "md5:{{ item.md5 }}"
+            dest: "{{ tmpdir.path }}/{{ item.file }}"
+            mode: 0644
+          loop: "{{ files }}"
+
+    - name: Tests
+      block:
+        - name: Push files to the host
+          ansible.posix.synchronize:
+            src: "{{ tmpdir.path }}/"
+            dest: /tmp/cirros/
+
+        - name: Grant access to libvirt
+          ansible.builtin.file:
+            path: /tmp/cirros/
+            group: libvirt-qemu
+            mode: 0755
+
+        - name: Start CirrOS
+          ansible.builtin.command:
+            cmd: >
+              virt-install
+                --connect qemu:///system
+                --name cirros
+                --memory 128
+                --vcpus 1
+                --os-variant cirros{{ cirros_version }}
+                --graphics none
+                --network network=default
+                --disk /tmp/cirros/disk.img
+                --boot kernel=/tmp/cirros/kernel,initrd=/tmp/cirros/initramfs,kernel_args="console=/dev/ttyS0 ds=nocloud"
+                --import
+                --noautoconsole
+          register: result
+          changed_when: "'Domain creation completed.' in result.stdout"
+
+        - name: Check that CirrOS is running
+          community.libvirt.virt:
+            name: cirros
+            state: running
+
+        - name: Destroy CirrOS
+          community.libvirt.virt:
+            name: cirros
+            command: destroy
+
+        - name: Undefine CirrOS
+          community.libvirt.virt:
+            name: cirros
+            command: undefine
+
+      always:
+        - name: Remove temp dir       # noqa run-once
+          run_once: true
+          delegate_to: localhost
+          ansible.builtin.file:
+            path: "{{ tmpdir.path }}"
+            state: absent

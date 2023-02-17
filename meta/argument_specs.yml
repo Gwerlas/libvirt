@@ -1,0 +1,71 @@
+---
+argument_specs:
+  vars:
+    short_description: Export roles variables.
+    options:
+      libvirt_backend:
+        description: Virtualization technology to use.
+        type: str
+        default: qemu
+
+  install:
+    short_description: Configure node for rootless mode.
+    options:
+      libvirt_backend:
+        description: Virtualization technology to install.
+        type: str
+        default: qemu
+      libvirt_install:
+        description: Parts of the project to install.
+        type: list
+        elements: str
+        default: "['daemon', 'clients']"
+      libvirt_users:
+        description: List of users that can run libvirt
+        type: list
+        elements: str
+        default: "['{{ ansible_user_id }}']"
+      libvirt_active_default_network:
+        description: Active or not the default network.
+        type: bool
+        default: "true"
+      libvirt_remove_default_network:
+        description: Remove or not the default network.
+        type: bool
+        default: "false"
+
+  provision:
+    short_description: Configure node for rootless mode.
+    options:
+      libvirt_networks:
+        description: List of networks to create system wide.
+        type: list
+        elements: dict
+        default: "[]"
+      libvirt_pools:
+        description: List of volumes pools to create.
+        type: list
+        elements: dict
+        default: "[]"
+      libvirt_volumes:
+        description: List of volumes to create.
+        type: list
+        elements: dict
+        default: "[]"
+      libvirt_domains:
+        description: List of domains (virtual machines) to create.
+        type: list
+        elements: dict
+        default: "[]"
+      libvirt_default_keymap:
+        description: Keyboard map to set at domains creations.
+        type: str
+        default: en-us
+      libvirt_default_cpu:
+        description: Default CPU model to use when a domain doesn't specify it. 
+        type: dict
+        default: "{model: 'host-model'}"
+      libvirt_uri:
+        description: Libvirt connection uri.
+        type: str
+        default: qemu:///system
