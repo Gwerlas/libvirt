@@ -1,8 +1,1 @@
----
-- name: Prepare
-  hosts: all
-  vars:
-    system_el7_use_epel: true
-    system_packages_upgrade: true
-  roles:
-    - gwerlas.system
+../default/prepare.yml

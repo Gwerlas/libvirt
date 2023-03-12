@@ -1,5 +1,5 @@
 ---
-- name: Variables
+- name: Distribution variables
   ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
   vars:
     params:
@@ -7,14 +7,33 @@
         - "{{ vars_file }}"
         - empty.yml
       paths:
-        - vars
+        - "{{ role_path }}/vars"
   loop:
+    - "{{ ansible_service_mgr }}.yml"                                                     # openrc,       systemd
     - "{{ ansible_os_family | lower }}-like.yml"                                          # debian-like,  redhat-like, etc.
     - "{{ ansible_distribution | lower }}.yml"                                            # debian,       fedora,      ubuntu
     - "{{ ansible_os_family | lower }}{{ ansible_distribution_major_version }}-like.yml"  # redhat7-like
     - "{{ ansible_distribution | lower }}{{ ansible_distribution_major_version }}.yml"    # debian10
     - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}.yml" # ubuntu-bionic
-    - "{{ libvirt_backend }}.yml"                                                         # qemu
+  loop_control:
+    loop_var: vars_file
+  register: result
+
+- name: Variables
+  ansible.builtin.debug:
+    var: result
+    verbosity: 1
+
+- name: Backends variables
+  ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ vars_file }}.yml"
+        - empty.yml
+      paths:
+        - "{{ role_path }}/vars"
+  loop: "{{ libvirt_backends }}"
   loop_control:
     loop_var: vars_file
   register: result

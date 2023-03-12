@@ -1,9 +1,9 @@
 ---
 - name: Volumes - Refresh the pools
-  ansible.builtin.import_tasks: pools/refresh.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools/refresh.yml"
 
 - name: Volumes - Create
-  ansible.builtin.import_tasks: volumes/create.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/volumes/create.yml"
 
 - name: Volumes - Refresh the pools again
-  ansible.builtin.import_tasks: pools/refresh.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools/refresh.yml"

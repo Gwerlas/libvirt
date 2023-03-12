@@ -1,16 +1,27 @@
 ---
-- name: Pools - Create - Get group informations
+- name: Load variables
+  when: system_wide is undefined
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
+
+- name: Pools - Create - Get informations about the group
   ansible.builtin.command:
-    cmd: "getent group {{ ansible_user_gid }}"
+    cmd: >-
+      getent group {{
+        group |
+        default(system_wide | ternary(
+          grps.libvirt | default('libvirt'),
+          ansible_user_gid
+        ))
+      }}
   changed_when: false
-  register: result
+  register: getent
 
 - name: Default values
   vars:
     owner_name: "{{ system_wide | ternary('root', ansible_user_id) }}"
     owner_id: "{{ system_wide | ternary(0, ansible_user_uid) }}"
-    group_name: "{{ system_wide | ternary(gids[libvirt_backend].name, (result.stdout | split(':'))[0]) }}"
-    group_id: "{{ system_wide | ternary(gids[libvirt_backend].id, (result.stdout | split(':'))[2]) }}"
+    group_name: "{{ (getent.stdout | split(':'))[0] }}"
+    group_id: "{{ (getent.stdout | split(':'))[2] }}"
     mode: "{{ system_wide | ternary('0771', '0711') }}"
   block:
     - name: Pools - Create - Directory

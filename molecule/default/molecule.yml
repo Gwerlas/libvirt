@@ -20,47 +20,77 @@ platforms:
     instance_raw_config_args:
       - 'vm.provision :shell, inline: "pacman -Syu --noconfirm git net-tools python3 sudo unzip which"'
   - name: debian11
+    groups:
+      - debian
     box: debian/bullseye64
     provider_raw_config_args: *raw_config
-  # - name: debian12
-  #   box: debian/testing64
-  #   provider_raw_config_args: *raw_config
-  # - name: el7
-  #   box: centos/7
-  #   provider_raw_config_args: *raw_config
-  # - name: el8
-  #   box: almalinux/8
-  #   memory: 2048
-  #   provider_raw_config_args: *raw_config
-  # - name: el9
-  #   box: almalinux/9
-  #   memory: 2048
-  #   provider_raw_config_args: *raw_config
-  # - name: fedora35
-  #   box: fedora/35-cloud-base
-  #   memory: 2048
-  #   provider_raw_config_args: *raw_config
-  # - name: fedora36
-  #   box: fedora/36-cloud-base
-  #   memory: 2048
-  #   provider_raw_config_args: *raw_config
-  # - name: gentoo
-  #   box: generic/gentoo
-  #   cpus: 4
-  #   memory: 8192
-  #   provider_raw_config_args: *raw_config
-  # - name: ubuntu2110
-  #   box: generic/ubuntu2110
-  #   memory: 2048
-  #   provider_raw_config_args: *raw_config
-  # - name: ubuntu2204
-  #   box: generic/ubuntu2204
-  #   memory: 4096
-  #   provider_raw_config_args: *raw_config
-  # - name: ubuntu2210
-  #   box: generic/ubuntu2210
-  #   memory: 4096
-  #   provider_raw_config_args: *raw_config
+  - name: debian12
+    groups:
+      - debian
+    box: debian/testing64
+    provider_raw_config_args: *raw_config
+  - name: el7
+    groups:
+      - el
+    box: centos/7
+    provider_raw_config_args: *raw_config
+  - name: el8
+    groups:
+      - el
+    box: almalinux/8
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: el9
+    groups:
+      - el
+    box: almalinux/9
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: fedora36
+    groups:
+      - el
+      - fedora
+    box: generic/fedora36
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: fedora37
+    groups:
+      - el
+      - fedora
+    box: generic/fedora37
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: gentoo
+    box: generic/gentoo
+    cpus: 4
+    memory: 8192
+    provider_raw_config_args:
+      - "cpu_mode = 'host-passthrough'"
+      - "nic_model_type = 'virtio'"
+      - "video_type = 'virtio'"
+      - "disk_driver :cache => 'writeback'"
+      - "storage :file, bus: 'virtio', cache: 'writeback'"
+  - name: ubuntu2004
+    groups:
+      - debian
+      - ubuntu
+    box: generic/ubuntu2004
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: ubuntu2204
+    groups:
+      - debian
+      - ubuntu
+    box: generic/ubuntu2204
+    memory: 4096
+    provider_raw_config_args: *raw_config
+  - name: ubuntu2210
+    groups:
+      - debian
+      - ubuntu
+    box: generic/ubuntu2210
+    memory: 4096
+    provider_raw_config_args: *raw_config
 provisioner:
   name: ansible
 verifier:

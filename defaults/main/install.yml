@@ -1,0 +1,10 @@
+---
+libvirt_backends:
+  - qemu
+
+libvirt_install:
+  - daemon
+  - clients
+
+libvirt_users:
+  - "{{ ansible_user_id }}"

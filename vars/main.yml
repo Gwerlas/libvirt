@@ -1,13 +1,10 @@
 ---
 packages_computed: |
   {{
-    (libvirt_install + [libvirt_backend]) |
+    (libvirt_install + libvirt_backends) |
     map('extract', packages) |
     flatten | sort | unique
   }}
-
-services:
-  - libvirtd
 
 volumes_computed:  |
   {{

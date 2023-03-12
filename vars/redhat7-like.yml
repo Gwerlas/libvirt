@@ -1,13 +1,10 @@
 ---
-grps:
-  qemu: qemu
-
 packages:
   daemon:
     - bridge-utils
     - libvirt-daemon
-    - python3-lxml
-    - python3-libvirt
+    - libvirt-python
+    - python-lxml
   clients:
     - libvirt-client
     - virt-install
@@ -16,9 +13,5 @@ packages:
   gnome_boxes:
     - gnome-boxes
   qemu:
-    # - qemu-kvm
-    - libvirt-daemon-kvm
-    - libvirt-daemon-config-network
-    - libvirt-daemon-driver-network
+    - qemu-kvm
     - libvirt-daemon-driver-qemu
-    - libvirt-daemon-driver-storage-core

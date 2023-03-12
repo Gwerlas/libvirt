@@ -2,7 +2,7 @@
 - name: Prepare
   hosts: all
   vars:
-    system_el7_use_epel: true
     system_packages_upgrade: true
+    system_manage_time: false
   roles:
     - role: gwerlas.system

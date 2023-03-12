@@ -9,7 +9,7 @@
     items: "{{ pools }}"
 
 - name: Pools - Create
-  ansible.builtin.include_tasks: pools/create.yml
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/pools/create.yml"
   vars: 
     pools: |
       {{

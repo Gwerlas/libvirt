@@ -3,18 +3,20 @@ argument_specs:
   vars:
     short_description: Export roles variables.
     options:
-      libvirt_backend:
-        description: Virtualization technology to use.
-        type: str
-        default: qemu
+      libvirt_backends:
+        description: Virtualization technologies to support.
+        type: list
+        elements: str
+        default: "[qemu]"
 
   install:
     short_description: Configure node for rootless mode.
     options:
-      libvirt_backend:
-        description: Virtualization technology to install.
-        type: str
-        default: qemu
+      libvirt_backends:
+        description: Virtualization technologies to support.
+        type: list
+        elements: str
+        default: "[qemu]"
       libvirt_install:
         description: Parts of the project to install.
         type: list

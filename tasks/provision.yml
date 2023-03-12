@@ -1,28 +1,28 @@
 ---
 - name: Load variables
   when: system_wide is undefined
-  ansible.builtin.import_tasks: vars.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
 
 - name: Networks
   when: libvirt_networks | length > 0
-  ansible.builtin.import_tasks: networks.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/networks.yml"
   vars:
     networks: "{{ libvirt_networks }}"
 
 - name: Storage pools
   when: libvirt_pools | length > 0
-  ansible.builtin.import_tasks: pools.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools.yml"
   vars:
     pools: "{{ libvirt_pools }}"
 
 - name: Volumes
   when: volumes_computed | length > 0
-  ansible.builtin.import_tasks: volumes.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/volumes.yml"
   vars:
     volumes: "{{ volumes_computed }}"
 
 - name: Domains
   when: libvirt_domains | length > 0
-  ansible.builtin.import_tasks: domains.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/domains.yml"
   vars:
     domains: "{{ libvirt_domains }}"

@@ -10,7 +10,7 @@
   become_user: "{{ username }}"
   block:
     - name: Run task
-      ansible.builtin.include_tasks: "{{ task }}"
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ task }}"
       vars:
         ansible_user_id: "{{ username }}"
         ansible_user_uid: "{{ (user_data.stdout | split(':'))[2] }}"

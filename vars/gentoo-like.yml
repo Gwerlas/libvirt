@@ -1,0 +1,44 @@
+---
+grps:
+  qemu: qemu
+
+flags:
+  daemon:
+    - package: app-emulation/libvirt
+      use:
+        - libvirtd
+        - numa
+        - pcap
+        - policykit
+        - virt-network
+    - package: app-emulation/qemu
+    - package: ">=net-dns/dnsmasq-2.89"
+      use:
+        - script
+  clients:
+    - package: app-emulation/libvirt
+      use:
+        - bash-completion
+  lxc:
+    - package: app-emulation/libvirt
+      use:
+        - fuse
+        - lxc
+  qemu:
+    - package: app-emulation/libvirt
+      use:
+        - qemu
+
+packages:
+  daemon:
+    - app-emulation/libvirt
+    - dev-python/lxml
+  clients:
+    - app-emulation/libvirt
+    - app-emulation/virt-manager
+  virt_manager:
+    - app-emulation/virt-manager
+  gnome_boxes:
+    - gnome-extra/gnome-boxes
+  qemu:
+    - app-emulation/qemu

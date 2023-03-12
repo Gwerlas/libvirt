@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+
+{% set data = (libvirt_install + libvirt_backends) | map('extract', flags) | flatten %}
+{% for pkg in data | map(attribute='package') | sort | unique %}
+{% set use_flags = data | selectattr('package', 'equalto', pkg) | selectattr('use', 'defined') | map(attribute='use') | flatten | sort | unique %}
+{% set softmmu_targets = data | selectattr('package', 'equalto', pkg) | selectattr('softmmu_targets', 'defined') | map(attribute='softmmu_targets') | flatten | sort | unique %}
+{% set user_targets = data | selectattr('package', 'equalto', pkg) | selectattr('user_targets', 'defined') | map(attribute='user_targets') | flatten | sort | unique %}
+{% if (use_flags + softmmu_targets + user_targets) | length > 0 %}
+{{ pkg }} {{ use_flags | join(' ') }}
+{%- if softmmu_targets | length > 0%} QEMU_SOFTMMU_TARGETS: {{ softmmu_targets | join(' ') }}{% endif %}
+{%- if user_targets | length > 0%} QEMU_USER_TARGETS: {{ user_targets | join(' ') }}{% endif %}
+
+{% endif%}
+{% endfor%}

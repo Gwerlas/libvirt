@@ -1,9 +1,9 @@
 ---
 - name: Load variables
-  ansible.builtin.import_tasks: vars.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
 
 - name: Installation
-  ansible.builtin.import_tasks: install.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/install.yml"
 
 - name: Provision the resources
-  ansible.builtin.import_tasks: provision.yml
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/provision.yml"

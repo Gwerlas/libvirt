@@ -3,7 +3,7 @@
   hosts: all
   vars:
     cirros_version: 0.4.0
-    files:
+    cirros_files:
       - file: disk.img
         md5: 443b7623e27ecf03dc9e01ee93f67afe
       - file: initramfs
@@ -26,7 +26,7 @@
             checksum: "md5:{{ item.md5 }}"
             dest: "{{ tmpdir.path }}/{{ item.file }}"
             mode: 0644
-          loop: "{{ files }}"
+          loop: "{{ cirros_files }}"
 
     - name: Tests
       block:
@@ -35,11 +35,20 @@
             src: "{{ tmpdir.path }}/"
             dest: /tmp/cirros/
 
+        - name: Get vars
+          ansible.builtin.import_role:
+            name: gwerlas.libvirt
+            tasks_from: facts
+
         - name: Grant access to libvirt
           ansible.builtin.file:
             path: /tmp/cirros/
-            group: libvirt-qemu
-            mode: 0755
+            group: libvirt
+            mode: "0755"
+            seuser: system_u
+            serole: object_r
+            setype: virt_image_t
+            selevel: s0
 
         - name: Start CirrOS
           ansible.builtin.command:
@@ -47,7 +56,7 @@
               virt-install
                 --connect qemu:///system
                 --name cirros
-                --memory 128
+                --memory 64
                 --vcpus 1
                 --os-variant cirros{{ cirros_version }}
                 --graphics none

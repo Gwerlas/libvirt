@@ -2,12 +2,24 @@
 - name: Run as
   become: true
   block:
+    - name: Qemu - Users - Group
+      ansible.builtin.user:
+        name: "{{ item }}"
+        append: true
+        groups:
+          - "{{ grps.kvm | default('kvm') }}"
+          - "{{ grps.qemu | default('libvirt-qemu') }}"
+      loop: "{{ libvirt_users }}"
+
+    - name: Reset connection to take effect of new grps relationship
+      ansible.builtin.meta: reset_connection
+
     - name: Qemu - Default network
       when: |
         libvirt_active_default_network
         or 
         libvirt_remove_default_network
-      ansible.builtin.import_tasks: ../networks.yml
+      ansible.builtin.import_tasks: "{{ role_path }}/tasks/networks.yml"
       vars:
         libvirt_uri: qemu:///system
         networks:
@@ -22,21 +34,11 @@
                 start: 192.168.122.2
                 end: 192.168.122.254
 
-    - name: Qemu - Users - Group
-      ansible.builtin.user:
-        name: "{{ item }}"
-        append: true
-        groups:
-          - "{{ gids.qemu.name }}"
-      loop: "{{ libvirt_users }}"
-
-    - name: Reset connection to take effect of new groups relationship
-      ansible.builtin.meta: reset_connection
-
     - name: Default pool
-      ansible.builtin.import_tasks: pools.yml
+      ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools.yml"
       vars:
         libvirt_uri: qemu:///system
+        group: "{{ grps.qemu | default('libvirt-qemu') }}"
         pools:
           - name: default
             path: /var/lib/libvirt/images
@@ -45,7 +47,7 @@
       loop: "{{ libvirt_users }}"
       loop_control:
         loop_var: username
-      ansible.builtin.include_tasks: ../run-as.yml
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/run-as.yml"
       vars:
         libvirt_uri: qemu:///session
         task: pools.yml

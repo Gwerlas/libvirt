@@ -1,0 +1,3 @@
+---
+services:
+  - "{{ 'libvirtd.socket' if (system_profile | default('server')) == 'desktop' else 'libvirtd.service' }}"

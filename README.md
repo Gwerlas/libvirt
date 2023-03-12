@@ -39,7 +39,9 @@ Available variables are listed below, along with default values
 (see `defaults/main.yml`):
 
 ```yaml
-libvirt_backend: qemu
+libvirt_backends:
+  - qemu
+
 libvirt_install:
   - daemon
   - clients

@@ -1,9 +1,25 @@
 ---
-- name: Migrate libvirt ressources
-  listen: libvirt system migrate
+- name: Rebuild with new use flags
+  listen:
+    - emerge --deep --newuse
   become: true
-  become_user: "{{ item }}"
-  ansible.builtin.command:
-    cmd: libvirt system migrate
-  changed_when: true
-  with_items: "{{ libvirt_users }}"
+  community.general.portage:
+    package: "{{ packages_computed }}"
+    deep: true
+    newuse: true
+
+- name: Restart libvirt service
+  listen:
+    - emerge --deep --newuse
+  become: true
+  ansible.builtin.service:
+    name: dbus
+    state: restarted
+
+- name: Restart libvirt service
+  listen:
+    - emerge --deep --newuse
+  become: true
+  ansible.builtin.service:
+    name: libvirtd
+    state: restarted
