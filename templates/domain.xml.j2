@@ -11,8 +11,6 @@
 {% endif %}
   <os>
     <type>hvm</type>
-    <boot dev="network"/>
-    <boot dev="hd"/>
   </os>
   <features>
     <acpi/>
@@ -31,20 +29,26 @@
   <on_reboot>restart</on_reboot>
   <on_crash>destroy</on_crash>
   <devices>
-{% for volume in domain.volumes %}
+{% for device in domain.volumes %}
     <disk type="volume" device="disk">
-      <driver name="qemu" type="{{ volume.format | default('qcow2') }}"/>
-      <source pool="{{ volume.pool | default('default') }}" volume="{{ volume.name }}"/>
-      <target dev="{{ volume.device | default('vda') }}" bus="virtio"/>
+      <driver name="qemu" type="{{ device.format | default('qcow2') }}"/>
+      <source pool="{{ device.pool | default('default') }}" volume="{{ device.name }}"/>
+      <target dev="{{ device.device | default('vda') }}" bus="virtio"/>
+{% if 'boot_order' in device %}
+      <boot order="{{ device.boot_order }}"/>
+{% endif %}
     </disk>
 {% endfor %}
     <controller type="pci" index="0" model="pci-root"/>
-{% for network in domain.networks %}
-    <interface type="{{ network.type | default('network')}}">
-{% if 'name' in network %}
-      <source network="{{ network.name }}" />
+{% for device in domain.networks %}
+    <interface type="{{ device.type | default('network')}}">
+{% if 'name' in device %}
+      <source network="{{ device.name }}" />
 {% endif %}
       <model type="virtio"/>
+{% if 'boot_order' in device %}
+      <boot order="{{ device.boot_order }}"/>
+{% endif %}
     </interface>
 {% endfor %}
     <serial type="pty">
