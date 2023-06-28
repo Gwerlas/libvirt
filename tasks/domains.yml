@@ -20,6 +20,15 @@
   loop_control:
     loop_var: domain
 
+- name: Domains - Autostart
+  community.libvirt.virt:
+    name: "{{ domain.name }}"
+    autostart: "{{ domain.autostart | default(true) }}"
+    uri: "{{ libvirt_uri }}"
+  loop: "{{ domains }}"
+  loop_control:
+    loop_var: domain
+
 - name: Domains - Status
   community.libvirt.virt:
     name: "{{ domain.name }}"

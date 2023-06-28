@@ -85,7 +85,6 @@ An exemple of the way to install and configure libvirt on a node :
 
 Provision some resources :
 
-
 ```yaml
 - name: Libvirt
   hosts: all
@@ -123,6 +122,7 @@ Provision some resources :
               dir: /server-export
         libvirt_domains:
           - name: my-node
+            autostart: false
             cpu:
               mode: host-passthrough
               model:

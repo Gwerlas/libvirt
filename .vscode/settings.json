@@ -4,5 +4,6 @@
         ".config/*.yml": "yaml",
         ".gitlab-ci.yml": "yaml",
         "molecule.yml": "yaml"
-    }
+    },
+    "ansible.python.interpreterPath": "/bin/python3"
 }  
