@@ -25,6 +25,9 @@ galaxy_info:
     - name: Fedora
       versions:
         - all
+    - name: Gentoo
+      versions:
+        - all
     - name: Ubuntu
       versions:
         - all

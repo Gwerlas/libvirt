@@ -12,18 +12,29 @@
 - name: Installation
   become: true
   block:
-    - name: Portage configuration
+    - name: Portage specifics tasks
       when: ansible_pkg_mgr == "portage"
-      ansible.builtin.template:
-        src: "{{ folder }}.j2"
-        dest: /etc/portage/{{ folder }}/libvirt
-        group: portage
-        mode: "664"
-      loop:
-        - package.use
-      loop_control:
-        loop_var: folder
-      notify: emerge --deep --newuse
+      block:
+        - name: Build first spice without smartcard
+          when: "'qemu' in libvirt_backends"
+          community.general.portage:
+            package: app-emulation/spice
+            oneshot: true
+
+        - name: Portage configuration
+          ansible.builtin.template:
+            src: "{{ folder }}.j2"
+            dest: /etc/portage/{{ folder }}/libvirt
+            group: portage
+            mode: "664"
+          loop:
+            - package.use
+          loop_control:
+            loop_var: folder
+          notify: emerge --deep --newuse
+        
+        - name: Rebuild packages with new use flags now
+          ansible.builtin.meta: flush_handlers
 
     - name: Packages
       ansible.builtin.package:
@@ -39,7 +50,7 @@
             name: "{{ service }}"
             state: started
             enabled: true
-          loop: "{{ services }}"
+          loop: "{{ services | sort | unique }}"
           loop_control:
             loop_var: service
           register: start_libvirtd

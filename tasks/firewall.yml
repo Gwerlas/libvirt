@@ -1,0 +1,24 @@
+---
+- name: Firewall
+  become: true
+  block:
+    - name: Firewall - Services
+      ansible.posix.firewalld:
+        service: "{{ service }}"
+        state: enabled
+        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        immediate: true
+        permanent: true
+      loop:
+        - libvirt
+        - libvirt-tls
+      loop_control:
+        loop_var: service
+
+    - name: Firewall - TCP ports range for domain migration
+      ansible.posix.firewalld:
+        port: 49152-19215/tcp
+        state: enabled
+        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        immediate: true
+        permanent: true

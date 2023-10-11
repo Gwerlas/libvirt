@@ -19,47 +19,6 @@ platforms:
       - "storage :file, bus: 'virtio', cache: 'writeback'"
     instance_raw_config_args:
       - 'vm.provision :shell, inline: "pacman -Syu --noconfirm git net-tools python3 sudo unzip which"'
-  - name: debian11
-    groups:
-      - debian
-    box: debian/bullseye64
-    provider_raw_config_args: *raw_config
-  - name: debian12
-    groups:
-      - debian
-    box: debian/testing64
-    provider_raw_config_args: *raw_config
-  - name: el7
-    groups:
-      - el
-    box: centos/7
-    provider_raw_config_args: *raw_config
-  - name: el8
-    groups:
-      - el
-    box: almalinux/8
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: el9
-    groups:
-      - el
-    box: almalinux/9
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: fedora36
-    groups:
-      - el
-      - fedora
-    box: generic/fedora36
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: fedora37
-    groups:
-      - el
-      - fedora
-    box: generic/fedora37
-    memory: 2048
-    provider_raw_config_args: *raw_config
   - name: gentoo
     box: generic/gentoo
     cpus: 4
@@ -70,6 +29,18 @@ platforms:
       - "video_type = 'virtio'"
       - "disk_driver :cache => 'writeback'"
       - "storage :file, bus: 'virtio', cache: 'writeback'"
+
+  # Debian like
+  - name: debian11
+    groups:
+      - debian
+    box: debian/bullseye64
+    provider_raw_config_args: *raw_config
+  - name: debian12
+    groups:
+      - debian
+    box: debian/bookworm64
+    provider_raw_config_args: *raw_config
   - name: ubuntu2004
     groups:
       - debian
@@ -90,6 +61,39 @@ platforms:
       - ubuntu
     box: generic/ubuntu2210
     memory: 4096
+    provider_raw_config_args: *raw_config
+
+  # RedHat like
+  - name: centos7
+    groups:
+      - el
+    box: centos/7
+    provider_raw_config_args: *raw_config
+  - name: alma8
+    groups:
+      - el
+    box: almalinux/8
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: alma9
+    groups:
+      - el
+    box: almalinux/9
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: fedora36
+    groups:
+      - el
+      - fedora
+    box: generic/fedora36
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: fedora37
+    groups:
+      - el
+      - fedora
+    box: generic/fedora37
+    memory: 2048
     provider_raw_config_args: *raw_config
 provisioner:
   name: ansible

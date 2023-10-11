@@ -5,5 +5,5 @@
         ".gitlab-ci.yml": "yaml",
         "molecule.yml": "yaml"
     },
-    "ansible.python.interpreterPath": "/bin/python3"
+    "ansible.python.interpreterPath": "/usr/bin/python"
 }  
