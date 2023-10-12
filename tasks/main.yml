@@ -12,6 +12,4 @@
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/firewall.yml"
 
 - name: Provision the resources
-  tags:
-    - provision
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/provision.yml"
