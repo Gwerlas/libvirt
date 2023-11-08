@@ -1,7 +1,0 @@
----
-services:
-  - libvirtd.socket
-  - virtnetworkd.socket
-  - virtstoraged.socket
-  - "{{ 'virtqemud.socket' if 'qemu' in libvirt_backends else 'libvirtd.socket' }}"
-  - "{{ 'virtlxcd.socket' if 'lxc' in libvirt_backends else 'libvirtd.socket' }}"

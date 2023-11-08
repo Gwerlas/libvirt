@@ -1,27 +1,24 @@
 ---
-- name: Load variables
+- name: Packages - Load variables
   when: system_wide is undefined
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
 
-- name: Backend checkup and settings
-  ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ backend }}/checks.yml"
-  loop: "{{ libvirt_backends }}"
-  loop_control:
-    loop_var: backend
-
-- name: Installation
+- name: Packages - Installation
   become: true
   block:
-    - name: Portage specifics tasks
+    - name: Packages - Portage specifics tasks
       when: ansible_pkg_mgr == "portage"
       block:
-        - name: Build first spice without smartcard
+        - name: Packages - Build first spice without smartcard
           when: "'qemu' in libvirt_backends"
           community.general.portage:
             package: app-emulation/spice
             oneshot: true
+          register: result
+          until: result.failed == false
+          retries: "{{ libvirt_retries }}"
 
-        - name: Portage configuration
+        - name: Packages - Portage configuration
           ansible.builtin.template:
             src: "{{ folder }}.j2"
             dest: /etc/portage/{{ folder }}/libvirt
@@ -33,29 +30,25 @@
             loop_var: folder
           notify: emerge --deep --newuse
         
-        - name: Rebuild packages with new use flags now
+        - name: Packages - Rebuild packages with new use flags now
           ansible.builtin.meta: flush_handlers
 
-    - name: Packages
+    - name: Packages - Packages
       ansible.builtin.package:
         name: "{{ packages_computed }}"
+      register: result
+      until: result.failed == false
+      retries: "{{ libvirt_retries }}"
 
-    - name: Server side settings
+    - name: Packages - Server side settings
       when: "'daemon' in libvirt_install"
       vars:
         group: "{{ grps.libvirt | default('libvirt') }}"
       block:
         - name: Services
-          ansible.builtin.service:
-            name: "{{ service }}"
-            state: started
-            enabled: true
-          loop: "{{ services | sort | unique }}"
-          loop_control:
-            loop_var: service
-          register: start_libvirtd
+          ansible.builtin.import_tasks: "{{ role_path }}/tasks/services.yml"
 
-        - name: Users
+        - name: Packages - Users
           when: group | length > 0
           ansible.builtin.user:
             name: "{{ username }}"
@@ -66,11 +59,5 @@
           loop_control:
             loop_var: username
 
-- name: Reset connection to take effect of new grps relationship
+- name: Packages - Reset connection to take effect of new grps relationship
   ansible.builtin.meta: reset_connection
-  
-- name: Backend post installation tasks
-  ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ backend }}/post-install.yml"
-  loop: "{{ libvirt_backends }}"
-  loop_control:
-    loop_var: backend

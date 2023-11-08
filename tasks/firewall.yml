@@ -17,8 +17,19 @@
 
     - name: Firewall - TCP ports range for domain migration
       ansible.posix.firewalld:
-        port: 49152-19215/tcp
+        port: 19215-49152/tcp
         state: enabled
         zone: "{{ libvirt_firewall_zone | default(omit) }}"
         immediate: true
         permanent: true
+
+    - name: Firewall - Backend
+      when: firewall_backend is defined
+      ansible.builtin.lineinfile:
+        path: /etc/firewalld/firewalld.conf
+        line: FirewallBackend={{ firewall_backend }}
+        regexp: FirewallBackend=
+      notify: Restart firewalld service
+
+- name: Firewall - Flush handlers
+  ansible.builtin.meta: flush_handlers

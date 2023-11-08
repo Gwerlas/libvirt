@@ -1,0 +1,51 @@
+---
+- name: Services - Enable and start
+  when: ansible_service_mgr != 'systemd'
+  become: true
+  ansible.builtin.service:
+    name: "{{ service }}"
+    state: started
+    enabled: true
+  loop:
+    - dbus
+    - libvirtd
+  loop_control:
+    loop_var: service
+
+- name: Services - Systemd
+  when: ansible_service_mgr == 'systemd'
+  block:
+    - name: Services - Get the libvirtd version
+      environment:
+        PATH: /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/bin:/sbin
+      ansible.builtin.command:
+        cmd: libvirtd -V
+      changed_when: false
+      register: result
+
+    - name: Services - Register the libvirtd version
+      ansible.builtin.set_fact:
+        libvirtd_version: "{{ result.stdout | split(' ') | last }}"
+
+    - name: Services - Systemd legacy
+      when:
+        - libvirtd_version is version('5.6.0', '<')
+      ansible.builtin.systemd:
+        name: libvirtd.service
+        state: started
+        enabled: true
+
+    - name: Services - Systemd
+      when:
+        - libvirtd_version is version('5.6.0', '>=')
+      ansible.builtin.systemd:
+        name: "{{ socket }}"
+        state: started
+        enabled: true
+      loop:
+        - libvirt-guests.service
+        - libvirtd.socket
+        - virtlockd.socket
+        - virtlogd.socket
+      loop_control:
+        loop_var: socket

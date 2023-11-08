@@ -47,7 +47,7 @@ flags:
     - package: app-emulation/libvirt
       use:
         - qemu
-  virt_manager:
+  virt-manager:
     - package: net-misc/spice-gtk
       use:
         - usbredir
@@ -59,7 +59,7 @@ packages:
   clients:
     - app-emulation/libvirt
     - app-emulation/virt-manager
-  "virt_manager":
+  "virt-manager":
     - app-emulation/virt-manager
   "gnome-boxes":
     - gnome-extra/gnome-boxes

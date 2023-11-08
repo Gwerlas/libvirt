@@ -11,7 +11,7 @@ packages:
   clients:
     - libvirt-client
     - virt-install
-  "virt_manager":
+  "virt-manager":
     - virt-manager
   "gnome-boxes":
     - gnome-boxes

@@ -5,13 +5,16 @@ packages:
     - dnsmasq
     - libvirt
     - libvirt-python
+    - openbsd-netcat
     - python-lxml
   clients:
     - libvirt
     - virt-install
-  "virt_manager":
+  virt-manager:
     - virt-manager
-  "gnome-boxes":
+  gnome-boxes:
     - gnome-boxes
   qemu:
     - qemu-base
+
+firewall_backend: iptables
