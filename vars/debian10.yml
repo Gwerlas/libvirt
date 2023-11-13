@@ -14,9 +14,6 @@ packages:
     - virt-manager
   gnome-boxes:
     - gnome-boxes
-  qemu:
-    - qemu-kvm
+  qemu:   # qemu-system-x86 breaks qemu-kvm
     - qemu-system
     - qemu-utils
-
-firewall_backend: iptables

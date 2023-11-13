@@ -1,7 +1,6 @@
 ---
 dependency:
   name: galaxy
-lint: ansible-lint
 driver:
   name: vagrant
   provider:
@@ -18,48 +17,7 @@ platforms:
       - "disk_driver :cache => 'writeback'"
       - "storage :file, bus: 'virtio', cache: 'writeback'"
     instance_raw_config_args:
-      - 'vm.provision :shell, inline: "pacman -Syu --noconfirm git net-tools python3 sudo unzip which"'
-  - name: debian11
-    groups:
-      - debian
-    box: debian/bullseye64
-    provider_raw_config_args: *raw_config
-  - name: debian12
-    groups:
-      - debian
-    box: debian/testing64
-    provider_raw_config_args: *raw_config
-  - name: el7
-    groups:
-      - el
-    box: centos/7
-    provider_raw_config_args: *raw_config
-  - name: el8
-    groups:
-      - el
-    box: almalinux/8
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: el9
-    groups:
-      - el
-    box: almalinux/9
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: fedora36
-    groups:
-      - el
-      - fedora
-    box: generic/fedora36
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: fedora37
-    groups:
-      - el
-      - fedora
-    box: generic/fedora37
-    memory: 2048
-    provider_raw_config_args: *raw_config
+      - 'vm.provision :shell, inline: "pacman -Sy --noconfirm git net-tools python3 sudo unzip which"'
   - name: gentoo
     box: generic/gentoo
     cpus: 4
@@ -70,27 +28,55 @@ platforms:
       - "video_type = 'virtio'"
       - "disk_driver :cache => 'writeback'"
       - "storage :file, bus: 'virtio', cache: 'writeback'"
+
+  # Debian like
+  - name: debian10
+    box: debian/buster64
+    provider_raw_config_args: *raw_config
+  - name: debian11
+    box: debian/bullseye64
+    provider_raw_config_args: *raw_config
+  - name: debian12
+    box: debian/bookworm64
+    provider_raw_config_args: *raw_config
+  - name: ubuntu1804
+    box: generic/ubuntu1804
+    memory: 2048
+    provider_raw_config_args: *raw_config
   - name: ubuntu2004
-    groups:
-      - debian
-      - ubuntu
     box: generic/ubuntu2004
     memory: 2048
     provider_raw_config_args: *raw_config
   - name: ubuntu2204
-    groups:
-      - debian
-      - ubuntu
     box: generic/ubuntu2204
-    memory: 4096
+    memory: 2048
     provider_raw_config_args: *raw_config
-  - name: ubuntu2210
-    groups:
-      - debian
-      - ubuntu
-    box: generic/ubuntu2210
-    memory: 4096
+  - name: ubuntu2304
+    box: generic/ubuntu2304
+    memory: 2048
     provider_raw_config_args: *raw_config
+
+  # RedHat like
+  - name: centos7
+    box: centos/7
+    provider_raw_config_args: *raw_config
+  - name: centos8s
+    box: generic/centos8s
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: centos9s
+    box: generic/centos9s
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: alma8
+    box: almalinux/8
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: alma9
+    box: almalinux/9
+    memory: 2048
+    provider_raw_config_args: *raw_config
+lint: ansible-lint
 provisioner:
   name: ansible
 verifier:

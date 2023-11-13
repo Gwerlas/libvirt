@@ -1,0 +1,63 @@
+---
+- name: Packages - Load variables
+  when: system_wide is undefined
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
+
+- name: Packages - Installation
+  become: true
+  block:
+    - name: Packages - Portage specifics tasks
+      when: ansible_pkg_mgr == "portage"
+      block:
+        - name: Packages - Build first spice without smartcard
+          when: "'qemu' in libvirt_backends"
+          community.general.portage:
+            package: app-emulation/spice
+            oneshot: true
+          register: result
+          until: result.failed == false
+          retries: "{{ libvirt_retries }}"
+
+        - name: Packages - Portage configuration
+          ansible.builtin.template:
+            src: "{{ folder }}.j2"
+            dest: /etc/portage/{{ folder }}/libvirt
+            group: portage
+            mode: "664"
+          loop:
+            - package.use
+          loop_control:
+            loop_var: folder
+          notify: emerge --deep --newuse
+        
+        - name: Packages - Rebuild packages with new use flags now
+          ansible.builtin.meta: flush_handlers
+
+    - name: Packages - Packages
+      ansible.builtin.package:
+        name: "{{ packages_computed }}"
+      register: result
+      until: result.failed == false
+      retries: "{{ libvirt_retries }}"
+
+    - name: Packages - Server side settings
+      when: "'daemon' in libvirt_install"
+      vars:
+        group: "{{ grps.libvirt | default('libvirt') }}"
+      block:
+        - name: Services
+          ansible.builtin.import_tasks: "{{ role_path }}/tasks/services.yml"
+
+        - name: Packages - Users
+          when: group | length > 0
+          ansible.builtin.user:
+            name: "{{ username }}"
+            append: true
+            groups:
+              - "{{ group }}"
+          loop: "{{ libvirt_users }}"
+          loop_control:
+            loop_var: username
+
+- name: Packages - Reset connection to take effect of new grps relationship
+  ansible.builtin.meta: reset_connection

@@ -2,8 +2,26 @@
 - name: Load variables
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
 
-- name: Installation
-  ansible.builtin.import_tasks: "{{ role_path }}/tasks/install.yml"
+- name: Checks
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ backend }}/checks.yml"
+  loop: "{{ libvirt_backends }}"
+  loop_control:
+    loop_var: backend
+
+- name: Packages
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/packages.yml"
+
+- name: Firewalling
+  when: libvirt_manage_firewall
+  tags:
+    - firewall
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/firewall.yml"
+  
+- name: Backends
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ backend }}/post-install.yml"
+  loop: "{{ libvirt_backends }}"
+  loop_control:
+    loop_var: backend
 
 - name: Provision the resources
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/provision.yml"

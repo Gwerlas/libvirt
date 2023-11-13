@@ -8,7 +8,7 @@
     deep: true
     newuse: true
 
-- name: Restart libvirt service
+- name: Restart dbus service
   listen:
     - emerge --deep --newuse
   become: true
@@ -22,4 +22,10 @@
   become: true
   ansible.builtin.service:
     name: libvirtd
+    state: restarted
+
+- name: Restart firewalld service
+  become: true
+  ansible.builtin.service:
+    name: firewalld
     state: restarted

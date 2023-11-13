@@ -17,12 +17,6 @@
     - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}.yml" # ubuntu-bionic
   loop_control:
     loop_var: vars_file
-  register: result
-
-- name: Variables
-  ansible.builtin.debug:
-    var: result
-    verbosity: 1
 
 - name: Backends variables
   ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
@@ -36,12 +30,6 @@
   loop: "{{ libvirt_backends }}"
   loop_control:
     loop_var: vars_file
-  register: result
-
-- name: Variables
-  ansible.builtin.debug:
-    var: result
-    verbosity: 1
 
 - name: Facts
   ansible.builtin.set_fact:

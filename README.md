@@ -36,34 +36,7 @@ Role Variables
 --------------
 
 Available variables are listed below, along with default values
-(see `defaults/main.yml`):
-
-```yaml
-libvirt_backends:
-  - qemu
-
-libvirt_install:
-  - daemon
-  - clients
-
-libvirt_default_keymap: en-us
-libvirt_default_cpu:
-  mode: host-model
-
-libvirt_users:
-  - "{{ ansible_user_id }}"
-
-libvirt_uri: qemu:///system
-
-# Resources to provision
-libvirt_pools: []
-libvirt_volumes: []
-libvirt_networks: []
-libvirt_domains: []
-
-libvirt_active_default_network: "{{ not libvirt_remove_default_network }}"
-libvirt_remove_default_network: false
-```
+(see `defaults/main/*.yml`):
 
 Dependencies
 ------------
@@ -148,7 +121,7 @@ Facts
 After the libvirt installation, the `libvirt_packages` fact is set with list of
 installed packages.
 
-You can get the facts only, without changes on your nodes :
+You can get the facts only, without doing any changes on your nodes :
 
 ```yaml
 - name: My playbook
