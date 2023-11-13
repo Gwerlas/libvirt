@@ -6,19 +6,38 @@ flags:
   daemon:
     - package: app-emulation/libvirt
       use:
+        - "{{ libvirt_manage_firewall | ternary('firewalld', omit) }}"
         - libvirtd
         - numa
         - pcap
         - policykit
         - virt-network
     - package: app-emulation/qemu
-    - package: ">=net-dns/dnsmasq-2.89"
+    - package: net-dns/dnsmasq
       use:
         - script
   clients:
     - package: app-emulation/libvirt
       use:
         - bash-completion
+    - package: net-libs/gnutls
+      use:
+        - pkcs11
+        - tools
+  gnome-boxes:
+    - package: app-emulation/spice
+      use:
+        - smartcard
+    - package: net-misc/spice-gtk
+      use:
+        - smartcard
+        - usbredir
+    - package: app-emulation/qemu
+      use:
+        - smartcard
+        - spice
+        - usbredir
+        - virgl
   lxc:
     - package: app-emulation/libvirt
       use:
@@ -28,6 +47,10 @@ flags:
     - package: app-emulation/libvirt
       use:
         - qemu
+  virt-manager:
+    - package: net-misc/spice-gtk
+      use:
+        - usbredir
 
 packages:
   daemon:
@@ -36,9 +59,9 @@ packages:
   clients:
     - app-emulation/libvirt
     - app-emulation/virt-manager
-  virt_manager:
+  "virt-manager":
     - app-emulation/virt-manager
-  gnome_boxes:
+  "gnome-boxes":
     - gnome-extra/gnome-boxes
   qemu:
     - app-emulation/qemu

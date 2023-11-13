@@ -1,0 +1,42 @@
+---
+- name: Firewall
+  become: true
+  block:
+    - name: Firewall - Services
+      ansible.posix.firewalld:
+        service: "{{ service }}"
+        state: enabled
+        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        immediate: true
+        permanent: true
+      loop:
+        - libvirt
+        - libvirt-tls
+      loop_control:
+        loop_var: service
+
+    - name: Firewall - TCP ports range for domain migration
+      ansible.posix.firewalld:
+        port: 19215-49152/tcp
+        state: enabled
+        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        immediate: true
+        permanent: true
+
+    - name: Firewall - Backend
+      when: firewall_backend is defined
+      block:
+        - name: Firewall - Backend - Packages
+          ansible.builtin.package:
+            name: "{{ firewall_backend }}"
+            state: present
+
+        - name: Firewall - Backend - Firewalld configuration
+          ansible.builtin.lineinfile:
+            path: /etc/firewalld/firewalld.conf
+            line: FirewallBackend={{ firewall_backend }}
+            regexp: FirewallBackend=
+          notify: Restart firewalld service
+
+- name: Firewall - Flush handlers
+  ansible.builtin.meta: flush_handlers

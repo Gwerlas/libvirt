@@ -6,5 +6,7 @@ libvirt_install:
   - daemon
   - clients
 
+libvirt_retries: "{{ system_retries | default(2) }}"
+
 libvirt_users:
   - "{{ ansible_user_id }}"
