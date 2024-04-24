@@ -15,18 +15,14 @@
   vars:
     pools: "{{ libvirt_pools }}"
 
-- name: Provision resources
-  tags:
-    - provision
-  block:
-    - name: Volumes
-      when: volumes_computed | length > 0
-      ansible.builtin.import_tasks: "{{ role_path }}/tasks/volumes.yml"
-      vars:
-        volumes: "{{ volumes_computed }}"
+- name: Volumes
+  when: volumes_computed | length > 0
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/volumes.yml"
+  vars:
+    volumes: "{{ volumes_computed }}"
 
-    - name: Domains
-      when: libvirt_domains | length > 0
-      ansible.builtin.import_tasks: "{{ role_path }}/tasks/domains.yml"
-      vars:
-        domains: "{{ libvirt_domains }}"
+- name: Domains
+  when: libvirt_domains | length > 0
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/domains.yml"
+  vars:
+    domains: "{{ libvirt_domains }}"

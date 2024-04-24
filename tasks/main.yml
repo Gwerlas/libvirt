@@ -24,4 +24,6 @@
     loop_var: backend
 
 - name: Provision the resources
+  tags:
+    - provision
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/provision.yml"

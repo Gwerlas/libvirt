@@ -32,6 +32,36 @@ ansible-galaxy install gwerlas.system
     - role: gwerlas.libvirt
 ```
 
+Facts
+-----
+
+Defined facts of this role :
+
+- `libvirt_packages`
+
+You can get the facts only, without doing any changes on your nodes :
+
+```yaml
+- name: My playbook
+  hosts: all
+  tasks:
+    - name: Get facts
+      ansible.builtin.import_role:
+        name: gwerlas.libvirt
+        tasks_from: facts
+
+    - name: Display
+      ansible.builtin.debug:
+        var: libvirt_packages
+```
+
+Tags
+----
+
+You can filter on some specific tasks using this tags :
+
+- `provision` : Provision resources only
+
 Role Variables
 --------------
 
@@ -113,28 +143,6 @@ Provision some resources :
                 size: 200G
                 device: vdb
                 pool: data-dir
-```
-
-Facts
------
-
-After the libvirt installation, the `libvirt_packages` fact is set with list of
-installed packages.
-
-You can get the facts only, without doing any changes on your nodes :
-
-```yaml
-- name: My playbook
-  hosts: all
-  tasks:
-    - name: Get facts
-      ansible.builtin.import_role:
-        name: gwerlas.libvirt
-        tasks_from: vars
-
-    - name: Display
-      ansible.builtin.debug:
-        var: libvirt_packages
 ```
 
 License
