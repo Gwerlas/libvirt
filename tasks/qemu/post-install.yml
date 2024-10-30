@@ -3,6 +3,8 @@
   become: true
   block:
     - name: Qemu - Users - Group
+      tags:
+        - users
       ansible.builtin.user:
         name: "{{ item }}"
         append: true
@@ -44,6 +46,8 @@
             path: /var/lib/libvirt/images
 
     - name: Qemu - Users - Default pool
+      tags:
+        - users
       loop: "{{ libvirt_users }}"
       loop_control:
         loop_var: username

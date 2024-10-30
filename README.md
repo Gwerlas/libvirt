@@ -61,6 +61,7 @@ Tags
 You can filter on some specific tasks using this tags :
 
 - `provision` : Provision resources only
+- `users` : Set users environment and permissions
 
 Role Variables
 --------------

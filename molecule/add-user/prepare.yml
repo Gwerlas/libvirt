@@ -1,0 +1,8 @@
+---
+- name: Provision libvirt with any users allowed to use it
+  hosts: all
+  roles:
+    - role: gwerlas.system
+    - role: gwerlas.libvirt
+      vars:
+        libvirt_users: []

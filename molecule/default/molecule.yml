@@ -30,57 +30,69 @@ platforms:
       - "storage :file, bus: 'virtio', cache: 'writeback'"
 
   # Debian like
-  - name: debian10
-    box: debian/buster64
-    provider_raw_config_args: *raw_config
-  - name: debian11
+  - name: bullseye  # EOL 2026-08-31
     box: debian/bullseye64
+    groups:
+      - debian_like
+      - debian
     provider_raw_config_args: *raw_config
-  - name: debian12
+  - name: bookworm
     box: debian/bookworm64
+    groups:
+      - debian_like
+      - debian
     provider_raw_config_args: *raw_config
-  - name: ubuntu1804
-    box: generic/ubuntu1804
+  - name: trixie
+    box: debian/testing64
+    groups:
+      - debian_like
+      - debian
     provider_raw_config_args: *raw_config
-  - name: ubuntu2004
-    box: generic/ubuntu2004
+  - name: focal                              # EOL 2025-04-02
+    box: cloud-image/ubuntu-20.04
+    groups:
+      - debian_like
+      - ubuntu
     memory: 2048
     provider_raw_config_args: *raw_config
-  - name: ubuntu2204
-    box: generic/ubuntu2204
+  - name: jammy
+    box: cloud-image/ubuntu-22.04
+    groups:
+      - debian_like
+      - ubuntu
     memory: 2048
     provider_raw_config_args: *raw_config
-  - name: ubuntu2310
-    box: generic/ubuntu2310
+  - name: noble
+    box: cloud-image/ubuntu-24.04
+    groups:
+      - debian_like
+      - ubuntu
     memory: 2048
     provider_raw_config_args: *raw_config
 
   # RedHat like
-  - name: centos7
-    box: centos/7
-    provider_raw_config_args: *raw_config
-  - name: centos8s
-    box: generic/centos8s
-    memory: 2048
-    provider_raw_config_args: *raw_config
   - name: centos9s
-    box: generic/centos9s
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: alma8
-    box: almalinux/8
+    box: centos/stream9
+    groups:
+      - redhat_like
     memory: 2048
     provider_raw_config_args: *raw_config
   - name: alma9
     box: almalinux/9
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: fedora38
-    box: fedora/38-cloud-base
+    groups:
+      - redhat_like
     memory: 2048
     provider_raw_config_args: *raw_config
   - name: fedora39
     box: fedora/39-cloud-base
+    groups:
+      - redhat_like
+    memory: 2048
+    provider_raw_config_args: *raw_config
+  - name: fedora40
+    box: fedora/40-cloud-base
+    groups:
+      - redhat_like
     memory: 2048
     provider_raw_config_args: *raw_config
 lint: ansible-lint

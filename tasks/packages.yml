@@ -50,6 +50,8 @@
 
         - name: Packages - Users
           when: group | length > 0
+          tags:
+            - users
           ansible.builtin.user:
             name: "{{ username }}"
             append: true
