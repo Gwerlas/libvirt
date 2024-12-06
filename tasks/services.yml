@@ -20,8 +20,9 @@
         PATH: /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/bin:/sbin
       ansible.builtin.command:
         cmd: libvirtd -V
-      changed_when: false
       register: result
+      changed_when: false
+      check_mode: false
 
     - name: Services - Register the libvirtd version
       ansible.builtin.set_fact:

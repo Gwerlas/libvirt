@@ -2,8 +2,9 @@
 - name: Run as - Get user informations
   ansible.builtin.command:
     cmd: "getent passwd {{ username }}"
-  changed_when: false
   register: user_data
+  changed_when: false
+  check_mode: false
     
 - name: Run as
   become: true

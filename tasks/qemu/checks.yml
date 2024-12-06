@@ -3,3 +3,4 @@
   ansible.builtin.command:
     cmd: grep -E 'vmx|svm' /proc/cpuinfo
   changed_when: false
+  check_mode: false

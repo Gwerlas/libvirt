@@ -13,8 +13,9 @@
           ansible_user_gid
         ))
       }}
-  changed_when: false
   register: getent
+  changed_when: false
+  check_mode: false
 
 - name: Default values
   vars:

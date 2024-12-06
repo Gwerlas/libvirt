@@ -4,6 +4,7 @@
     command: list_vms
     uri: "{{ libvirt_uri }}"
   register: result
+  check_mode: false
 
 - name: Domains - Create domain
   community.libvirt.virt:
