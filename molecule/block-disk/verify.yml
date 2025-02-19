@@ -1,0 +1,24 @@
+---
+- name: Verify VMs
+  hosts: all
+  gather_facts: false
+  vars:
+    domain: my-node
+    libvirt_uri: qemu:///system
+  tasks:
+    - name: Get informations
+      community.libvirt.virt:
+        command: info
+        uri: "{{ libvirt_uri }}"
+        name: "{{ domain }}"
+      register: get_info
+    - name: "List block devices of VM with virsh"
+      ansible.builtin.command: "virsh -c {{ libvirt_uri }} domblklist {{ domain }} --details"
+      register: get_domain_block_disk
+      changed_when: false
+    - name: Domain tests
+      ansible.builtin.assert:
+        that:
+          - "domain in get_info"
+          - get_info[domain].state == "running"
+          - get_domain_block_disk.stdout_lines | select('search', 'block.*\\/dev\\/vdb')
