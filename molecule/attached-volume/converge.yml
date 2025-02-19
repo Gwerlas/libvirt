@@ -1,0 +1,19 @@
+---
+- name: Attach a volume to a domain
+  hosts: all
+  roles:
+    - role: gwerlas.libvirt
+      vars:
+        libvirt_domains:
+          - name: my-node
+            type: qemu
+            memory: 128M
+            cpu:
+              mode: custom
+            disks:
+              - name: os
+              - name: data
+                size: 2G
+                target: vdb
+            networks:
+              - type: user

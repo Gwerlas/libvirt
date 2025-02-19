@@ -3,6 +3,9 @@
   hosts: all
   roles:
     - role: gwerlas.system
+      vars:
+        system_packages_upgrade: true
+
     - role: gwerlas.libvirt
       vars:
         libvirt_users: []

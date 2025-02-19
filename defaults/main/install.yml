@@ -10,3 +10,19 @@ libvirt_retries: "{{ system_retries | default(2) }}"
 
 libvirt_users:
   - "{{ ansible_user_id }}"
+
+# https://wiki.libvirt.org/Virtual_network_default_has_not_been_started.html
+#
+# Supported values :
+#  - auto : Let the role manage ('bind' for Debian bookworm, 'none' otherwise)
+#  - bind : Set dnsmasq to bind the default interface
+#  - disable : Disable dnsmasq (may cause breakages)
+#  - none : Do nothing
+libvirt_dnsmasq_management_method: auto
+
+# In case of libvirt_dnsmasq_management_method == bind
+#
+# Set dnsmasq to listen of this kind of interfaces
+libvirt_dnsmasq_interface_types:
+  - bonding
+  - ether

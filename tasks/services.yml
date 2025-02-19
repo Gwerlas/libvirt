@@ -1,4 +1,41 @@
 ---
+- name: Services - DNSMasq
+  when: dnsmasq_management_method == 'disable'
+  become: true
+  ansible.builtin.service:
+    name: dnsmasq
+    state: stopped
+    enabled: false
+
+- name: Services - DNSMasq
+  when: dnsmasq_management_method == 'bind'
+  become: true
+  notify: Restart dnsmasq service
+  block:
+    - name: Services - DNSMasq bind interfaces
+      ansible.builtin.lineinfile:
+        path: /etc/dnsmasq.conf
+        line: bind-interfaces
+        regexp: '^#?bind-interfaces'
+        mode: "0644"
+       
+    - name: Services - DNSMasq ethernet interfaces
+      ansible.builtin.lineinfile:
+        path: /etc/dnsmasq.conf
+        line: interface={{ interface }}
+        insertafter: '^#?interface='
+        mode: "0644"
+      loop: |
+        {{
+          ansible_interfaces |
+          reject('search', '^vnet') |
+          map('extract', ansible_facts) |
+          selectattr('type', 'in', libvirt_dnsmasq_interface_types) |
+          map(attribute='device')
+        }}
+      loop_control:
+        loop_var: interface
+
 - name: Services - Enable and start
   when: ansible_service_mgr != 'systemd'
   become: true

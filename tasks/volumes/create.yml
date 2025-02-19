@@ -1,5 +1,4 @@
 ---
-
 - name: Volumes - Create
   vars:
     pool: "{{ ansible_libvirt_pools[volume.pool | default('default')] }}"

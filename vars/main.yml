@@ -17,3 +17,15 @@ volumes_computed:  |
     (disks_computed | selectattr('type', 'undefined'))
   + (disks_computed | selectattr('type', 'defined') | selectattr('type', '==', 'volume'))
   }}
+
+# Netowrking
+default_dnsmasq_management_method: none
+
+dnsmasq_management_method: |-
+  {{
+    (libvirt_dnsmasq_management_method == "auto") |
+    ternary(
+      default_dnsmasq_management_method,
+      libvirt_dnsmasq_management_method
+    )
+  }}
