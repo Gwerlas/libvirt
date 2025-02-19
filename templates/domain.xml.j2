@@ -29,13 +29,19 @@
   <on_reboot>restart</on_reboot>
   <on_crash>destroy</on_crash>
   <devices>
-{% for device in domain.volumes %}
-    <disk type="volume" device="disk">
-      <driver name="qemu" type="{{ device.format | default('qcow2') }}"/>
-      <source pool="{{ device.pool | default('default') }}" volume="{{ device.name }}"/>
-      <target dev="{{ device.device | default('vda') }}" bus="virtio"/>
-{% if 'boot_order' in device %}
-      <boot order="{{ device.boot_order }}"/>
+
+{% for disk in domain.disks %}
+{% set type = disk.type | default('volume') %}
+    <disk type="{{ type }}" device="disk">
+      <driver name="qemu" type="{{ disk.format | default('qcow2') }}"/>
+{% if type == "volume" %}
+      <source pool="{{ disk.pool | default('default') }}" volume="{{ disk.name }}"/>
+{% elif type == "block" %}
+      <source dev="{{ disk.source }}"/>
+{% endif %}
+      <target dev="{{ disk.target | default('vda') }}" bus="virtio"/>
+{% if 'boot_order' in disk %}
+      <boot order="{{ disk.boot_order }}"/>
 {% endif %}
     </disk>
 {% endfor %}

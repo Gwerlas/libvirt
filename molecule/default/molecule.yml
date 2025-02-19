@@ -36,6 +36,8 @@ platforms:
       - debian_like
       - debian
     provider_raw_config_args: *raw_config
+    instance_raw_config_args:
+      - 'vm.provision :shell, inline: "apt update; apt remove --assume-yes --purge apparmor"'
   - name: bookworm
     box: debian/bookworm64
     groups:

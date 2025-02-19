@@ -1,15 +1,9 @@
 ---
-- name: Qemu domains on user session
+- name: Converge
   hosts: all
   roles:
     - role: gwerlas.libvirt
       vars:
-        libvirt_uri: qemu:///session
-
-        libvirt_pools:
-          - name: data-dir
-            path: /home/vagrant/images
-
         libvirt_domains:
           - name: my-node
             type: qemu
@@ -19,8 +13,9 @@
             disks:
               - name: os
               - name: data
-                size: 2G
+                format: raw
+                source: /dev/vdb
                 target: vdb
-                pool: data-dir
+                type: block
             networks:
-              - type: user
+              - name: default

@@ -6,8 +6,14 @@ packages_computed: |
     flatten | sort | unique
   }}
 
-volumes_computed:  |
+disks_computed: |
   {{
     libvirt_volumes
-  + (libvirt_domains | map(attribute='volumes') | flatten)
+  + (libvirt_domains | map(attribute='disks') | flatten)
+  }}
+
+volumes_computed:  |
+  {{
+    (disks_computed | selectattr('type', 'undefined'))
+  + (disks_computed | selectattr('type', 'defined') | selectattr('type', '==', 'volume'))
   }}

@@ -138,13 +138,25 @@ Provision some resources :
             vcpu:
               placement: static
               quantity: 2
-            volumes:
+            disks:
               - name: os
               - name: data
                 size: 200G
-                device: vdb
+                target: vdb
                 pool: data-dir
+              - name: data-2
+                format: raw
+                source: /dev/vdb
+                target: vdb
+                type: block
 ```
+
+Limitations
+-----------
+
+### Add physical disk to domain
+
+It's only possible to add physical disk to domain in `qemu:///system` connection
 
 License
 -------
