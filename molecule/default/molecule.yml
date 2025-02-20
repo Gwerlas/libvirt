@@ -19,7 +19,7 @@ platforms:
     instance_raw_config_args:
       - 'vm.provision :shell, inline: "pacman -Sy --noconfirm git net-tools python3 sudo unzip which"'
   - name: gentoo
-    box: generic/gentoo
+    box: generic-x64/gentoo
     cpus: 4
     memory: 8192
     provider_raw_config_args:
@@ -36,7 +36,7 @@ platforms:
       - debian_like
       - debian
     provider_raw_config_args: *raw_config
-    instance_raw_config_args:
+    instance_raw_config_args: &debian_raw_config_args
       - 'vm.provision :shell, inline: "apt update; apt remove --assume-yes --purge apparmor"'
   - name: bookworm
     box: debian/bookworm64
@@ -44,12 +44,7 @@ platforms:
       - debian_like
       - debian
     provider_raw_config_args: *raw_config
-  - name: trixie
-    box: debian/testing64
-    groups:
-      - debian_like
-      - debian
-    provider_raw_config_args: *raw_config
+    instance_raw_config_args: *debian_raw_config_args
   - name: focal                              # EOL 2025-04-02
     box: cloud-image/ubuntu-20.04
     groups:
@@ -57,6 +52,7 @@ platforms:
       - ubuntu
     memory: 2048
     provider_raw_config_args: *raw_config
+    instance_raw_config_args: *debian_raw_config_args
   - name: jammy
     box: cloud-image/ubuntu-22.04
     groups:
@@ -64,6 +60,7 @@ platforms:
       - ubuntu
     memory: 2048
     provider_raw_config_args: *raw_config
+    instance_raw_config_args: *debian_raw_config_args
   - name: noble
     box: cloud-image/ubuntu-24.04
     groups:
@@ -71,22 +68,17 @@ platforms:
       - ubuntu
     memory: 2048
     provider_raw_config_args: *raw_config
+    instance_raw_config_args: *debian_raw_config_args
 
   # RedHat like
   - name: centos9s
-    box: centos/stream9
+    box: generic-x64/centos9s
     groups:
       - redhat_like
     memory: 2048
     provider_raw_config_args: *raw_config
   - name: alma9
-    box: almalinux/9
-    groups:
-      - redhat_like
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: fedora39
-    box: fedora/39-cloud-base
+    box: generic-x64/alma9
     groups:
       - redhat_like
     memory: 2048
@@ -97,7 +89,12 @@ platforms:
       - redhat_like
     memory: 2048
     provider_raw_config_args: *raw_config
-lint: ansible-lint
+  - name: fedora41
+    box: fedora/41-cloud-base
+    groups:
+      - redhat_like
+    memory: 2048
+    provider_raw_config_args: *raw_config
 provisioner:
   name: ansible
 verifier:

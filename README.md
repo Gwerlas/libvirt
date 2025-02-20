@@ -16,7 +16,6 @@ The Linux base system configured with :
 - Python (for Ansible)
 - Sudo
 - Package manager ready to use
-- EPEL installed for EL7 distros
 
 The `gwerlas.system` role can help You :
 

@@ -8,6 +8,14 @@
     deep: true
     newuse: true
 
+- name: Restart dnsmasq service
+  listen:
+    - restart dnsmasq
+  become: true
+  ansible.builtin.service:
+    name: dnsmasq
+    state: restarted
+
 - name: Restart dbus service
   listen:
     - emerge --deep --newuse

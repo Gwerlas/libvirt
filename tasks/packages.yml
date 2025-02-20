@@ -8,6 +8,8 @@
   block:
     - name: Packages - Portage specifics tasks
       when: ansible_pkg_mgr == "portage"
+      tags:
+        - packages
       block:
         - name: Packages - Build first spice without smartcard
           when: "'qemu' in libvirt_backends"
@@ -34,6 +36,8 @@
           ansible.builtin.meta: flush_handlers
 
     - name: Packages - Packages
+      tags:
+        - packages
       ansible.builtin.package:
         name: "{{ packages_computed }}"
       register: result
@@ -60,6 +64,9 @@
           loop: "{{ libvirt_users }}"
           loop_control:
             loop_var: username
+
+- name: Packages - Flush handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: Packages - Reset connection to take effect of new grps relationship
   ansible.builtin.meta: reset_connection

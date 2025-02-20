@@ -15,10 +15,11 @@ galaxy_info:
         - all
     - name: Debian
       versions:
-        - all
+        - bullseye
+        - bookworm
     - name: EL
       versions:
-        - all
+        - "9"
     - name: Fedora
       versions:
         - all

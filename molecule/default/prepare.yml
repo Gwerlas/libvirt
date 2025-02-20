@@ -1,5 +1,7 @@
 ---
 - name: Prepare
   hosts: all
+  vars:
+    system_packages_upgrade: true
   roles:
     - role: gwerlas.system
