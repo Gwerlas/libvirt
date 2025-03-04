@@ -28,6 +28,7 @@
       loop: |
         {{
           ansible_interfaces |
+          map('replace', '-', '_') |
           reject('search', '^vnet') |
           map('extract', ansible_facts) |
           selectattr('type', 'in', libvirt_dnsmasq_interface_types) |
