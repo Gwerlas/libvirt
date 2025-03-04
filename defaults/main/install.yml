@@ -24,5 +24,4 @@ libvirt_dnsmasq_management_method: auto
 #
 # Set dnsmasq to listen of this kind of interfaces
 libvirt_dnsmasq_interface_types:
-  - bonding
   - ether
