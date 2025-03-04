@@ -17,4 +17,4 @@ packages:
   qemu:
     - qemu-base
 
-firewall_backend: iptables
+firewall_backend: iptables-nft
