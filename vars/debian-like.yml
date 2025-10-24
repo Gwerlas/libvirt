@@ -1,6 +1,6 @@
 ---
 packages:
-  daemon:
+  libvirtd:
     - bridge-utils
     - dnsmasq
     - libvirt-daemon-system
@@ -18,5 +18,3 @@ packages:
     - qemu-kvm
     - qemu-system
     - qemu-utils
-
-firewall_backend: iptables

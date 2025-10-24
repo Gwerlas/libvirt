@@ -3,7 +3,7 @@ grps:
   qemu: qemu
 
 flags:
-  daemon:
+  libvirtd:
     - package: app-emulation/libvirt
       use:
         - "{{ libvirt_manage_firewall | ternary('firewalld', omit) }}"
@@ -53,8 +53,9 @@ flags:
         - usbredir
 
 packages:
-  daemon:
+  libvirtd:
     - app-emulation/libvirt
+    - app-emulation/virt-firmware
     - dev-python/lxml
   clients:
     - app-emulation/libvirt

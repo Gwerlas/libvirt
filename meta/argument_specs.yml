@@ -21,7 +21,7 @@ argument_specs:
         description: Parts of the project to install.
         type: list
         elements: str
-        default: "['daemon', 'clients']"
+        default: "['libvirtd', 'clients']"
       libvirt_users:
         description: List of users that can run libvirt
         type: list

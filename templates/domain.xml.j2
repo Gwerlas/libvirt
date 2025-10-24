@@ -64,7 +64,8 @@
       <target type="serial" port="0"/>
     </console>
     <input type="keyboard" bus="ps2"/>
-    <graphics type="vnc" port="-1" autoport="yes" listen="127.0.0.1" keymap="{{ domain.graphics.keymap | default(libvirt_default_keymap) }}">
+{% set graphics = domain.graphics | default({}) %}
+    <graphics type="vnc" port="-1" autoport="yes" listen="127.0.0.1" keymap="{{ graphics.keymap | default(libvirt_default_keymap) }}">
       <listen type="address" address="127.0.0.1"/>
     </graphics>
     <video>

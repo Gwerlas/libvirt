@@ -1,6 +1,6 @@
 ---
 packages:
-  daemon:
+  libvirtd:
     - bridge-utils
     - libvirt-daemon
     - libvirt-python

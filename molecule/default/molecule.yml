@@ -7,27 +7,29 @@ driver:
     name: libvirt
   provision: true
 platforms:
-  - name: archlinux
-    box: archlinux/archlinux
-    provider_raw_config_args: &raw_config
-      - "cpu_mode = 'host-passthrough'"
-      - "disk_bus = 'virtio'"
-      - "nic_model_type = 'virtio'"
-      - "video_type = 'virtio'"
-      - "disk_driver :cache => 'writeback'"
-      - "storage :file, bus: 'virtio', cache: 'writeback'"
-    instance_raw_config_args:
-      - 'vm.provision :shell, inline: "pacman -Sy --noconfirm git net-tools python3 sudo unzip which"'
-  - name: gentoo
-    box: generic-x64/gentoo
-    cpus: 4
-    memory: 8192
-    provider_raw_config_args:
-      - "cpu_mode = 'host-passthrough'"
-      - "nic_model_type = 'virtio'"
-      - "video_type = 'virtio'"
-      - "disk_driver :cache => 'writeback'"
-      - "storage :file, bus: 'virtio', cache: 'writeback'"
+  # Revoked
+  # - name: archlinux
+  #   box: archlinux/archlinux
+  #   provider_raw_config_args: &raw_config
+  #     - "cpu_mode = 'host-passthrough'"
+  #     - "disk_bus = 'virtio'"
+  #     - "nic_model_type = 'virtio'"
+  #     - "video_type = 'virtio'"
+  #     - "disk_driver :cache => 'writeback'"
+  #     - "storage :file, bus: 'virtio', cache: 'writeback'"
+  #   instance_raw_config_args:
+  #     - 'vm.provision :shell, inline: "pacman -Sy --noconfirm git net-tools python3 sudo unzip which"'
+  # Very very long build due to old box
+  # - name: gentoo
+  #   box: generic-x64/gentoo
+  #   cpus: 4
+  #   memory: 8192
+  #   provider_raw_config_args:
+  #     - "cpu_mode = 'host-passthrough'"
+  #     - "nic_model_type = 'virtio'"
+  #     - "video_type = 'virtio'"
+  #     - "disk_driver :cache => 'writeback'"
+  #     - "storage :file, bus: 'virtio', cache: 'writeback'"
 
   # Debian like
   - name: bullseye  # EOL 2026-08-31
@@ -35,62 +37,61 @@ platforms:
     groups:
       - debian_like
       - debian
-    provider_raw_config_args: *raw_config
-    instance_raw_config_args: &debian_raw_config_args
-      - 'vm.provision :shell, inline: "apt update; apt remove --assume-yes --purge apparmor"'
-  - name: bookworm
+    provider_raw_config_args: &raw_config
+      - "cpu_mode = 'host-passthrough'"
+      - "disk_bus = 'virtio'"
+      - "nic_model_type = 'virtio'"
+      - "video_type = 'virtio'"
+      - "disk_driver :cache => 'writeback'"
+      - "storage :file, bus: 'virtio', cache: 'writeback'"
+  - name: bookworm  # EOL 2028-06-10
     box: debian/bookworm64
     groups:
       - debian_like
       - debian
     provider_raw_config_args: *raw_config
-    instance_raw_config_args: *debian_raw_config_args
-  - name: focal                              # EOL 2025-04-02
-    box: cloud-image/ubuntu-20.04
-    groups:
-      - debian_like
-      - ubuntu
-    memory: 2048
-    provider_raw_config_args: *raw_config
-    instance_raw_config_args: *debian_raw_config_args
-  - name: jammy
+  - name: jammy     # EOL 2027-04-01
     box: cloud-image/ubuntu-22.04
     groups:
       - debian_like
       - ubuntu
     memory: 2048
     provider_raw_config_args: *raw_config
-    instance_raw_config_args: *debian_raw_config_args
-  - name: noble
-    box: cloud-image/ubuntu-24.04
+  - name: noble     # EOL 2029-04-25
+    box: alvistack/ubuntu-24.04
     groups:
       - debian_like
       - ubuntu
     memory: 2048
     provider_raw_config_args: *raw_config
-    instance_raw_config_args: *debian_raw_config_args
 
   # RedHat like
-  - name: centos9s
+  - name: centos9s  # EOL 2027-05-31
     box: generic-x64/centos9s
     groups:
       - redhat_like
     memory: 2048
     provider_raw_config_args: *raw_config
-  - name: alma9
+  # - name: centos10s  # EOL 2027-05-31
+  #   box: alvistack/centos-10-stream
+  #   groups:
+  #     - redhat_like
+  #   memory: 2048
+  #   provider_raw_config_args: *raw_config
+  - name: alma9     # EOL 2027-05-31
     box: generic-x64/alma9
     groups:
       - redhat_like
     memory: 2048
     provider_raw_config_args: *raw_config
-  - name: fedora40
-    box: fedora/40-cloud-base
+  - name: fedora41  # EOL 2025-11-19
+    box: fedora/41-cloud-base
     groups:
       - redhat_like
     memory: 2048
     provider_raw_config_args: *raw_config
-  - name: fedora41
-    box: fedora/41-cloud-base
+  - name: fedora42  # EOL 2026-05-13
+    box: alvistack/fedora-42
     groups:
       - redhat_like
     memory: 2048

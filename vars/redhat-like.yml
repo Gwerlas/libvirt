@@ -3,7 +3,7 @@ grps:
   qemu: qemu
 
 packages:
-  daemon:
+  libvirtd:
     - bridge-utils
     - libvirt-daemon
     - python3-lxml

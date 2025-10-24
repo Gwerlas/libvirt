@@ -30,7 +30,7 @@
   loop_control:
     loop_var: domain
 
-- name: Domains - Status
+- name: Domains - State
   community.libvirt.virt:
     name: "{{ domain.name }}"
     state: "{{ domain.state | default('running') }}"

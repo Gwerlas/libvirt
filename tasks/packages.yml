@@ -43,9 +43,10 @@
       register: result
       until: result.failed == false
       retries: "{{ libvirt_retries }}"
+      notify: Restart firewalld service
 
     - name: Packages - Server side settings
-      when: "'daemon' in libvirt_install"
+      when: "'libvirtd' in libvirt_install"
       vars:
         group: "{{ grps.libvirt | default('libvirt') }}"
       block:
