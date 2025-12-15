@@ -1,0 +1,41 @@
+---
+- name: Users
+  become: true
+  ansible.builtin.user:
+    name: "{{ libvirt_user.name }}"
+    append: true
+    groups:
+      - "{{ grps.libvirt | default('libvirt') }}"
+  loop: "{{ libvirt_users }}"
+  loop_control:
+    loop_var: libvirt_user
+
+- name: Users - Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Users - Reset connection to take effect of new groups relationship
+  ansible.builtin.meta: reset_connection
+
+- name: Users - TLS CA file
+  ansible.builtin.include_tasks:
+    file: "{{ role_path }}/tasks/run-as.yml"
+  loop: "{{ libvirt_users | selectattr('ca_file', 'defined') }}"
+  loop_control:
+    loop_var: libvirt_user
+  vars:
+    task: tls/ca-file.yml
+    src_file: "{{ libvirt_user.ca_file }}"
+    dest_file: "{{ ansible_user_dir + '/.pki/cacert.pem' }}"
+
+- name: Users - TLS Client certificate
+  ansible.builtin.include_tasks:
+    file: "{{ role_path }}/tasks/run-as.yml"
+  loop: "{{ libvirt_users | selectattr('clientcert', 'defined') }}"
+  loop_control:
+    loop_var: libvirt_user
+  vars:
+    task: tls/cert.yml
+    src_cert: "{{ libvirt_user.clientcert }}"
+    dest_cert: "{{ ansible_user_dir + '/.pki/libvirt/clientcert.pem' }}"
+    src_key: "{{ libvirt_user.clientkey }}"
+    dest_key: "{{ ansible_user_dir + '/.pki/libvirt/clientkey.pem' }}"

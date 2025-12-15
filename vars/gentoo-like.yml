@@ -1,7 +1,4 @@
 ---
-grps:
-  qemu: qemu
-
 flags:
   libvirtd:
     - package: app-emulation/libvirt

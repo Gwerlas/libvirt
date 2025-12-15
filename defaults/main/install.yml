@@ -9,7 +9,7 @@ libvirt_install:
 libvirt_retries: "{{ system_retries | default(2) }}"
 
 libvirt_users:
-  - "{{ ansible_user_id }}"
+  - name: "{{ ansible_user_id }}"
 
 # https://wiki.libvirt.org/Virtual_network_default_has_not_been_started.html
 #
@@ -25,3 +25,11 @@ libvirt_dnsmasq_management_method: auto
 # Set dnsmasq to listen of this kind of interfaces
 libvirt_dnsmasq_interface_types:
   - ether
+
+# TLS files paths on the controller to copy to the nodes
+# https://libvirt.org/kbase/tlscerts.html
+#libvirt_ca_file:
+#libvirt_servercert:
+#libvirt_serverkey:
+#libvirt_clientcert:
+#libvirt_clientkey:

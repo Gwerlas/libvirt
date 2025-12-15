@@ -1,0 +1,43 @@
+---
+- name: Become root
+  become: true
+  block:
+    - name: Configure
+      when: libvirt_config is defined
+      vars:
+        config: "{{ libvirt_conf.value | dict2items }}"
+      ansible.builtin.lineinfile:
+        path: /etc/libvirt/{{ libvirt_conf.key }}.conf
+        line: "{{ config.key }}: {{ config.value }}"
+        regexp: "^(?:#\\s+){{ config.key }}:"
+      with_dict: "{{ libvirt_config }}"
+      loop_control:
+        loop_var: libvirt_conf
+
+    - name: TLS CA
+      when: libvirt_ca_file is defined
+      vars:
+        src_file: "{{ libvirt_ca_file }}"
+        dest_file: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/CA/cacert.pem') }}"
+      ansible.builtin.include_tasks:
+        file: "{{ role_path }}/tasks/tls/ca-file.yml"
+
+    - name: TLS Server certificate
+      when: libvirt_servercert is defined
+      vars:
+        src_cert: "{{ libvirt_servercert }}"
+        dest_cert: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/libvirt/servercert.pem') }}"
+        src_key: "{{ libvirt_serverkey }}"
+        dest_key: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/libvirt/private/serverkey.pem') }}"
+      ansible.builtin.include_tasks:
+        file: "{{ role_path }}/tasks/tls/cert.yml"
+
+    - name: TLS Client certificate
+      when: libvirt_clientcert is defined
+      vars:
+        src_cert: "{{ libvirt_clientcert }}"
+        dest_cert: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/libvirt/clientcert.pem') }}"
+        src_key: "{{ libvirt_clientkey }}"
+        dest_key: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/libvirt/private/clientkey.pem') }}"
+      ansible.builtin.include_tasks:
+        file: "{{ role_path }}/tasks/tls/cert.yml"

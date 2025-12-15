@@ -1,0 +1,24 @@
+---
+- name: TLS CA
+  tags:
+    - ca
+  block:
+    - name: TLS CA daemon directory
+      ansible.builtin.file:
+        path: "{{ dest_file | dirname }}"
+        state: directory
+        mode: "0755"
+        seuser: system_u
+        serole: object_r
+        setype: cert_t
+        selevel: s0
+
+    - name: TLS CA daemon file
+      ansible.builtin.copy:
+        src: "{{ src_file }}"
+        dest: "{{ dest_file }}"
+        mode: "0444"
+        seuser: system_u
+        serole: object_r
+        setype: cert_t
+        selevel: s0

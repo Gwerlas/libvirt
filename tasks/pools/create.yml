@@ -17,42 +17,27 @@
   changed_when: false
   check_mode: false
 
-- name: Default values
+- name: Pools - Create - Define
+  community.libvirt.virt_pool:
+    name: "{{ pool.name }}"
+    xml: "{{ lookup('template', 'pool.xml.j2') }}"
+    command: define
+    uri: "{{ libvirt_uri }}"
+  loop: "{{ libvirt_pools }}"
+  loop_control:
+    loop_var: pool
   vars:
     owner_name: "{{ system_wide | ternary('root', ansible_user_id) }}"
     owner_id: "{{ system_wide | ternary(0, ansible_user_uid) }}"
     group_name: "{{ (getent.stdout | split(':'))[0] }}"
     group_id: "{{ (getent.stdout | split(':'))[2] }}"
     mode: "{{ system_wide | ternary('0771', '0711') }}"
-  block:
-    - name: Pools - Create - Directory
-      become: true
-      ansible.builtin.file:
-        path: "{{ pool.path }}"
-        state: directory
-        recurse: true
-        owner: "{{ owner_name }}"
-        group: "{{ group_name }}"
-        mode: "{{ mode }}"
-      loop: "{{ pools }}"
-      loop_control:
-        loop_var: pool
-
-    - name: Pools - Create - Define
-      community.libvirt.virt_pool:
-        name: "{{ pool.name }}"
-        xml: "{{ lookup('template', 'pool.xml.j2') }}"
-        command: define
-        uri: "{{ libvirt_uri }}"
-      loop: "{{ pools }}"
-      loop_control:
-        loop_var: pool
 
 - name: Pools - Create - Build
   community.libvirt.virt_pool:
     name: "{{ pool.name }}"
     command: build
     uri: "{{ libvirt_uri }}"
-  loop: "{{ pools }}"
+  loop: "{{ libvirt_pools }}"
   loop_control:
     loop_var: pool

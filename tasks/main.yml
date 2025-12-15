@@ -9,7 +9,13 @@
     loop_var: backend
 
 - name: Packages
+  tags:
+    - packages
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/packages.yml"
+
+- name: Services
+  when: "'libvirtd' in libvirt_install"
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/services.yml"
 
 - name: Firewalling
   when: libvirt_manage_firewall
@@ -22,6 +28,14 @@
   loop: "{{ libvirt_backends }}"
   loop_control:
     loop_var: backend
+
+- name: Configure
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/configure.yml"
+
+- name: Users
+  tags:
+    - users
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/users.yml"
 
 - name: Provision the resources
   tags:

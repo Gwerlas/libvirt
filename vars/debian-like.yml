@@ -1,4 +1,7 @@
 ---
+grps:
+  qemu: libvirt-qemu
+
 packages:
   libvirtd:
     - bridge-utils

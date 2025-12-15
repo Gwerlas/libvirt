@@ -25,6 +25,7 @@
     state: restarted
 
 - name: Restart libvirt service
+  when: "'libvirtd' in libvirt_install"
   listen:
     - emerge --deep --newuse
   become: true

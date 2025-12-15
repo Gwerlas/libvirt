@@ -6,12 +6,14 @@
       tags:
         - users
       ansible.builtin.user:
-        name: "{{ item }}"
+        name: "{{ libvirt_user.name }}"
         append: true
         groups:
           - "{{ grps.kvm | default('kvm') }}"
-          - "{{ grps.qemu | default('libvirt-qemu') }}"
+          - "{{ grps.qemu | default('qemu') }}"
       loop: "{{ libvirt_users }}"
+      loop_control:
+        loop_var: libvirt_user
 
     - name: Reset connection to take effect of new grps relationship
       ansible.builtin.meta: reset_connection
@@ -40,8 +42,8 @@
       ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools.yml"
       vars:
         libvirt_uri: qemu:///system
-        group: "{{ grps.qemu | default('libvirt-qemu') }}"
-        pools:
+        group: "{{ grps.qemu | default('qemu') }}"
+        libvirt_pools:
           - name: default
             path: /var/lib/libvirt/images
 
@@ -50,7 +52,7 @@
         - users
       loop: "{{ libvirt_users }}"
       loop_control:
-        loop_var: username
+        loop_var: libvirt_user
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/run-as.yml"
       vars:
         libvirt_uri: qemu:///session
