@@ -1,11 +1,12 @@
 ---
 - name: Pools - Refresh
-  ansible.builtin.command:
-    cmd: "virsh --connect {{ libvirt_uri }} pool-refresh {{ pool.name }}"
+  community.libvirt.virt_pool:
+    command: refresh
+    name: "{{ pool.name }}"
+    uri: "{{ libvirt_uri }}"
   loop: "{{ libvirt_pools }}"
   loop_control:
     loop_var: pool
-  changed_when: false
 
 - name: Pools - Facts
   community.libvirt.virt_pool:

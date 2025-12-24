@@ -1,5 +1,7 @@
 collections:
   - name: community.libvirt
+    version: ">=2.0"
+
 roles:
   - name: gwerlas.system
     scm: git

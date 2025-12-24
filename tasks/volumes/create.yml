@@ -1,24 +1,13 @@
 ---
-- name: Volumes - Create
+- name: Volumes creation
   vars:
-    pool: "{{ ansible_libvirt_pools[volume.pool | default('default')] }}"
-  loop: |
-    {{
-      (volumes | selectattr('state', 'undefined'))
-    + (volumes | selectattr('state', 'defined') | selectattr('state', '==', 'present'))
-    }}
-  loop_control:
-    loop_var: volume
-  when: |
-    (not 'volumes' in pool)
-    or
-    (not volume.name in pool.volumes)
-  ansible.builtin.command:
-    cmd: >
-      virsh --connect {{ libvirt_uri }} vol-create-as
-        --pool {{ volume.pool | default('default') }}
-        --capacity {{ volume.size | default('10G') }}
-        --name {{ volume.name }}
-        --format {{ volume.format | default('qcow2') }}
-  register: result
-  changed_when: "'created' in result.stdout"
+    pool: "{{ libvirt_volume.pool | default('default') }}"
+    libvirt_pool: "{{ ansible_libvirt_pools[pool] }}"
+  block:
+    - name: Volumes - Create
+      community.libvirt.virt_volume:
+        pool: "{{ pool }}"
+        state: present
+        name: "{{ libvirt_volume.name }}"
+        uri: "{{ libvirt_uri }}"
+        xml: "{{ lookup('template', 'volume.xml.j2') }}"

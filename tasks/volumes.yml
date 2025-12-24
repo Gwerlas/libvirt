@@ -3,7 +3,15 @@
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools/refresh.yml"
 
 - name: Volumes - Create
-  ansible.builtin.import_tasks: "{{ role_path }}/tasks/volumes/create.yml"
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/volumes/create.yml"
+  loop: |
+    {{
+      (volumes | selectattr('state', 'undefined'))
+    + (volumes | selectattr('state', 'defined') | selectattr('state', '==', 'present'))
+    }}
+  loop_control:
+    loop_var: libvirt_volume
+
 
 - name: Volumes - Refresh the pools again
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools/refresh.yml"

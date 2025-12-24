@@ -1,0 +1,8 @@
+<!-- https://libvirt.org/formatstorage.html#storage-volume-xml -->
+{% set capacity, unit = libvirt_volume.size |
+                            default('10G') |
+                            regex_search('(\\d+)([A-Za-z]*)', '\\1', '\\2') %}
+<volume>
+  <name>{{ libvirt_volume.name }}</name>
+  <capacity{% if unit %} unit="{{ unit }}"{% endif %}>{{ capacity }}</capacity>
+</volume>
