@@ -32,6 +32,17 @@
     loop_var: vars_file
 
 - name: Facts
+  vars:
+    default_users:
+      kvm: kvm
+      libvirt: libvirt
+      qemu: qemu
+    default_groups:
+      kvm: kvm
+      libvirt: libvirt
+      qemu: qemu
   ansible.builtin.set_fact:
     cacheable: true
     libvirt_packages: "{{ packages_computed }}"
+    libvirt_system_users: "{{ default_users | combine(usrs | default({})) }}"
+    libvirt_system_groups: "{{ default_groups | combine(grps | default({})) }}"

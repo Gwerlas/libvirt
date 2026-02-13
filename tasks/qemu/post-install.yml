@@ -9,8 +9,8 @@
         name: "{{ item }}"
         append: true
         groups:
-          - "{{ grps.kvm | default('kvm') }}"
-          - "{{ grps.qemu | default('libvirt-qemu') }}"
+          - "{{ libvirt_system_groups.kvm }}"
+          - "{{ libvirt_system_groups.qemu }}"
       loop: "{{ libvirt_users }}"
 
     - name: Reset connection to take effect of new grps relationship

@@ -48,7 +48,7 @@
     - name: Packages - Server side settings
       when: "'libvirtd' in libvirt_install"
       vars:
-        group: "{{ grps.libvirt | default('libvirt') }}"
+        group: "{{ libvirt_system_groups.libvirt }}"
       block:
         - name: Services
           ansible.builtin.import_tasks: "{{ role_path }}/tasks/services.yml"
