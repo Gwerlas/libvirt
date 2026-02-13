@@ -18,7 +18,7 @@ volumes_computed:  |
   + (disks_computed | selectattr('type', 'defined') | selectattr('type', '==', 'volume'))
   }}
 
-# Netowrking
+# Networking
 default_dnsmasq_management_method: none
 
 dnsmasq_management_method: |-
