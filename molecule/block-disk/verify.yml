@@ -6,19 +6,30 @@
     domain: my-node
     libvirt_uri: qemu:///system
   tasks:
-    - name: Get informations
+    - name: Get domain info
       community.libvirt.virt:
         command: info
         uri: "{{ libvirt_uri }}"
         name: "{{ domain }}"
-      register: get_info
-    - name: "List block devices of VM with virsh"
-      ansible.builtin.command: "virsh -c {{ libvirt_uri }} domblklist {{ domain }} --details"
-      register: get_domain_block_disk
-      changed_when: false
-    - name: Domain tests
+      register: domain_info
+
+    - name: Get domain XML
+      community.libvirt.virt:
+        command: get_xml
+        name: "{{ domain }}"
+        uri: "{{ libvirt_uri }}"
+      register: domain_xml
+
+    - name: Parse domain XML for block disk
+      community.general.xml:
+        xmlstring: "{{ domain_xml.get_xml }}"
+        xpath: /domain/devices/disk[@type='block']/source[@dev='/dev/vdb']
+        count: true
+      register: block_disk_query
+
+    - name: Domain assertions
       ansible.builtin.assert:
         that:
-          - "domain in get_info"
-          - get_info[domain].state == "running"
-          - get_domain_block_disk.stdout_lines | select('search', 'block.*\\/dev\\/vdb')
+          - domain in domain_info
+          - domain_info[domain].state == "running"
+          - block_disk_query.count == 1
