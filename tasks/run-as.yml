@@ -15,6 +15,7 @@
       vars:
         ansible_user_id: "{{ username }}"
         ansible_user_uid: "{{ (user_data.stdout | split(':'))[2] }}"
+        ansible_user_gid: "{{ (user_data.stdout | split(':'))[3] }}"
         ansible_user_gecos: "{{ (user_data.stdout | split(':'))[4] }}"
         ansible_user_dir: "{{ (user_data.stdout | split(':'))[5] }}"
         ansible_user_shell: "{{ (user_data.stdout | split(':'))[6] }}"
