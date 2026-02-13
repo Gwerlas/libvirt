@@ -9,12 +9,12 @@
       paths:
         - "{{ role_path }}/vars"
   loop:
-    - "{{ ansible_service_mgr }}.yml"                                                     # openrc,       systemd
-    - "{{ ansible_os_family | lower }}-like.yml"                                          # debian-like,  redhat-like, etc.
-    - "{{ ansible_distribution | lower }}.yml"                                            # debian,       fedora,      ubuntu
-    - "{{ ansible_os_family | lower }}{{ ansible_distribution_major_version }}-like.yml"  # redhat7-like
-    - "{{ ansible_distribution | lower }}{{ ansible_distribution_major_version }}.yml"    # debian10
-    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}.yml" # ubuntu-bionic
+    - "{{ ansible_facts.service_mgr }}.yml"                                                     # openrc,       systemd
+    - "{{ ansible_facts.os_family | lower }}-like.yml"                                          # debian-like,  redhat-like, etc.
+    - "{{ ansible_facts.distribution | lower }}.yml"                                            # debian,       fedora,      ubuntu
+    - "{{ ansible_facts.os_family | lower }}{{ ansible_facts.distribution_major_version }}-like.yml"  # redhat7-like
+    - "{{ ansible_facts.distribution | lower }}{{ ansible_facts.distribution_major_version }}.yml"    # debian10
+    - "{{ ansible_facts.distribution | lower }}-{{ ansible_facts.distribution_release | lower }}.yml" # ubuntu-bionic
   loop_control:
     loop_var: vars_file
 

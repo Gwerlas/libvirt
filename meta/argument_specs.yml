@@ -26,7 +26,7 @@ argument_specs:
         description: List of users that can run libvirt
         type: list
         elements: str
-        default: "['{{ ansible_user_id }}']"
+        default: "['{{ ansible_facts.user_id }}']"
       libvirt_active_default_network:
         description: Active or not the default network.
         type: bool

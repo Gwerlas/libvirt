@@ -9,7 +9,7 @@ libvirt_install:
 libvirt_retries: "{{ system_retries | default(2) }}"
 
 libvirt_users:
-  - "{{ ansible_user_id }}"
+  - "{{ ansible_facts.user_id }}"
 
 # https://wiki.libvirt.org/Virtual_network_default_has_not_been_started.html
 #

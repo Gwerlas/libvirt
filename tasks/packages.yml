@@ -7,7 +7,7 @@
   become: true
   block:
     - name: Packages - Portage specifics tasks
-      when: ansible_pkg_mgr == "portage"
+      when: ansible_facts.pkg_mgr == "portage"
       tags:
         - packages
       block:
@@ -35,7 +35,7 @@
         - name: Packages - Rebuild packages with new use flags now
           ansible.builtin.meta: flush_handlers
 
-    - name: Packages - Packages
+    - name: Packages
       tags:
         - packages
       ansible.builtin.package:

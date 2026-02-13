@@ -27,7 +27,7 @@
         mode: "0644"
       loop: |
         {{
-          ansible_interfaces |
+          ansible_facts.interfaces |
           map('replace', '-', '_') |
           reject('search', '^vnet') |
           map('extract', ansible_facts) |
@@ -38,7 +38,7 @@
         loop_var: interface
 
 - name: Services - Enable and start
-  when: ansible_service_mgr != 'systemd'
+  when: ansible_facts.service_mgr != 'systemd'
   become: true
   ansible.builtin.service:
     name: "{{ service }}"
@@ -51,7 +51,7 @@
     loop_var: service
 
 - name: Services - Systemd
-  when: ansible_service_mgr == 'systemd'
+  when: ansible_facts.service_mgr == 'systemd'
   block:
     - name: Services - Get the libvirtd version
       environment:
