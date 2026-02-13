@@ -1,5 +1,5 @@
 ---
-- name: Run as
+- name: Become superuser
   become: true
   block:
     - name: Qemu - Users - Group
@@ -15,6 +15,23 @@
 
     - name: Reset connection to take effect of new grps relationship
       ansible.builtin.meta: reset_connection
+
+    - name: Qemu - Security driver
+      when: libvirt_security_driver | bool
+      ansible.builtin.lineinfile:
+        path: /etc/libvirt/qemu.conf
+        line: 'security_driver = "{{ libvirt_security_driver }}"'
+        regexp: '^#?security_driver\s*='
+        mode: "0644"
+      vars:
+        libvirt_security_driver: |-
+          {% if ansible_facts.apparmor.status | default('') == 'enabled' %}apparmor
+          {%- elif ansible_facts.selinux.mode | default('') in ['enforcing', 'permissive'] %}selinux
+          {%- endif %}
+      notify: Restart libvirt service
+
+    - name: Qemu - Flush handlers
+      ansible.builtin.meta: flush_handlers
 
     - name: Qemu - Default network
       when: |
