@@ -27,10 +27,22 @@
 - name: Restart libvirt service
   listen:
     - emerge --deep --newuse
+    - Restart libvirt service
   become: true
   ansible.builtin.service:
     name: libvirtd
     state: restarted
+
+- name: Wait for libvirtd ready
+  listen:
+    - emerge --deep --newuse
+    - Restart libvirt service
+  become: true
+  ansible.builtin.command:
+    cmd: virsh -c qemu:///system version
+  register: result
+  until: not result.failed
+  changed_when: false
 
 - name: Restart firewalld service
   when:
