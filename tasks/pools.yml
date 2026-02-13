@@ -10,7 +10,7 @@
 
 - name: Pools - Create
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/pools/create.yml"
-  vars:
+  vars: 
     libvirt_pools: |
       {{
         (

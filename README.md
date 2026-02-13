@@ -65,8 +65,36 @@ You can filter on some specific tasks using this tags :
 Role Variables
 --------------
 
-Available variables are listed below, along with default values
-(see `defaults/main/*.yml`):
+### Installation
+
+| Variable                            | Default                         | Description                                                                          |
+| ----------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------ |
+| `libvirt_backends`                  | `[qemu]`                        | List of backends to install                                                          |
+| `libvirt_install`                   | `[libvirtd, clients]`           | Components to install (`libvirtd`, `clients`, `virt-manager`, `gnome-boxes`, `qemu`) |
+| `libvirt_users`                     | `[{{ ansible_facts.user_id }}]` | Users to add to libvirt/kvm groups                                                   |
+| `libvirt_retries`                   | `2`                             | Number of retries for package installation                                           |
+| `libvirt_dnsmasq_management_method` | `auto`                          | DNSMasq management: `auto`, `bind`, `disable`, or `none`                             |
+| `libvirt_dnsmasq_interface_types`   | `[ether]`                       | Interface types for DNSMasq to listen on (when method is `bind`)                     |
+
+### Firewall
+
+| Variable                  | Default   | Description                                                  |
+| ------------------------- | --------- | ------------------------------------------------------------ |
+| `libvirt_manage_firewall` | `true`    | Whether to manage firewalld rules                            |
+| `libvirt_firewall_zone`   | _(unset)_ | Firewalld zone to use (defaults to firewalld's default zone) |
+
+### Provisioning
+
+| Variable                      | Default              | Description                                                              |
+| ----------------------------- | -------------------- | ------------------------------------------------------------------------ |
+| `libvirt_default_disk_format` | `qcow2`              | Default disk image format for volumes and domains (`qcow2`, `raw`, etc.) |
+| `libvirt_default_keymap`      | `en-us`              | Default keymap for VNC graphics                                          |
+| `libvirt_default_cpu`         | `{mode: host-model}` | Default CPU configuration for domains                                    |
+| `libvirt_pools`               | `[]`                 | List of storage pools to create                                          |
+| `libvirt_volumes`             | `[]`                 | List of storage volumes to create                                        |
+| `libvirt_networks`            | `[]`                 | List of virtual networks to create                                       |
+| `libvirt_domains`             | `[]`                 | List of virtual machines to create                                       |
+| `libvirt_uri`                 | `qemu:///system`     | Default libvirt connection URI                                           |
 
 Dependencies
 ------------
