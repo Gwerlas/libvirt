@@ -1,13 +1,7 @@
 ---
-- name: Volumes creation
-  vars:
+- name: Volumes - Create
+  community.libvirt.virt_volume:
     pool: "{{ libvirt_volume.pool | default('default') }}"
-    libvirt_pool: "{{ ansible_libvirt_pools[pool] }}"
-  block:
-    - name: Volumes - Create
-      community.libvirt.virt_volume:
-        pool: "{{ pool }}"
-        state: present
-        name: "{{ libvirt_volume.name }}"
-        uri: "{{ libvirt_uri }}"
-        xml: "{{ lookup('template', 'volume.xml.j2') }}"
+    state: present
+    uri: "{{ libvirt_uri }}"
+    xml: "{{ lookup('template', 'volume.xml.j2') }}"

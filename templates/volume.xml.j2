@@ -2,7 +2,12 @@
 {% set capacity, unit = libvirt_volume.size |
                             default('10G') |
                             regex_search('(\\d+)([A-Za-z]*)', '\\1', '\\2') %}
+{% set volume_format = libvirt_volume.format |
+                            default(libvirt_default_disk_format) %}
 <volume>
   <name>{{ libvirt_volume.name }}</name>
   <capacity{% if unit %} unit="{{ unit }}"{% endif %}>{{ capacity }}</capacity>
+  <target>
+    <format type="{{ volume_format }}"/>
+  </target>
 </volume>

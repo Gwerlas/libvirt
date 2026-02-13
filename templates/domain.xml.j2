@@ -31,12 +31,16 @@
   <devices>
 
 {% for disk in domain.disks %}
-{% set type = disk.type | default('volume') %}
-    <disk type="{{ type }}" device="disk">
-      <driver name="qemu" type="{{ disk.format | default('qcow2') }}"/>
-{% if type == "volume" %}
-      <source pool="{{ disk.pool | default('default') }}" volume="{{ disk.name }}"/>
-{% elif type == "block" %}
+{% set disk_type = disk.type | default('file') %}
+{% set pool_name = disk.pool | default('default') %}
+{% set pool_path = ansible_libvirt_pools[pool_name].path %}
+    <disk type="{{ disk_type }}" device="disk">
+      <driver name="qemu" type="{{ disk.format | default(libvirt_default_disk_format) }}"/>
+{% if disk_type == "file" %}
+      <source file="{{ pool_path }}/{{ disk.name }}"/>
+{% elif disk_type == "volume" %}
+      <source pool="{{ pool_name }}" volume="{{ disk.name }}"/>
+{% elif disk_type == "block" %}
       <source dev="{{ disk.source }}"/>
 {% endif %}
       <target dev="{{ disk.target | default('vda') }}" bus="virtio"/>

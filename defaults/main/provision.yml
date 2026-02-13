@@ -7,6 +7,7 @@ libvirt_domains: []
 libvirt_active_default_network: "{{ not libvirt_remove_default_network }}"
 libvirt_remove_default_network: false
 
+libvirt_default_disk_format: qcow2
 libvirt_default_keymap: en-us
 libvirt_default_cpu:
   mode: host-model
