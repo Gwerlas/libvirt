@@ -1,0 +1,8 @@
+---
+- name: Getent - Resolve owners
+  ansible.builtin.getent:
+    database: passwd
+
+- name: Getent - Resolve groups
+  ansible.builtin.getent:
+    database: group

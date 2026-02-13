@@ -1,23 +1,27 @@
 <!-- {{ ansible_managed }} -->
-{% set type = pool.type | default('netfs' if 'source' in pool else 'dir') %}
-<pool type="{{ type }}">
-  <name>{{ pool.name }}</name>
-{% if type == 'netfs' %}
+{% set pool_type = libvirt_pool.type | default('netfs' if 'source' in libvirt_pool else 'dir') %}
+<pool type="{{ pool_type }}">
+  <name>{{ libvirt_pool.name }}</name>
+{% if pool_type == 'netfs' %}
   <source>
-    <host name="{{ pool.source.host }}"/>
-    <dir path="{{ pool.source.dir }}"/>
+    <host name="{{ libvirt_pool.source.host }}"/>
+    <dir path="{{ libvirt_pool.source.dir }}"/>
     <format type='nfs'/>
   </source>
 {% endif %}
+{% if pool_type in ['dir', 'fs', 'netfs', 'logical', 'disk', 'iscsi', 'scsi', 'mpath', 'zfs'] %}
+{% set pool_owner = libvirt_pool.owner | default(system_wide | ternary(libvirt_system_users.qemu, ansible_facts.user_id)) %}
+{% set pool_group = libvirt_pool.group | default(getent_passwd[pool_owner][2]) %}
   <target>
-    <path>{{ pool.path }}</path>
+    <path>{{ libvirt_pool.path }}</path>
     <permissions>
-      <mode>{{ mode }}</mode>
-      <owner>{{ owner_id }}</owner>
-      <group>{{ group_id }}</group>
-{% if 'mode' in ansible_selinux %}
+      <mode>{{ libvirt_pool.mode | default(system_wide | ternary('0771', '0711')) }}</mode>
+      <owner>{{ pool_owner if pool_owner | string is match('^\d+$') else getent_passwd[pool_owner][1] }}</owner>
+      <group>{{ pool_group if pool_group | string is match('^\d+$') else getent_group[pool_group][1] }}</group>
+{% if 'mode' in ansible_facts.selinux %}
       <label>system_u:object_r:virt_image_t:s0</label>
 {% endif %}
     </permissions>
   </target>
+{% endif %}
 </pool>

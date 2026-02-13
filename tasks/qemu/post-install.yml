@@ -40,10 +40,12 @@
       ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools.yml"
       vars:
         libvirt_uri: qemu:///system
-        group: "{{ grps.qemu | default('libvirt-qemu') }}"
-        pools:
+        libvirt_pools:
           - name: default
+            type: dir
             path: /var/lib/libvirt/images
+            owner: "{{ libvirt_system_users.qemu }}"
+            group: "{{ libvirt_system_groups.qemu }}"
 
     - name: Qemu - Users - Default pool
       tags:
@@ -55,6 +57,9 @@
       vars:
         libvirt_uri: qemu:///session
         task: pools.yml
-        pools:
+        libvirt_pools:
           - name: default
+            type: dir
             path: "{{ ansible_user_dir + '/.local/share/libvirt/images' }}"
+            owner: "{{ ansible_user_uid }}"
+            group: "{{ ansible_user_gid }}"

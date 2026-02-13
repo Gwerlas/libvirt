@@ -12,8 +12,6 @@
 - name: Storage pools
   when: libvirt_pools | length > 0
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools.yml"
-  vars:
-    pools: "{{ libvirt_pools }}"
 
 - name: Volumes
   when: volumes_computed | length > 0

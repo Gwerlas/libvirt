@@ -6,12 +6,12 @@
 
 - name: Pools - Items
   ansible.builtin.set_fact:
-    items: "{{ pools }}"
+    items: "{{ libvirt_pools }}"
 
 - name: Pools - Create
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/pools/create.yml"
-  vars: 
-    pools: |
+  vars:
+    libvirt_pools: |
       {{
         (
           (items | selectattr('state', 'undefined'))
@@ -32,8 +32,8 @@
   loop: |
     {{
       (
-        (pools | selectattr('state', 'undefined'))
-      + (pools | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
+        (libvirt_pools | selectattr('state', 'undefined'))
+      + (libvirt_pools | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
       ) | selectattr('autostart', 'defined')
     }}
   loop_control:
@@ -44,6 +44,6 @@
     name: "{{ pool.name }}"
     state: "{{ pool.state | default('active') }}"
     uri: "{{ libvirt_uri }}"
-  loop: "{{ pools }}"
+  loop: "{{ libvirt_pools }}"
   loop_control:
     loop_var: pool
