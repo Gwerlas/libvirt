@@ -24,6 +24,51 @@
     name: dbus
     state: restarted
 
+- name: Get libvirtd version
+  listen:
+    - emerge --deep --newuse
+    - Restart libvirt service
+  when:
+    - ansible_facts.service_mgr == 'systemd'
+    - libvirtd_version is not defined
+  environment:
+    PATH: /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/bin:/sbin
+  ansible.builtin.command:
+    cmd: libvirtd -V
+  register: _libvirtd_version_result
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: Get libvirtd version (virtlogd fallback)
+  listen:
+    - emerge --deep --newuse
+    - Restart libvirt service
+  when:
+    - ansible_facts.service_mgr == 'systemd'
+    - libvirtd_version is not defined
+    - _libvirtd_version_result is defined
+    - _libvirtd_version_result.rc != 0
+  environment:
+    PATH: /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/bin:/sbin
+  ansible.builtin.command:
+    cmd: virtlogd -V
+  register: _libvirtd_version_result
+  changed_when: false
+  check_mode: false
+
+- name: Set libvirtd version fact
+  listen:
+    - emerge --deep --newuse
+    - Restart libvirt service
+  when:
+    - ansible_facts.service_mgr == 'systemd'
+    - libvirtd_version is not defined
+    - _libvirtd_version_result is defined
+    - _libvirtd_version_result.rc == 0
+  ansible.builtin.set_fact:
+    libvirtd_version: "{{ _libvirtd_version_result.stdout | split(' ') | last }}"
+
 - name: Restart libvirt service
   listen:
     - emerge --deep --newuse
@@ -32,6 +77,52 @@
   ansible.builtin.service:
     name: libvirtd
     state: restarted
+  when: >-
+    ansible_facts.service_mgr != 'systemd' or
+    (libvirtd_version is defined and libvirtd_version is version('5.6.0', '<'))
+
+- name: Restart libvirt sockets
+  listen:
+    - emerge --deep --newuse
+    - Restart libvirt service
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ socket }}"
+    state: restarted
+  loop:
+    - libvirtd.socket
+    - virtlockd.socket
+    - virtlogd.socket
+  loop_control:
+    loop_var: socket
+  when: >-
+    ansible_facts.service_mgr == 'systemd' and
+    libvirtd_version is defined and
+    libvirtd_version is version('5.6.0', '>=') and
+    libvirtd_version is version('6.0.0', '<')
+
+- name: Restart libvirt modular daemons
+  listen:
+    - emerge --deep --newuse
+    - Restart libvirt service
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ socket }}"
+    state: restarted
+  loop: >-
+    {{
+      ['virtlogd.socket', 'virtlockd.socket',
+       'virtnetworkd.socket', 'virtnodedevd.socket', 'virtstoraged.socket'] +
+      libvirt_backends |
+      map('extract', {'qemu': 'virtqemud.socket', 'lxc': 'virtlxcd.socket'}) |
+      select | list
+    }}
+  loop_control:
+    loop_var: socket
+  when: >-
+    ansible_facts.service_mgr == 'systemd' and
+    libvirtd_version is defined and
+    libvirtd_version is version('6.0.0', '>=')
 
 - name: Wait for libvirtd ready
   listen:

@@ -56,11 +56,20 @@
     - name: Services - Get the libvirtd version
       environment:
         PATH: /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/bin:/sbin
-      ansible.builtin.command:
-        cmd: libvirtd -V
-      register: result
-      changed_when: false
-      check_mode: false
+      block:
+        - name: Services - Get version from libvirtd
+          ansible.builtin.command:
+            cmd: libvirtd -V
+          register: result
+          changed_when: false
+          check_mode: false
+      rescue:
+        - name: Services - Get version from virtlogd
+          ansible.builtin.command:
+            cmd: virtlogd -V
+          register: result
+          changed_when: false
+          check_mode: false
 
     - name: Services - Register the libvirtd version
       ansible.builtin.set_fact:
@@ -74,9 +83,10 @@
         state: started
         enabled: true
 
-    - name: Services - Systemd
+    - name: Services - Systemd socket-activated
       when:
         - libvirtd_version is version('5.6.0', '>=')
+        - libvirtd_version is version('6.0.0', '<')
       ansible.builtin.systemd:
         name: "{{ socket }}"
         state: started
@@ -86,5 +96,23 @@
         - libvirtd.socket
         - virtlockd.socket
         - virtlogd.socket
+      loop_control:
+        loop_var: socket
+
+    - name: Services - Systemd modular
+      when:
+        - libvirtd_version is version('6.0.0', '>=')
+      ansible.builtin.systemd:
+        name: "{{ socket }}"
+        state: started
+        enabled: true
+      loop: >-
+        {{
+          ['libvirt-guests.service', 'virtlogd.socket', 'virtlockd.socket',
+           'virtnetworkd.socket', 'virtnodedevd.socket', 'virtstoraged.socket'] +
+          libvirt_backends |
+          map('extract', {'qemu': 'virtqemud.socket', 'lxc': 'virtlxcd.socket'}) |
+          select | list
+        }}
       loop_control:
         loop_var: socket
