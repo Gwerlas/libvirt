@@ -6,7 +6,7 @@
   <source>
     <host name="{{ libvirt_pool.source.host }}"/>
     <dir path="{{ libvirt_pool.source.dir }}"/>
-    <format type='nfs'/>
+    <format type='{{ libvirt_pool.source.format | default("nfs") }}'{% if libvirt_pool.source.version is defined %} ver='{{ libvirt_pool.source.version }}'{% endif %}/>
   </source>
 {% endif %}
 {% if pool_type in ['dir', 'fs', 'netfs', 'logical', 'disk', 'iscsi', 'scsi', 'mpath', 'zfs'] %}

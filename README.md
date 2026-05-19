@@ -151,6 +151,20 @@ Provision some resources :
             source:
               host: hostname
               dir: /server-export
+          - name: from-nfs4
+            type: netfs
+            path: /data/images
+            source:
+              host: hostname
+              dir: /server-export
+              version: 4
+          - name: from-cifs
+            type: netfs
+            path: /data/images
+            source:
+              host: hostname
+              dir: /server-share
+              format: cifs
         libvirt_domains:
           - name: my-node
             autostart: false
