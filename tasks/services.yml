@@ -75,44 +75,36 @@
       ansible.builtin.set_fact:
         libvirtd_version: "{{ result.stdout | split(' ') | last }}"
 
-    - name: Services - Systemd legacy
-      when:
-        - libvirtd_version is version('5.6.0', '<')
-      ansible.builtin.systemd:
-        name: libvirtd.service
-        state: started
-        enabled: true
+    - name: Services - Gather service facts
+      ansible.builtin.service_facts:
 
-    - name: Services - Systemd socket-activated
-      when:
-        - libvirtd_version is version('5.6.0', '>=')
-        - libvirtd_version is version('6.0.0', '<')
+    - name: Services - Enable and start
       ansible.builtin.systemd:
         name: "{{ socket }}"
         state: started
         enabled: true
-      loop:
-        - libvirt-guests.service
-        - libvirtd.socket
-        - virtlockd.socket
-        - virtlogd.socket
-      loop_control:
-        loop_var: socket
-
-    - name: Services - Systemd modular
-      when:
-        - libvirtd_version is version('6.0.0', '>=')
-      ansible.builtin.systemd:
-        name: "{{ socket }}"
-        state: started
-        enabled: true
-      loop: >-
-        {{
-          ['libvirt-guests.service', 'virtlogd.socket', 'virtlockd.socket',
-           'virtnetworkd.socket', 'virtnodedevd.socket', 'virtstoraged.socket'] +
-          libvirt_backends |
-          map('extract', {'qemu': 'virtqemud.socket', 'lxc': 'virtlxcd.socket'}) |
-          select | list
-        }}
+      vars:
+        _modular: >-
+          {{
+            ['libvirt-guests.service', 'virtlogd.socket', 'virtlockd.socket',
+             'virtnetworkd.socket', 'virtnodedevd.socket', 'virtstoraged.socket'] +
+            libvirt_backends |
+            map('extract', {'qemu': 'virtqemud.socket', 'lxc': 'virtlxcd.socket'}) |
+            select | list
+          }}
+        _socket_activated:
+          - libvirt-guests.service
+          - libvirtd.socket
+          - virtlockd.socket
+          - virtlogd.socket
+        _legacy:
+          - libvirtd.service
+        _desired: >-
+          {{
+            _modular if libvirtd_version is version('6.0.0', '>=')
+            else _socket_activated if libvirtd_version is version('5.6.0', '>=')
+            else _legacy
+          }}
+      loop: "{{ _desired | select('in', ansible_facts.services) | list }}"
       loop_control:
         loop_var: socket
