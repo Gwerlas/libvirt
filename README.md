@@ -91,16 +91,25 @@ Role Variables
 | `libvirt_default_keymap`      | `en-us`              | Default keymap for VNC graphics                                          |
 | `libvirt_default_cpu`         | `{mode: host-model}` | Default CPU configuration for domains                                    |
 | `libvirt_pools`               | `[]`                 | List of storage pools to create                                          |
-| `libvirt_volumes`             | `[]`                 | List of storage volumes to create                                        |
-| `libvirt_networks`            | `[]`                 | List of virtual networks to create                                       |
-| `libvirt_domains`             | `[]`                 | List of virtual machines to create                                       |
-| `libvirt_uri`                 | `qemu:///system`     | Default libvirt connection URI                                           |
+
+For `netfs` pools, the `source` key supports the following properties:
+
+| Property           | Default          | Description                               |
+| ------------------ | ---------------- | ----------------------------------------- |
+| `source.host`      |                  | NFS/CIFS server hostname                  |
+| `source.dir`       |                  | Exported path on the server               |
+| `source.type`      | `nfs`            | Protocol format: `nfs` or `cifs`          |
+| `source.protocol`  |                  | NFS protocol version (e.g. `4` for NFSv4) |
+| `libvirt_volumes`  | `[]`             | List of storage volumes to create         |
+| `libvirt_networks` | `[]`             | List of virtual networks to create        |
+| `libvirt_domains`  | `[]`             | List of virtual machines to create        |
+| `libvirt_uri`      | `qemu:///system` | Default libvirt connection URI            |
 
 Dependencies
 ------------
 
-Be sure to have the `community.libvirt` installad on your system, or present
-in your `requirements.yml`.
+Be sure to have the `community.libvirt >= 2.0` installad on your system,
+or present in your `requirements.yml`.
 
 Example Playbook
 ----------------
@@ -157,14 +166,14 @@ Provision some resources :
             source:
               host: hostname
               dir: /server-export
-              version: 4
+              protocol: 4
           - name: from-cifs
             type: netfs
             path: /data/images
             source:
               host: hostname
               dir: /server-share
-              format: cifs
+              type: cifs
         libvirt_domains:
           - name: my-node
             autostart: false
