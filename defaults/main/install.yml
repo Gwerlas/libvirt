@@ -25,3 +25,11 @@ libvirt_dnsmasq_management_method: auto
 # Set dnsmasq to listen of this kind of interfaces
 libvirt_dnsmasq_interface_types:
   - ether
+
+# TLS files paths on the controller to copy to the nodes
+# https://libvirt.org/kbase/tlscerts.html
+#libvirt_ca_file:
+#libvirt_servercert:
+#libvirt_serverkey:
+#libvirt_clientcert:
+#libvirt_clientkey:

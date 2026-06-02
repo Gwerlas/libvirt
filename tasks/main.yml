@@ -29,6 +29,9 @@
   loop_control:
     loop_var: backend
 
+- name: Configure
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/configure.yml"
+
 - name: Provision the resources
   tags:
     - provision

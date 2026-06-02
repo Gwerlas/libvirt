@@ -1,0 +1,36 @@
+---
+- name: Verify libvirt TLS configuration and certificates
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Read libvirtd.conf
+      become: true
+      ansible.builtin.slurp:
+        src: /etc/libvirt/libvirtd.conf
+      register: libvirtd_conf
+
+    - name: Check libvirt is operational after the config change and restart
+      become: true
+      ansible.builtin.command:
+        cmd: virsh -c qemu:///system version
+      changed_when: false
+
+    - name: Stat the deployed files
+      become: true
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: tls_files
+      loop:
+        - /etc/pki/CA/cacert.pem
+        - /etc/pki/libvirt/servercert.pem
+        - /etc/pki/libvirt/private/serverkey.pem
+        - /etc/pki/libvirt/clientcert.pem
+
+    - name: TLS assertions
+      ansible.builtin.assert:
+        that:
+          - "'listen_tls = 1' in (libvirtd_conf.content | b64decode)"
+          - "'unix_sock_rw_perms = \"0750\"' in (libvirtd_conf.content | b64decode)"
+          - tls_files.results | map(attribute='stat.exists') | min
+        success_msg: libvirtd TLS config and all certificates were deployed
+        fail_msg: "missing: {{ tls_files.results | rejectattr('stat.exists') | map(attribute='item') | list }}"

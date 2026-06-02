@@ -89,6 +89,26 @@
       register: libvirt_unit_files
       changed_when: false
 
+    # The daemon units that actually exist on this host, so the "Restart libvirt
+    # service" handler reloads the right ones regardless of the layout: the
+    # modular daemons on EL/Arch/Fedora, or the monolithic libvirtd on Debian
+    # (which ships it even at libvirt >= 6.0). Restarting the *service* (not just
+    # the socket) is what makes a libvirtd.conf change take effect.
+    - name: Services - Register the libvirt daemons to restart
+      ansible.builtin.set_fact:
+        libvirt_restart_units: "{{ _candidates | select('in', _available) | list }}"
+      vars:
+        _available: "{{ libvirt_unit_files.stdout_lines | map('split') | map('first') | list }}"
+        _candidates: >-
+          {{
+            ['libvirtd.service', 'virtlogd.service', 'virtlockd.service',
+             'virtnetworkd.service', 'virtnodedevd.service', 'virtstoraged.service',
+             'virtproxyd.service'] +
+            libvirt_backends |
+            map('extract', {'qemu': 'virtqemud.service', 'lxc': 'virtlxcd.service'}) |
+            select | list
+          }}
+
     - name: Services - Enable and start
       ansible.builtin.systemd:
         name: "{{ socket }}"

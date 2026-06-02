@@ -1,0 +1,25 @@
+---
+# Let the role deploy the libvirtd TLS configuration and the certificates (both
+# system-wide and per-user). Exercises tasks/configure.yml, tasks/tls/* and the
+# per-user certificate handling in tasks/users.yml. The throwaway CA/server/client
+# certificates are generated on the controller in prepare.yml.
+- name: Deploy libvirt TLS configuration and certificates
+  hosts: all
+  vars:
+    certdir: /tmp/molecule-libvirt-tls
+  roles:
+    - role: gwerlas.libvirt
+      vars:
+        libvirt_config:
+          libvirtd:
+            listen_tls: 1
+            # a non-default, observable directive: the rw socket gets these perms
+            # only if libvirtd was actually restarted to read the new config
+            unix_sock_rw_perms: "0750"
+        libvirt_ca_file: "{{ certdir }}/cacert.pem"
+        libvirt_servercert: "{{ certdir }}/servercert.pem"
+        libvirt_serverkey: "{{ certdir }}/serverkey.pem"
+        libvirt_clientcert: "{{ certdir }}/clientcert.pem"
+        libvirt_clientkey: "{{ certdir }}/clientkey.pem"
+        libvirt_users:
+          - name: molecule

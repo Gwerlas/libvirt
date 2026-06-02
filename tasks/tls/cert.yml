@@ -1,0 +1,41 @@
+---
+- name: TLS Server certificate
+  tags:
+    - ssl
+  block:
+    - name: TLS Server certificate directories
+      ansible.builtin.file:
+        path: "{{ libvirt_pki_dir }}"
+        state: directory
+        group: "{{ grps.qemu | default('qemu') }}"
+        mode: "0755"
+        seuser: system_u
+        serole: object_r
+        setype: cert_t
+        selevel: s0
+      loop:
+        - "{{ dest_cert | dirname }}"
+        - "{{ dest_key | dirname }}"
+      loop_control:
+        loop_var: libvirt_pki_dir
+
+    - name: TLS Server certificate files
+      ansible.builtin.copy:
+        src: "{{ libvirt_pki_file.src }}"
+        dest: "{{ libvirt_pki_file.dest }}"
+        group: "{{ grps.qemu | default('qemu') }}"
+        mode: "{{ libvirt_pki_file.mode }}"
+        seuser: system_u
+        serole: object_r
+        setype: cert_t
+        selevel: s0
+      loop:
+        - src: "{{ src_cert }}"
+          dest: "{{ dest_cert }}"
+          mode: "0444"
+        - src: "{{ src_key }}"
+          dest: "{{ dest_key }}"
+          mode: "0440"
+      loop_control:
+        loop_var: libvirt_pki_file
+      notify: Restart libvirt service

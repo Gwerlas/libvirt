@@ -76,12 +76,41 @@ Role Variables
 | `libvirt_dnsmasq_management_method` | `auto`                                  | DNSMasq management: `auto`, `bind`, `disable`, or `none`                             |
 | `libvirt_dnsmasq_interface_types`   | `[ether]`                               | Interface types for DNSMasq to listen on (when method is `bind`)                     |
 
+### Configuration
+
+| Variable             | Default   | Description                                                                                       |
+| -------------------- | --------- | ------------------------------------------------------------------------------------------------- |
+| `libvirt_config`     | _(unset)_ | Per-file directives, as `{ <file>: { directive: value } }`, written to `/etc/libvirt/<file>.conf` |
+| `libvirt_ca_file`    | _(unset)_ | Path **on the controller** to the CA certificate to deploy                                        |
+| `libvirt_servercert` | _(unset)_ | Path **on the controller** to the server certificate to deploy                                    |
+| `libvirt_serverkey`  | _(unset)_ | Path **on the controller** to the server private key to deploy                                    |
+| `libvirt_clientcert` | _(unset)_ | Path **on the controller** to the client certificate to deploy                                    |
+| `libvirt_clientkey`  | _(unset)_ | Path **on the controller** to the client private key to deploy                                    |
+
+The TLS files are deployed to the standard libvirt locations (see the
+[libvirt TLS knowledge base](https://libvirt.org/kbase/tlscerts.html)) :
+
+| Variable             | Destination on the node                  |
+| -------------------- | ---------------------------------------- |
+| `libvirt_ca_file`    | `/etc/pki/CA/cacert.pem`                 |
+| `libvirt_servercert` | `/etc/pki/libvirt/servercert.pem`        |
+| `libvirt_serverkey`  | `/etc/pki/libvirt/private/serverkey.pem` |
+| `libvirt_clientcert` | `/etc/pki/libvirt/clientcert.pem`        |
+| `libvirt_clientkey`  | `/etc/pki/libvirt/private/clientkey.pem` |
+
+The CA and server destinations follow the matching `libvirtd` directives when set
+in `libvirt_config` (`ca_file`, `cert_file` and `key_file`), so they stay
+consistent with the daemon configuration.
+
 ### Firewall
 
 | Variable                  | Default   | Description                                                  |
 | ------------------------- | --------- | ------------------------------------------------------------ |
 | `libvirt_manage_firewall` | `true`    | Whether to manage firewalld rules                            |
 | `libvirt_firewall_zone`   | _(unset)_ | Firewalld zone to use (defaults to firewalld's default zone) |
+
+The `libvirt` and `libvirt-tls` firewalld services (the latter opens the
+TLS port `16514/tcp`) are both enabled when `libvirt_manage_firewall` is `true`.
 
 ### Provisioning
 
@@ -199,6 +228,36 @@ Provision some resources :
                 source: /dev/vdb
                 target: vdb
                 type: block
+```
+
+Enable TLS on the libvirt daemon, deploying the certificates generated on the
+controller (see the [libvirt TLS knowledge base](https://libvirt.org/kbase/tlscerts.html)
+to create them) :
+
+```yaml
+- name: Libvirt over TLS
+  hosts: all
+  roles:
+    - role: gwerlas.libvirt
+      vars:
+        # Directives written to /etc/libvirt/libvirtd.conf
+        libvirt_config:
+          libvirtd:
+            listen_tls: 1
+            listen_tcp: 0
+            tls_no_verify_cert: 0
+        # Certificates and keys stored on the Ansible controller
+        libvirt_ca_file: files/pki/cacert.pem
+        libvirt_servercert: files/pki/servercert.pem
+        libvirt_serverkey: files/pki/private/serverkey.pem
+        libvirt_clientcert: files/pki/clientcert.pem
+        libvirt_clientkey: files/pki/private/clientkey.pem
+```
+
+Clients can then reach the daemon over TLS :
+
+```sh
+virsh -c qemu://node.example.com/system list
 ```
 
 Limitations
