@@ -50,9 +50,6 @@
       vars:
         group: "{{ libvirt_system_groups.libvirt }}"
       block:
-        - name: Services
-          ansible.builtin.import_tasks: "{{ role_path }}/tasks/services.yml"
-
         - name: Packages - Users
           when: group | length > 0
           tags:
