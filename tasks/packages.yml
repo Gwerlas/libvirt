@@ -58,13 +58,13 @@
           tags:
             - users
           ansible.builtin.user:
-            name: "{{ username }}"
+            name: "{{ libvirt_user.name }}"
             append: true
             groups:
               - "{{ group }}"
           loop: "{{ libvirt_users }}"
           loop_control:
-            loop_var: username
+            loop_var: libvirt_user
 
 - name: Packages - Flush handlers
   ansible.builtin.meta: flush_handlers

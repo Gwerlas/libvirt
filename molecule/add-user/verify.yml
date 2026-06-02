@@ -1,1 +1,16 @@
-../qemu-user/verify.yml
+---
+- name: Verify the user was added to the libvirt group
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Read the libvirt group
+      ansible.builtin.getent:
+        database: group
+        key: libvirt
+
+    - name: The molecule user belongs to the libvirt group
+      ansible.builtin.assert:
+        that:
+          - "'molecule' in ansible_facts.getent_group['libvirt'][2].split(',')"
+        success_msg: molecule is a member of the libvirt group
+        fail_msg: molecule was not added to the libvirt group

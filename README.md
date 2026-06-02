@@ -67,14 +67,14 @@ Role Variables
 
 ### Installation
 
-| Variable                            | Default                         | Description                                                                          |
-| ----------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------ |
-| `libvirt_backends`                  | `[qemu]`                        | List of backends to install                                                          |
-| `libvirt_install`                   | `[libvirtd, clients]`           | Components to install (`libvirtd`, `clients`, `virt-manager`, `gnome-boxes`, `qemu`) |
-| `libvirt_users`                     | `[{{ ansible_facts.user_id }}]` | Users to add to libvirt/kvm groups                                                   |
-| `libvirt_retries`                   | `2`                             | Number of retries for package installation                                           |
-| `libvirt_dnsmasq_management_method` | `auto`                          | DNSMasq management: `auto`, `bind`, `disable`, or `none`                             |
-| `libvirt_dnsmasq_interface_types`   | `[ether]`                       | Interface types for DNSMasq to listen on (when method is `bind`)                     |
+| Variable                            | Default                                 | Description                                                                          |
+| ----------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------ |
+| `libvirt_backends`                  | `[qemu]`                                | List of backends to install                                                          |
+| `libvirt_install`                   | `[libvirtd, clients]`                   | Components to install (`libvirtd`, `clients`, `virt-manager`, `gnome-boxes`, `qemu`) |
+| `libvirt_users`                     | `[{name: {{ ansible_facts.user_id }}}]` | Users to add to libvirt/kvm groups                                                   |
+| `libvirt_retries`                   | `2`                                     | Number of retries for package installation                                           |
+| `libvirt_dnsmasq_management_method` | `auto`                                  | DNSMasq management: `auto`, `bind`, `disable`, or `none`                             |
+| `libvirt_dnsmasq_interface_types`   | `[ether]`                               | Interface types for DNSMasq to listen on (when method is `bind`)                     |
 
 ### Firewall
 
