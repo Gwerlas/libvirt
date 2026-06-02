@@ -32,6 +32,11 @@
 - name: Configure
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/configure.yml"
 
+- name: Users
+  tags:
+    - users
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/users.yml"
+
 - name: Provision the resources
   tags:
     - provision

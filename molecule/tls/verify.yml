@@ -25,6 +25,8 @@
         - /etc/pki/libvirt/servercert.pem
         - /etc/pki/libvirt/private/serverkey.pem
         - /etc/pki/libvirt/clientcert.pem
+        - /home/molecule/.pki/libvirt/clientcert.pem
+        - /home/molecule/.pki/cacert.pem
 
     - name: TLS assertions
       ansible.builtin.assert:

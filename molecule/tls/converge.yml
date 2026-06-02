@@ -23,3 +23,6 @@
         libvirt_clientkey: "{{ certdir }}/clientkey.pem"
         libvirt_users:
           - name: molecule
+            ca_file: "{{ certdir }}/cacert.pem"
+            clientcert: "{{ certdir }}/clientcert.pem"
+            clientkey: "{{ certdir }}/clientkey.pem"

@@ -71,10 +71,19 @@ Role Variables
 | ----------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------ |
 | `libvirt_backends`                  | `[qemu]`                                | List of backends to install                                                          |
 | `libvirt_install`                   | `[libvirtd, clients]`                   | Components to install (`libvirtd`, `clients`, `virt-manager`, `gnome-boxes`, `qemu`) |
-| `libvirt_users`                     | `[{name: {{ ansible_facts.user_id }}}]` | Users to add to libvirt/kvm groups                                                   |
+| `libvirt_users`                     | `[{name: {{ ansible_facts.user_id }}}]` | Users granted libvirt access (see below)                                             |
 | `libvirt_retries`                   | `2`                                     | Number of retries for package installation                                           |
 | `libvirt_dnsmasq_management_method` | `auto`                                  | DNSMasq management: `auto`, `bind`, `disable`, or `none`                             |
 | `libvirt_dnsmasq_interface_types`   | `[ether]`                               | Interface types for DNSMasq to listen on (when method is `bind`)                     |
+
+Each `libvirt_users` entry is a dictionary supporting the following keys :
+
+| Key          | Description                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------ |
+| `name`       | User name to add to the libvirt/kvm groups                                                             |
+| `ca_file`    | Path **on the controller** to the CA certificate, deployed to `~/.pki/cacert.pem`                      |
+| `clientcert` | Path **on the controller** to the user client certificate, deployed to `~/.pki/libvirt/clientcert.pem` |
+| `clientkey`  | Path **on the controller** to the user client private key, deployed to `~/.pki/libvirt/clientkey.pem`  |
 
 ### Configuration
 
@@ -259,6 +268,34 @@ Clients can then reach the daemon over TLS :
 ```sh
 virsh -c qemu://node.example.com/system list
 ```
+
+Per-user client credentials can also be deployed, so a given user can connect to
+a remote daemon over TLS from their own session :
+
+```yaml
+- name: Libvirt user TLS access
+  hosts: all
+  roles:
+    - role: gwerlas.libvirt
+      vars:
+        libvirt_users:
+          - name: alice
+            ca_file: files/pki/cacert.pem
+            clientcert: files/pki/alice/clientcert.pem
+            clientkey: files/pki/alice/clientkey.pem
+```
+
+The certificates are installed under `alice`'s home (`~/.pki`), letting her reach
+a remote host :
+
+```sh
+virsh -c qemu://node.example.com/system list
+```
+
+The URI carries no `alice@` part : over TLS the identity comes from the client
+certificate virsh reads in her home, not from a username (that would only matter
+for the SSH transport). The path stays `/system` to reach the remote system
+daemon — `/session` is a separate, local per-user daemon.
 
 Limitations
 -----------
