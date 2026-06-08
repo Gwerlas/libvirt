@@ -44,6 +44,9 @@ flags:
     - package: app-emulation/libvirt
       use:
         - qemu
+    - package: app-emulation/qemu
+      use:
+        - virtfs
   virt-manager:
     - package: net-misc/spice-gtk
       use:
