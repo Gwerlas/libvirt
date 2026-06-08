@@ -16,13 +16,16 @@
     name: dnsmasq
     state: restarted
 
-- name: Restart dbus service
+# A full `restart` of the system bus drops every client (logind, the X/gdm
+# session, ...) and wedges the desktop. dbus re-reads its policy files on SIGHUP,
+# so a reload is enough to pick up libvirt's freshly installed dbus config.
+- name: Reload dbus service
   listen:
     - emerge --deep --newuse
   become: true
   ansible.builtin.service:
     name: dbus
-    state: restarted
+    state: reloaded
 
 - name: Get libvirtd version
   listen:
