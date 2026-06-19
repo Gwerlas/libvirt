@@ -43,14 +43,15 @@
 {% elif disk_type == "block" %}
       <source dev="{{ disk.source }}"/>
 {% endif %}
-      <target dev="{{ disk.target | default('vda') }}" bus="virtio"/>
+{% set disk_dev = disk.target | default('vda') %}
+      <target dev="{{ disk_dev }}" bus="{{ {'vd': 'virtio', 'hd': 'ide'}[disk_dev[:2]] }}"/>
 {% if 'boot_order' in disk %}
       <boot order="{{ disk.boot_order }}"/>
 {% endif %}
     </disk>
 {% endfor %}
     <controller type="pci" index="0" model="pci-root"/>
-{% for device in domain.networks %}
+{% for device in domain.interfaces %}
     <interface type="{{ device.type | default('network')}}">
 {% if 'name' in device %}
       <source network="{{ device.name }}" />
@@ -68,10 +69,11 @@
       <target type="serial" port="0"/>
     </console>
     <input type="keyboard" bus="ps2"/>
-{% set graphics = domain.graphics | default({}) %}
+{% for graphics in domain.graphics | default([{}]) %}
     <graphics type="vnc" port="-1" autoport="yes" listen="127.0.0.1" keymap="{{ graphics.keymap | default(libvirt_default_keymap) }}">
       <listen type="address" address="127.0.0.1"/>
     </graphics>
+{% endfor %}
     <video>
       <model type="cirrus" vram="16384" heads="1"/>
       <address type="pci" domain="0x0000" bus="0x00" slot="0x02" function="0x0"/>

@@ -123,25 +123,142 @@ TLS port `16514/tcp`) are both enabled when `libvirt_manage_firewall` is `true`.
 
 ### Provisioning
 
-| Variable                      | Default              | Description                                                              |
-| ----------------------------- | -------------------- | ------------------------------------------------------------------------ |
-| `libvirt_default_disk_format` | `qcow2`              | Default disk image format for volumes and domains (`qcow2`, `raw`, etc.) |
-| `libvirt_default_keymap`      | `en-us`              | Default keymap for VNC graphics                                          |
-| `libvirt_default_cpu`         | `{mode: host-model}` | Default CPU configuration for domains                                    |
-| `libvirt_pools`               | `[]`                 | List of storage pools to create                                          |
+| Variable                         | Default                                    | Description                                                               |
+| -------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------- |
+| `libvirt_pools`                  | `[]`                                       | List of storage pools to create (see [items](#libvirt_pools-items))       |
+| `libvirt_volumes`                | `[]`                                       | List of storage volumes to create (see [items](#libvirt_volumes-items))   |
+| `libvirt_networks`               | `[]`                                       | List of virtual networks to create (see [items](#libvirt_networks-items)) |
+| `libvirt_domains`                | `[]`                                       | List of virtual machines to create (see [items](#libvirt_domains-items))  |
+| `libvirt_default_disk_format`    | `qcow2`                                    | Default disk image format for volumes and domains (`qcow2`, `raw`, etc.)  |
+| `libvirt_default_keymap`         | `en-us`                                    | Default keymap for VNC graphics                                           |
+| `libvirt_default_cpu`            | `{mode: host-model}`                       | Default CPU configuration for domains                                     |
+| `libvirt_uri`                    | `qemu:///system`                           | Default libvirt connection URI                                            |
+| `libvirt_remove_default_network` | `false`                                    | Remove libvirt's `default` network                                        |
+| `libvirt_active_default_network` | `{{ not libvirt_remove_default_network }}` | Keep libvirt's `default` network active                                   |
+
+The `libvirt_pools`, `libvirt_volumes`, `libvirt_networks` and `libvirt_domains`
+variables each take a list of dictionaries. The keys accepted by those list items
+are described below.
+
+#### `libvirt_pools` items
+
+| Key         | Default                                  | Description                                                             |
+| ----------- | ---------------------------------------- | ----------------------------------------------------------------------- |
+| `name`      |                                          | Pool name                                                               |
+| `type`      | `netfs` when `source` is set, else `dir` | Pool type (`dir`, `fs`, `netfs`, `logical`, ...)                        |
+| `target`    |                                          | Target definition, with a `path` and optional `permissions` (see below) |
+| `source`    |                                          | Source definition for `netfs` pools (see below)                         |
+| `autostart` |                                          | Start the pool at boot                                                  |
+| `state`     | `active`                                 | Desired pool state (`active`, `present`, `absent`)                      |
+
+The `target` key holds the pool location and its permissions:
+
+| Key                 | Default                         | Description                 |
+| ------------------- | ------------------------------- | --------------------------- |
+| `path`              |                                 | Filesystem path of the pool |
+| `permissions.mode`  | `0771` (system) / `0711` (user) | Permissions of the path     |
+| `permissions.owner` | qemu user / current user        | Owner of the path           |
+| `permissions.group` | owner's primary group           | Group of the path           |
 
 For `netfs` pools, the `source` key supports the following properties:
 
-| Property           | Default          | Description                               |
-| ------------------ | ---------------- | ----------------------------------------- |
-| `source.host`      |                  | NFS/CIFS server hostname                  |
-| `source.dir`       |                  | Exported path on the server               |
-| `source.type`      | `nfs`            | Protocol format: `nfs` or `cifs`          |
-| `source.protocol`  |                  | NFS protocol version (e.g. `4` for NFSv4) |
-| `libvirt_volumes`  | `[]`             | List of storage volumes to create         |
-| `libvirt_networks` | `[]`             | List of virtual networks to create        |
-| `libvirt_domains`  | `[]`             | List of virtual machines to create        |
-| `libvirt_uri`      | `qemu:///system` | Default libvirt connection URI            |
+| Key        | Default | Description                                        |
+| ---------- | ------- | -------------------------------------------------- |
+| `hosts`    |         | List of NFS/CIFS servers, each with a `name`       |
+| `dir`      |         | Exported path on the server, as `dir.path`         |
+| `format`   | `nfs`   | Source format, as `format.type` (`nfs` or `cifs`)  |
+| `protocol` |         | NFS protocol version, as `protocol.ver` (e.g. `4`) |
+
+#### `libvirt_volumes` items
+
+| Key        | Default   | Description                                                  |
+| ---------- | --------- | ------------------------------------------------------------ |
+| `name`     |           | Volume name                                                  |
+| `capacity` | `10G`     | Volume capacity (e.g. `200G`)                                |
+| `target`   |           | Target definition, with `format.type` (`qcow2`, `raw`, etc.) |
+| `pool`     | `default` | Pool to create the volume in                                 |
+| `state`    | `present` | Desired volume state (`present`, `absent`)                   |
+
+The `target.format.type` defaults to `libvirt_default_disk_format`.
+
+A domain's `disks` (see below) are a shorthand: each non-block disk's backing
+volume is created automatically, so it does not need a separate `libvirt_volumes`
+entry. Use `libvirt_volumes` for volumes that are not a disk of a managed domain.
+
+#### `libvirt_networks` items
+
+| Key         | Default  | Description                                                                                                     |
+| ----------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `name`      |          | Network name                                                                                                    |
+| `forward`   |          | Forward definition, with a `mode` (defaults to `nat`); omit for an isolated network                             |
+| `bridge`    |          | Bridge definition, with a `name`; omit to let libvirt auto-name the bridge                                      |
+| `ips`       |          | List of IP configurations, each with `address`, `netmask` and an optional `dhcp.ranges` (list of `start`/`end`) |
+| `autostart` | `true`   | Start the network at boot                                                                                       |
+| `state`     | `active` | Desired network state (`active`, `absent`)                                                                      |
+
+#### `libvirt_domains` items
+
+| Key          | Default               | Description                                                                                      |
+| ------------ | --------------------- | ------------------------------------------------------------------------------------------------ |
+| `name`       |                       | Domain name                                                                                      |
+| `type`       | `kvm`                 | Domain type                                                                                      |
+| `memory`     |                       | Memory size (e.g. `4G`)                                                                          |
+| `vcpu`       |                       | vCPU configuration, with `quantity` and an optional `placement`                                  |
+| `cpu`        | `libvirt_default_cpu` | CPU configuration, with `mode` and an optional `model` (`name`, `fallback`)                      |
+| `disks`      |                       | List of disks (see below)                                                                        |
+| `interfaces` |                       | List of network interfaces, each with a `name` (network) or `type`, and an optional `boot_order` |
+| `graphics`   |                       | List of graphics configurations, each with an optional `keymap`                                  |
+| `autostart`  | `true`                | Start the domain at boot                                                                         |
+| `state`      | `running`             | Desired domain state (`running`, `destroyed`, ...)                                               |
+
+Each entry of a domain's `disks` list supports the following keys:
+
+| Key          | Default                       | Description                                                      |
+| ------------ | ----------------------------- | ---------------------------------------------------------------- |
+| `name`       |                               | Disk name (volume name or file name in the pool)                 |
+| `type`       | `file`                        | Disk source type (`file`, `volume`, `block`)                     |
+| `capacity`   | `10G`                         | Capacity of the backing volume created for `file`/`volume` disks |
+| `source`     |                               | Device path for `block` disks (e.g. `/dev/vdb`)                  |
+| `target`     | `vda`                         | Target device in the guest; its name sets the bus (see below)    |
+| `pool`       | `default`                     | Pool holding the disk (for `file` and `volume` types)            |
+| `format`     | `libvirt_default_disk_format` | Disk image format (`qcow2`, `raw`, etc.)                         |
+| `boot_order` |                               | Boot order of the disk                                           |
+
+The emulated bus is derived from the `target` name, so a disk never needs a
+separate `bus` key:
+
+| `target` prefix | Bus      | Status                                             |
+| --------------- | -------- | -------------------------------------------------- |
+| `vda`, `vdb`, … | `virtio` | Supported                                          |
+| `hda`, `hdb`, … | `ide`    | Supported                                          |
+| `sda`, `sdb`, … | —        | Rejected for now; `sata`/`scsi`/`usb` come later   |
+
+`sd*` names are refused for now (their bus is ambiguous in libvirt and needs an
+extra controller). Support will be added without changing existing inventories.
+
+Upgrading to 0.7.0
+------------------
+
+`0.7.0` reworks the provisioning variables (`libvirt_pools`, `libvirt_networks`
+and `libvirt_domains`) to mirror libvirt's own XML structure. Existing
+inventories from `0.6.x` must be migrated as follows:
+
+| Resource | `0.6.x`                  | `0.7.0`                             |
+| -------- | ------------------------ | ----------------------------------- |
+| Networks | `forward_mode: nat`      | `forward: {mode: nat}`              |
+| Networks | `bridge: virbr0`         | `bridge: {name: virbr0}`            |
+| Networks | `ip: {address, netmask}` | `ips: [{address, netmask}]`         |
+| Networks | `ip.dhcp: {start, end}`  | `ips[].dhcp.ranges: [{start, end}]` |
+| Pools    | `path: …`                | `target: {path: …}`                 |
+| Pools    | `owner`, `group`, `mode` | moved under `target.permissions`    |
+| Pools    | `source.host: server`    | `source.hosts: [{name: server}]`    |
+| Pools    | `source.dir: /export`    | `source.dir: {path: /export}`       |
+| Pools    | `source.type: nfs`       | `source.format: {type: nfs}`        |
+| Pools    | `source.protocol: 4`     | `source.protocol: {ver: 4}`         |
+| Volumes  | `size: 200G`             | `capacity: 200G`                    |
+| Volumes  | `format: qcow2`          | `target: {format: {type: qcow2}}`   |
+| Domains  | `disks[].size: 2G`       | `disks[].capacity: 2G`              |
+| Domains  | `networks: [...]`        | `interfaces: [...]`                 |
 
 Dependencies
 ------------
@@ -181,37 +298,52 @@ Provision some resources :
             bridge:
               name: br0
           - name: my-nat
+            forward:
+              mode: nat
             bridge:
               name: br1
-            ip:
-              address: 192.168.0.1
-              netmask: 255.255.255.0
-              dhcp:
-                start: 192.168.0.2
-                end: 192.168.0.254
+            ips:
+              - address: 192.168.0.1
+                netmask: 255.255.255.0
+                dhcp:
+                  ranges:
+                    - start: 192.168.0.2
+                      end: 192.168.0.254
         libvirt_pools:
           - name: local-dir
-            path: /data/images
+            target:
+              path: /data/images
           - name: from-nfs
             type: netfs
-            path: /data/images
+            target:
+              path: /data/images
             source:
-              host: hostname
-              dir: /server-export
+              hosts:
+                - name: hostname
+              dir:
+                path: /server-export
           - name: from-nfs4
             type: netfs
-            path: /data/images
+            target:
+              path: /data/images
             source:
-              host: hostname
-              dir: /server-export
-              protocol: 4
+              hosts:
+                - name: hostname
+              dir:
+                path: /server-export
+              protocol:
+                ver: 4
           - name: from-cifs
             type: netfs
-            path: /data/images
+            target:
+              path: /data/images
             source:
-              host: hostname
-              dir: /server-share
-              type: cifs
+              hosts:
+                - name: hostname
+              dir:
+                path: /server-share
+              format:
+                type: cifs
         libvirt_domains:
           - name: my-node
             autostart: false
@@ -220,7 +352,7 @@ Provision some resources :
               model:
                 fallback: allow
             memory: 4G
-            networks:
+            interfaces:
               - name: my-bridge
               - name: my-nat
             vcpu:
@@ -229,7 +361,7 @@ Provision some resources :
             disks:
               - name: os
               - name: data
-                size: 200G
+                capacity: 200G
                 target: vdb
                 pool: data-dir
               - name: data-2

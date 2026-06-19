@@ -8,6 +8,50 @@ Development guide
 
 This role should not need any external settings to work.
 
+Inventory format
+----------------
+
+The provisioning variables (`libvirt_pools`, `libvirt_volumes`,
+`libvirt_networks`, `libvirt_domains`) mirror libvirt's own XML format as closely
+as is reasonable, so the [libvirt format reference](https://libvirt.org/format.html)
+doubles as the reference for these variables.
+
+The mapping is mechanical :
+
+* an XML element with attributes becomes a dictionary keyed by those attributes
+  (`<bridge name='br0'/>` → `bridge: {name: br0}`) ;
+* an element holding text becomes a scalar, or a dictionary with a named key when
+  it also carries attributes (`<vcpu placement='static'>2</vcpu>` →
+  `vcpu: {placement: static, quantity: 2}`) ;
+* repeated elements become a list named with the plural of the element
+  (`<disk>` → `disks`, `<interface>` → `interfaces`, `<ip>` → `ips`,
+  `<range>` → `ranges`, `<host>` → `hosts`), even when a single occurrence is the
+  common case. Elements already ending in `s` keep their name
+  (`<graphics>` → `graphics`).
+
+Prefer extending an existing element with a new key over inventing a flat
+`element_attribute` variable, so the format stays predictable and future-proof.
+
+The mapping has no special case to memorise: every element with attributes is a
+dictionary keyed by those attributes, down to single-attribute ones
+(`<dir path='…'/>` → `dir: {path: …}`, `<format type='nfs'/>` →
+`format: {type: nfs}`).
+
+One **deliberate departure** remains: a domain's `disks` are a convenience DSL
+rather than a strict `<disk>` mirror. A disk's `target` is the guest device name
+(`target: vda`, not `target: {dev: vda}`) and its `capacity`/`format` stay flat
+rather than nested under `target.format.type`, so the common "give a VM a disk"
+case stays terse. In the same spirit, the emulated `bus` is not a key: it is
+derived from the `target` prefix (`vd*` → virtio, `hd*` → ide) in
+`domain.xml.j2`. `sd*` names are rejected upfront (`tasks/domains.yml`) because
+their bus is ambiguous in libvirt (`sata`/`scsi`/`usb`) and needs an extra
+controller; adding them later is purely additive — an inventory that errors
+today starts working, never the reverse — so the `target`-as-string contract is
+locked for good. Each non-block disk's backing volume
+is then derived (in `volumes_computed`, `vars/main.yml`) into a faithful
+`libvirt_volumes` entry, so the same volume is never declared twice — and
+`libvirt_volumes` itself mirrors `<volume>` (`capacity`, `target.format.type`).
+
 Requirements
 ------------
 

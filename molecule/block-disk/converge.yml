@@ -17,5 +17,5 @@
                 source: /dev/vdb
                 target: vdb
                 type: block
-            networks:
+            interfaces:
               - name: default

@@ -1,4 +1,20 @@
 ---
+- name: Domains - Validate disk targets
+  vars:
+    domain: "{{ item.0 }}"
+    disk: "{{ item.1 }}"
+  ansible.builtin.assert:
+    that:
+      - disk.target | default('vda') is match('(vd|hd)')
+    fail_msg: >-
+      Disk target '{{ disk.target | default('vda') }}' on domain
+      '{{ domain.name }}': only virtio (vd*) and ide (hd*) disks are supported
+      for now; sata/scsi/usb (sd*) will be added later.
+    quiet: true
+  loop: "{{ domains | subelements('disks', skip_missing=true) }}"
+  loop_control:
+    label: "{{ domain.name }}: {{ disk.target | default('vda') }}"
+
 - name: Domains - List VMs
   community.libvirt.virt:
     command: list_vms

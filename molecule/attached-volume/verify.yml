@@ -1,15 +1,48 @@
 ---
-- name: Verify VMs
+- name: Verify the domain XML mirrors the inventory
   hosts: all
   gather_facts: false
+  vars:
+    domain: my-node
   tasks:
-    - name: Get informations
+    - name: Get domain info
       community.libvirt.virt:
         command: info
-      register: result
+        name: "{{ domain }}"
+      register: domain_info
 
-    - name: My node is running
+    - name: Get domain XML
+      community.libvirt.virt:
+        command: get_xml
+        name: "{{ domain }}"
+      register: domain_xml
+
+    - name: The data volume is attached on vdb with a virtio bus
+      community.general.xml:
+        xmlstring: "{{ domain_xml.get_xml }}"
+        xpath: /domain/devices/disk[@device='disk']/target[@dev='vdb' and @bus='virtio']
+        count: true
+      register: data_disk
+
+    - name: The legacy disk gets an IDE bus derived from its hd* name
+      community.general.xml:
+        xmlstring: "{{ domain_xml.get_xml }}"
+        xpath: /domain/devices/disk[@device='disk']/target[@dev='hda' and @bus='ide']
+        count: true
+      register: legacy_disk
+
+    - name: The user-mode interface mirrors the inventory
+      community.general.xml:
+        xmlstring: "{{ domain_xml.get_xml }}"
+        xpath: /domain/devices/interface[@type='user']
+        count: true
+      register: user_iface
+
+    - name: Domain assertions
       ansible.builtin.assert:
         that:
-          - "'my-node' in result"
-          - result['my-node'].state == "running"
+          - domain in domain_info
+          - domain_info[domain].state == "running"
+          - data_disk.count == 1
+          - legacy_disk.count == 1
+          - user_iface.count == 1
