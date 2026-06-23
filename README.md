@@ -160,6 +160,15 @@ The `target` key holds the pool location and its permissions:
 | `permissions.owner` | qemu user / current user        | Owner of the path           |
 | `permissions.group` | owner's primary group           | Group of the path           |
 
+For a system-wide connection (`qemu:///system`), the VMs run as a dedicated
+qemu user. When a pool `path` lives under a user's home (e.g.
+`/home/alice/.local/share/vms`), that user is granted ownership of the pool, but
+the qemu user still cannot reach the disks because intermediate home directories
+are usually not traversable (e.g. `~/.local` is `0700`). The role therefore
+grants the qemu user execute-only (traverse, no read) access — via an ACL, so
+the directories are not opened to everyone — on the home ancestors leading to
+the pool. This requires `setfacl` (package `acl`), which the role installs.
+
 For `netfs` pools, the `source` key supports the following properties:
 
 | Key        | Default | Description                                        |

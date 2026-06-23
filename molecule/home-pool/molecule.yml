@@ -1,0 +1,24 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: default
+# Feature scenario: a representative Debian-like + RedHat-like pair is enough.
+platforms:
+  - name: bookworm
+    groups:
+      - debian_like
+      - debian
+    memory: 2
+  - name: alma9
+    groups:
+      - redhat_like
+    memory: 2
+provisioner:
+  name: ansible
+  playbooks:
+    create: ../shared/create.yml
+    destroy: ../shared/destroy.yml
+    prepare: ../shared/prepare.yml
+verifier:
+  name: ansible

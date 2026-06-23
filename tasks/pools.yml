@@ -6,16 +6,16 @@
 
 - name: Pools - Items
   ansible.builtin.set_fact:
-    items: "{{ libvirt_pools }}"
+    libvirt_pools_input: "{{ libvirt_pools }}"
 
 - name: Pools - Create
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/pools/create.yml"
-  vars: 
+  vars:
     libvirt_pools: |
       {{
         (
-          (items | selectattr('state', 'undefined'))
-        + (items | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
+          (libvirt_pools_input | selectattr('state', 'undefined'))
+        + (libvirt_pools_input | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
         ) | rejectattr('name', 'in', ansible_facts.ansible_libvirt_pools)
       }}
 
@@ -47,3 +47,10 @@
   loop: "{{ libvirt_pools }}"
   loop_control:
     loop_var: pool
+
+- name: Pools - Allow qemu to reach pools located under a user home
+  when: system_wide
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/pools/grant-traversal.yml"
+  loop: "{{ libvirt_pools_input }}"
+  loop_control:
+    loop_var: libvirt_pool
