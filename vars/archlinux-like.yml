@@ -7,7 +7,8 @@ grps:
 
 packages:
   libvirtd:
-    - bridge-utils
+    # bridge-utils (brctl) is gone from Arch repos and unneeded: modern libvirt
+    # manages bridges through netlink (iproute2).
     - dnsmasq
     - libvirt
     - libvirt-python

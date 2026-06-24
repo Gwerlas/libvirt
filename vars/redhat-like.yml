@@ -1,7 +1,8 @@
 ---
 packages:
   libvirtd:
-    - bridge-utils
+    # bridge-utils (brctl) was dropped from EL9+ and is no longer needed:
+    # modern libvirt manages bridges through netlink (iproute).
     - libvirt-daemon
     - python3-lxml
     - python3-libvirt
