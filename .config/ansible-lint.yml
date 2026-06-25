@@ -1,2 +1,7 @@
 skip_list:
   - experimental
+
+# Data file (the supported-platforms list), not a playbook — ansible-lint would
+# otherwise try to parse it as plays. Consumed by molecule/shared/create.yml.
+exclude_paths:
+  - molecule/shared/platforms.yml

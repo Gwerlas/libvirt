@@ -1,0 +1,401 @@
+---
+- name: Create libvirt VM for Molecule
+  hosts: all
+  gather_facts: false
+  vars:
+    libvirt_uri: "{{ lookup('env', 'LIBVIRT_DEFAULT_URI') | default('qemu:///system', true) }}"
+    libvirt_pool: "{{ lookup('env', 'LIBVIRT_DEFAULT_POOL') | default('default', true) }}"
+    platforms_db: "{{ (lookup('file', lookup('env', 'MOLECULE_PROJECT_DIRECTORY') + '/molecule/shared/platforms.yml') | from_yaml).platforms }}"
+    platform: "{{ molecule_yml.platforms | selectattr('name', 'equalto', inventory_hostname) | first }}"
+    platform_data: "{{ platforms_db | selectattr('name', 'equalto', inventory_hostname) | first }}"
+    memory: "{{ platform.memory | default(1) }}"
+    vcpus: "{{ platform.vcpus | default(1) }}"
+    # platform_data.image_url is a fixed URL; rolling platforms instead set
+    # image_latest (a `latest-*.txt` pointer) and image_url is resolved from it
+    # into resolved_image_url by the task below.
+    image_url: "{{ platform_data.image_url | default(resolved_image_url | default('')) }}"
+    image_name: "{{ image_url | basename }}"
+    volume_disk: "molecule-{{ inventory_hostname }}.qcow2"
+    volume_cidata: "molecule-{{ inventory_hostname }}-cidata.iso"
+    extra_disks: "{{ platform.extra_disks | default([]) }}"
+    extra_networks: "{{ platform.extra_networks | default([]) }}"
+    # The test VMs run libvirt and create their own `default` network on
+    # 192.168.122.0/24. Booting them on a host network that shares that subnet
+    # makes the inner network collide with the guest's own NIC, so give them a
+    # dedicated network on a different subnet.
+    molecule_network: molecule
+    molecule_network_subnet: 192.168.151
+    molecule_ephemeral_directory: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}"
+    ssh_key_path: "{{ molecule_ephemeral_directory }}/ssh_key"
+  tasks:
+    - name: Work from localhost
+      delegate_to: localhost
+      block:
+        - name: Generate ephemeral SSH keypair  # noqa run-once
+          ansible.builtin.command:
+            cmd: ssh-keygen -t ed25519 -N "" -f {{ ssh_key_path }} -C molecule
+            creates: "{{ ssh_key_path }}"
+          run_once: true
+
+        - name: Read SSH public key
+          ansible.builtin.slurp:
+            src: "{{ ssh_key_path }}.pub"
+          register: ssh_pubkey
+
+        # Rolling platforms (e.g. Gentoo) pin no timestamp — their autobuilds are
+        # pruned after a few weeks. Resolve the current image from the
+        # `latest-*.txt` pointer, whose body carries one
+        # `<dir>/<image>.qcow2 <size>` line relative to the autobuilds directory.
+        - name: Resolve the latest autobuild image
+          when: platform_data.image_latest is defined
+          block:
+            - name: Fetch the latest-image pointer
+              ansible.builtin.uri:
+                url: "{{ platform_data.image_latest }}"
+                return_content: true
+              register: latest_pointer
+
+            - name: Set image_url from the pointer file
+              ansible.builtin.set_fact:
+                resolved_image_url: >-
+                  {{ (platform_data.image_latest | dirname) ~ '/'
+                     ~ (latest_pointer.content | regex_search('\S+\.qcow2')) }}
+
+        - name: Get pool informations
+          community.libvirt.virt_pool:
+            command: info
+            uri: "{{ libvirt_uri }}"
+          register: pools
+
+        - name: Ensure base image is in the pool
+          when: image_name not in pools.pools[libvirt_pool].volumes
+          block:
+            - name: Download base image
+              ansible.builtin.get_url:
+                url: "{{ image_url }}"
+                dest: "/tmp/{{ image_name }}"
+                mode: "0644"
+                timeout: 60
+              register: download
+              until: download is success
+              retries: 5
+              delay: 10
+
+            - name: Get downloaded image size
+              ansible.builtin.stat:
+                path: "/tmp/{{ image_name }}"
+              register: image_stat
+
+            - name: Create empty volume for the base image
+              community.libvirt.virt_volume:
+                pool: "{{ libvirt_pool }}"
+                state: present
+                xml: |
+                  <volume type='file'>
+                    <name>{{ image_name }}</name>
+                    <capacity unit='bytes'>{{ image_stat.stat.size }}</capacity>
+                    <target>
+                      <format type='qcow2'/>
+                    </target>
+                  </volume>
+                uri: "{{ libvirt_uri }}"
+
+            - name: Upload base image into the pool via libvirt API
+              ansible.builtin.command:
+                cmd: >-
+                  virsh -c {{ libvirt_uri }}
+                  vol-upload --pool {{ libvirt_pool }} --sparse
+                  {{ image_name }} /tmp/{{ image_name }}
+              changed_when: true
+
+            - name: Remove local copy of the base image
+              ansible.builtin.file:
+                path: "/tmp/{{ image_name }}"
+                state: absent
+
+        - name: Create VM disk by cloning the base image
+          when: volume_disk not in pools.pools[libvirt_pool].volumes
+          community.libvirt.virt_volume:
+            pool: "{{ libvirt_pool }}"
+            command: create
+            clone_source: "{{ image_name }}"
+            xml: |
+              <volume type='file'>
+                <name>{{ volume_disk }}</name>
+                <capacity unit='G'>20</capacity>
+                <target>
+                  <format type='qcow2'/>
+                </target>
+              </volume>
+            uri: "{{ libvirt_uri }}"
+
+        - name: Create extra disk volumes
+          when: ('molecule-' + inventory_hostname + '-' + disk.target + '.qcow2') not in pools.pools[libvirt_pool].volumes
+          community.libvirt.virt_volume:
+            pool: "{{ libvirt_pool }}"
+            state: present
+            xml: |
+              <volume type='file'>
+                <name>molecule-{{ inventory_hostname }}-{{ disk.target }}.qcow2</name>
+                <capacity unit='G'>{{ disk.size_gb }}</capacity>
+                <target>
+                  <format type='qcow2'/>
+                </target>
+              </volume>
+            uri: "{{ libvirt_uri }}"
+          loop: "{{ extra_disks }}"
+          loop_control:
+            loop_var: disk
+            label: "{{ disk.target }} ({{ disk.size_gb }} GB)"
+
+        - name: Ensure extra libvirt networks exist  # noqa run-once
+          run_once: true
+          community.libvirt.virt_net:
+            command: define
+            name: "{{ extra_net.network }}"
+            xml: |
+              <network>
+                <name>{{ extra_net.network }}</name>
+                <bridge name='virbr-{{ extra_net.network | hash("md5") | truncate(8, true, "") }}' stp='on' delay='0'/>
+                <ip address='{{ extra_net.subnet_gw | default("192.168.250.1") }}' netmask='{{ extra_net.netmask | default("255.255.255.0") }}'/>
+              </network>
+            uri: "{{ libvirt_uri }}"
+          loop: "{{ molecule_yml.platforms | map(attribute='extra_networks', default=[]) | flatten | unique(attribute='network') }}"
+          loop_control:
+            loop_var: extra_net
+            label: "{{ extra_net.network }}"
+
+        - name: Start extra libvirt networks  # noqa run-once
+          run_once: true
+          community.libvirt.virt_net:
+            name: "{{ extra_net.network }}"
+            state: active
+            autostart: true
+            uri: "{{ libvirt_uri }}"
+          loop: "{{ molecule_yml.platforms | map(attribute='extra_networks', default=[]) | flatten | unique(attribute='network') }}"
+          loop_control:
+            loop_var: extra_net
+            label: "{{ extra_net.network }}"
+
+        - name: Ensure the molecule network exists  # noqa run-once
+          run_once: true
+          community.libvirt.virt_net:
+            command: define
+            name: "{{ molecule_network }}"
+            xml: |
+              <network>
+                <name>{{ molecule_network }}</name>
+                <forward mode='nat'/>
+                <bridge name='virbr-molecule' stp='on' delay='0'/>
+                <ip address='{{ molecule_network_subnet }}.1' netmask='255.255.255.0'>
+                  <dhcp>
+                    <range start='{{ molecule_network_subnet }}.2' end='{{ molecule_network_subnet }}.254'/>
+                  </dhcp>
+                </ip>
+              </network>
+            uri: "{{ libvirt_uri }}"
+
+        - name: Start the molecule network  # noqa run-once
+          run_once: true
+          community.libvirt.virt_net:
+            name: "{{ molecule_network }}"
+            state: active
+            autostart: true
+            uri: "{{ libvirt_uri }}"
+
+        - name: Create cloud-init CIDATA cdrom
+          # `cloud_init_network` is set per-platform in platforms.yml only when
+          # an image needs an explicit network-config to come up. Most cloud
+          # images bring their own DHCP-on-all setup and cloud-init's empty
+          # default works; Debian forky/sid however race udev's
+          # predictable-name rename (eth0 → ens3 between netplan write and
+          # networkd start) and need a match-by-glob override. Conversely, the
+          # Gentoo cloudinit image already ships its own /etc/systemd/network/
+          # defaults — overriding them via cidata leaves the interface
+          # unconfigured, so the field stays unset.
+          community.libvirt.virt_volume:
+            pool: "{{ libvirt_pool }}"
+            command: create_cidata_cdrom
+            name: "{{ volume_cidata }}"
+            cloudinit_config: "{{ base_cidata | combine(extra_cidata) }}"
+            uri: "{{ libvirt_uri }}"
+          vars:
+            base_cidata:
+              USERDATA:
+                users:
+                  - name: molecule
+                    lock_passwd: false
+                    shell: /bin/bash
+                    sudo: ALL=(ALL) NOPASSWD:ALL
+                    ssh_authorized_keys:
+                      - "{{ ssh_pubkey.content | b64decode | trim }}"
+              METADATA:
+                local-hostname: "{{ inventory_hostname }}"
+            extra_cidata: >-
+              {{
+                {'NETWORK_CONFIG': platform_data.cloud_init_network}
+                if platform_data.cloud_init_network is defined
+                else {}
+              }}
+
+        - name: List existing VMs
+          community.libvirt.virt:
+            command: list_vms
+            uri: "{{ libvirt_uri }}"
+          register: existing_vms
+
+        - name: Define the VM
+          when: inventory_hostname not in existing_vms.list_vms
+          community.libvirt.virt:
+            command: define
+            # CPU is exposed `host-passthrough` (not `host-model`): the role's
+            # test VMs run libvirt themselves and boot nested domains, so the
+            # guest needs the host's vmx/svm flag for nested KVM to work. The
+            # host already enables nesting (kvm_intel/kvm_amd nested=1).
+            xml: |
+              <domain type='kvm'>
+                <name>{{ inventory_hostname }}</name>
+                <memory unit='GiB'>{{ memory }}</memory>
+                <vcpu>{{ vcpus }}</vcpu>
+                <os>
+                  <type arch='x86_64'>hvm</type>
+                  {% if platform_data.firmware | default('bios') == 'efi' %}
+                  <loader readonly='yes' type='pflash'>/usr/share/edk2/OvmfX64/OVMF_CODE.fd</loader>
+                  <nvram template='/usr/share/edk2/OvmfX64/OVMF_VARS.fd'/>
+                  {% endif %}
+                  <boot dev='hd'/>
+                </os>
+                <features>
+                  <acpi/>
+                  <apic/>
+                </features>
+                <cpu mode='host-passthrough'/>
+                <clock offset='utc'/>
+                <on_poweroff>destroy</on_poweroff>
+                <on_reboot>restart</on_reboot>
+                <on_crash>destroy</on_crash>
+                <devices>
+                  <emulator>/usr/bin/qemu-system-x86_64</emulator>
+                  <controller type='pci' index='0' model='pci-root'/>
+                  <disk type='volume' device='disk'>
+                    <driver name='qemu' type='qcow2'/>
+                    <source pool='{{ libvirt_pool }}' volume='{{ volume_disk }}'/>
+                    <target dev='vda' bus='virtio'/>
+                  </disk>
+                  <disk type='volume' device='cdrom'>
+                    <driver name='qemu' type='raw'/>
+                    <source pool='{{ libvirt_pool }}' volume='{{ volume_cidata }}'/>
+                    <target dev='sda' bus='sata'/>
+                    <readonly/>
+                  </disk>
+                  {% for disk in extra_disks %}
+                  <disk type='volume' device='disk'>
+                    <driver name='qemu' type='qcow2'/>
+                    <source pool='{{ libvirt_pool }}' volume='molecule-{{ inventory_hostname }}-{{ disk.target }}.qcow2'/>
+                    <target dev='{{ disk.target }}' bus='virtio'/>
+                  </disk>
+                  {% endfor %}
+                  <interface type='network'>
+                    <source network='{{ molecule_network }}'/>
+                    <model type='virtio'/>
+                  </interface>
+                  {% for net in extra_networks %}
+                  <interface type='network'>
+                    <source network='{{ net.network }}'/>
+                    <model type='virtio'/>
+                  </interface>
+                  {% endfor %}
+                  <serial type='pty'/>
+                  <console type='pty'/>
+                  <channel type='unix'>
+                    <target type='virtio' name='org.qemu.guest_agent.0'/>
+                  </channel>
+                  <graphics type='spice' autoport='yes'/>
+                </devices>
+              </domain>
+            uri: "{{ libvirt_uri }}"
+
+        - name: Start the VM
+          community.libvirt.virt:
+            name: "{{ inventory_hostname }}"
+            autostart: false
+            state: running
+            uri: "{{ libvirt_uri }}"
+
+        - name: Get VM MAC address
+          ansible.builtin.shell:
+            executable: /bin/bash
+            cmd: |
+              set -o pipefail
+              virsh -c {{ libvirt_uri }} domiflist {{ inventory_hostname }} \
+                | awk 'NR>2 && $5 != "" {print $5; exit}'
+          changed_when: false
+          register: vm_mac
+
+        - name: Get VM IP address from DHCP leases
+          ansible.builtin.shell:
+            executable: /bin/bash
+            cmd: |
+              set -o pipefail
+              virsh -c {{ libvirt_uri }} net-dhcp-leases {{ molecule_network }} --mac {{ vm_mac.stdout }} \
+                | awk 'NR>2 && $5 != "" {print $5; exit}' \
+                | cut -d/ -f1
+          changed_when: false
+          register: vm_ip
+          until: vm_ip.stdout | length > 0
+          retries: 60
+          delay: 5
+
+        - name: Wait for SSH to be available
+          ansible.builtin.wait_for:
+            host: "{{ vm_ip.stdout }}"
+            port: 22
+            delay: 5
+            timeout: 300
+
+        # sshd answering only means it's up — cloud-final and the units it pulls
+        # in (dbus, systemd-hostnamed…) may still be starting. Converging now
+        # races them: tasks that talk to the system bus (the hostname module's
+        # hostnamectl, service restarts…) intermittently hit "Failed to connect
+        # to bus". `cloud-init status --wait` blocks until first boot is done, by
+        # which point the bus is up. Retries ride out the brief window where sshd
+        # accepts connections before it's fully ready.
+        - name: Wait for cloud-init to finish so the system bus is ready
+          ansible.builtin.command:
+            cmd: >-
+              ssh -i {{ ssh_key_path }}
+              -o StrictHostKeyChecking=no
+              -o UserKnownHostsFile=/dev/null
+              -o ConnectTimeout=10
+              molecule@{{ vm_ip.stdout }}
+              cloud-init status --wait
+          changed_when: false
+          register: cloudinit_status
+          # 0 = done, 2 = done with a recoverable error; anything else (notably
+          # 255 ssh transport errors) is retried.
+          until: cloudinit_status.rc in [0, 2]
+          failed_when: cloudinit_status.rc not in [0, 2]
+          retries: 30
+          delay: 10
+
+        - name: Build instance config entry
+          ansible.builtin.set_fact:
+            instance_conf_dict:
+              instance: "{{ inventory_hostname }}"
+              address: "{{ vm_ip.stdout }}"
+              user: molecule
+              port: 22
+              identity_file: "{{ ssh_key_path }}"
+              become_method: sudo
+
+    - name: Write Molecule instance config # noqa run-once
+      delegate_to: localhost
+      run_once: true
+      vars:
+        instance_conf: "{{ ansible_play_hosts | map('extract', hostvars, 'instance_conf_dict') | list }}"
+      ansible.builtin.copy:
+        content: |
+          # Molecule managed
+          {{ instance_conf | to_nice_yaml }}
+        dest: "{{ lookup('env', 'MOLECULE_INSTANCE_CONFIG') }}"
+        mode: "0600"

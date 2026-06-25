@@ -1,0 +1,56 @@
+---
+# Minimal preparation shared by every libvirt scenario. The role installs its own
+# dependencies; here we only bring the VM to a baseline before converge:
+#  - refresh/upgrade packages (Arch is rolling, so a full `pacman -Syu` is
+#    mandatory; Debian/Ubuntu need a dist-upgrade; EL/Fedora only a cache refresh;
+#    Gentoo a Portage tree sync),
+#  - reboot when a new kernel was pulled,
+#  - install firewalld. The libvirt role only *adds its own rules* when
+#    libvirt_manage_firewall is true; providing firewalld is the operator's job
+#    (here, the test baseline). EL/Fedora cloud images already ship and run it.
+- name: Prepare
+  hosts: all
+  become: true
+  tasks:
+    - name: Upgrade Debian-like systems
+      when: ansible_facts.os_family == "Debian"
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+      register: prepare_upgrade
+
+    - name: Refresh EL/Fedora metadata
+      when: ansible_facts.os_family == "RedHat"
+      ansible.builtin.dnf:
+        update_cache: true
+
+    - name: Upgrade Arch Linux
+      when: ansible_facts.os_family == "Archlinux"
+      community.general.pacman:
+        update_cache: true
+        upgrade: true
+      register: prepare_upgrade_arch
+
+    - name: Sync the Portage tree
+      when: ansible_facts.os_family == "Gentoo"
+      community.general.portage:
+        sync: web
+
+    # A full upgrade can pull a new kernel. Without a reboot the running kernel
+    # and the upgraded userspace mismatch — on Arch this breaks nftables (cache
+    # initialization failed), and firewalld then refuses to start.
+    - name: Reboot after a system upgrade
+      when: >-
+        (prepare_upgrade.changed | default(false)) or
+        (prepare_upgrade_arch.changed | default(false))
+      ansible.builtin.reboot:
+
+    - name: Ensure firewalld is installed
+      ansible.builtin.package:
+        name: firewalld
+
+    - name: Ensure firewalld is running
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
