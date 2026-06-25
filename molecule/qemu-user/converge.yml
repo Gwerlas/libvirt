@@ -8,7 +8,7 @@
 
         libvirt_pools:
           - name: data-dir
-            path: /home/vagrant/images
+            path: /home/molecule/images
 
         libvirt_domains:
           - name: my-node
