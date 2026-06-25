@@ -1,0 +1,67 @@
+---
+- name: Destroy libvirt VM
+  hosts: all
+  gather_facts: false
+  vars:
+    libvirt_uri: "{{ lookup('env', 'LIBVIRT_DEFAULT_URI') | default('qemu:///system', true) }}"
+    libvirt_pool: "{{ lookup('env', 'LIBVIRT_DEFAULT_POOL') | default('default', true) }}"
+    platform: "{{ molecule_yml.platforms | selectattr('name', 'equalto', inventory_hostname) | first }}"
+    extra_disks: "{{ platform.extra_disks | default([]) }}"
+    volume_disk: "molecule-{{ inventory_hostname }}.qcow2"
+    volume_cidata: "molecule-{{ inventory_hostname }}-cidata.iso"
+    extra_volumes: >-
+      {{
+        extra_disks | map(attribute='target')
+        | map('regex_replace', '^', 'molecule-' + inventory_hostname + '-')
+        | map('regex_replace', '$', '.qcow2') | list
+      }}
+  tasks:
+    - name: Work from localhost
+      delegate_to: localhost
+      block:
+        - name: List existing VMs
+          community.libvirt.virt:
+            command: list_vms
+            uri: "{{ libvirt_uri }}"
+          register: existing_vms
+
+        - name: Stop the VM
+          when: inventory_hostname in existing_vms.list_vms
+          community.libvirt.virt:
+            name: "{{ inventory_hostname }}"
+            state: destroyed
+            uri: "{{ libvirt_uri }}"
+
+        - name: Undefine the VM
+          when: inventory_hostname in existing_vms.list_vms
+          community.libvirt.virt:
+            name: "{{ inventory_hostname }}"
+            command: undefine
+            flags:
+              - nvram
+            uri: "{{ libvirt_uri }}"
+
+        - name: Get pool informations
+          community.libvirt.virt_pool:
+            command: info
+            uri: "{{ libvirt_uri }}"
+          register: pools
+
+        - name: Delete per-VM volumes
+          when: volume in pools.pools[libvirt_pool].volumes
+          community.libvirt.virt_volume:
+            pool: "{{ libvirt_pool }}"
+            command: delete
+            name: "{{ volume }}"
+            uri: "{{ libvirt_uri }}"
+          loop: "{{ [volume_disk, volume_cidata] + extra_volumes }}"
+          loop_control:
+            loop_var: volume
+
+    - name: Reset Molecule instance config  # noqa run-once
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.copy:
+        content: "{{ [] | to_nice_yaml }}"
+        dest: "{{ lookup('env', 'MOLECULE_INSTANCE_CONFIG') }}"
+        mode: "0600"

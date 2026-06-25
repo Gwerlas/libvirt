@@ -1,1 +1,32 @@
-../default/molecule.yml
+---
+dependency:
+  name: galaxy
+driver:
+  name: default
+# Feature scenario: a representative Debian-like + RedHat-like pair is enough.
+# Each test VM gets an extra raw disk (/dev/vdb) the role then attaches to the
+# inner domain as a block device.
+platforms:
+  - name: bookworm
+    groups:
+      - debian_like
+      - debian
+    memory: 2
+    extra_disks:
+      - target: vdb
+        size_gb: 2
+  - name: alma9
+    groups:
+      - redhat_like
+    memory: 2
+    extra_disks:
+      - target: vdb
+        size_gb: 2
+provisioner:
+  name: ansible
+  playbooks:
+    create: ../shared/create.yml
+    destroy: ../shared/destroy.yml
+    prepare: ../shared/prepare.yml
+verifier:
+  name: ansible

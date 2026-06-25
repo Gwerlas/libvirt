@@ -35,14 +35,17 @@
           ansible.builtin.file:
             path: /test
             state: directory
-            owner: vagrant
-            group: vagrant
+            owner: molecule
+            group: molecule
             mode: "0755"
 
         - name: Push files to the host
-          ansible.posix.synchronize:
+          # copy (not synchronize) so we don't depend on rsync being present in
+          # the cloud images.
+          ansible.builtin.copy:
             src: "{{ tmpdir.path }}/"
             dest: /test/cirros/
+            mode: "0644"
 
         - name: Get vars
           ansible.builtin.import_role:
@@ -52,8 +55,8 @@
         - name: Grant access to libvirt
           ansible.builtin.file:
             path: /test/cirros/
-            owner: vagrant
-            group: vagrant
+            owner: molecule
+            group: molecule
             mode: "0755"
             seuser: system_u
             serole: object_r
@@ -68,7 +71,7 @@
                 --name cirros
                 --memory 64
                 --vcpus 1
-                --os-variant cirros{{ cirros_version }}
+                --osinfo require=off
                 --graphics none
                 --network network=default
                 --disk /test/cirros/disk.img

@@ -2,101 +2,67 @@
 dependency:
   name: galaxy
 driver:
-  name: vagrant
-  provider:
-    name: libvirt
-  provision: true
+  name: default
+# Tests every supported platform from molecule/shared/platforms.yml with the
+# role's defaults. Nested guests need headroom, hence 2 GiB minimum.
 platforms:
-  # Revoked
-  # - name: archlinux
-  #   box: archlinux/archlinux
-  #   provider_raw_config_args: &raw_config
-  #     - "cpu_mode = 'host-passthrough'"
-  #     - "disk_bus = 'virtio'"
-  #     - "nic_model_type = 'virtio'"
-  #     - "video_type = 'virtio'"
-  #     - "disk_driver :cache => 'writeback'"
-  #     - "storage :file, bus: 'virtio', cache: 'writeback'"
-  #   instance_raw_config_args:
-  #     - 'vm.provision :shell, inline: "pacman -Sy --noconfirm git net-tools python3 sudo unzip which"'
-  # Very very long build due to old box
-  # - name: gentoo
-  #   box: generic-x64/gentoo
-  #   cpus: 4
-  #   memory: 8192
-  #   provider_raw_config_args:
-  #     - "cpu_mode = 'host-passthrough'"
-  #     - "nic_model_type = 'virtio'"
-  #     - "video_type = 'virtio'"
-  #     - "disk_driver :cache => 'writeback'"
-  #     - "storage :file, bus: 'virtio', cache: 'writeback'"
-
-  # Debian like
-  - name: bullseye  # EOL 2026-08-31
-    box: debian/bullseye64
+  - name: archlinux
+    groups:
+      - archlinux
+    memory: 2
+  - name: bookworm
     groups:
       - debian_like
       - debian
-    provider_raw_config_args: &raw_config
-      - "cpu_mode = 'host-passthrough'"
-      - "disk_bus = 'virtio'"
-      - "nic_model_type = 'virtio'"
-      - "video_type = 'virtio'"
-      - "disk_driver :cache => 'writeback'"
-      - "storage :file, bus: 'virtio', cache: 'writeback'"
-  - name: bookworm  # EOL 2028-06-10
-    box: debian/bookworm64
+    memory: 2
+  - name: trixie
     groups:
       - debian_like
       - debian
-    provider_raw_config_args: *raw_config
-  - name: jammy     # EOL 2027-04-01
-    box: cloud-image/ubuntu-22.04
+    memory: 2
+  - name: jammy
     groups:
       - debian_like
       - ubuntu
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: noble     # EOL 2029-04-25
-    box: alvistack/ubuntu-24.04
+    memory: 2
+  - name: noble
     groups:
       - debian_like
       - ubuntu
-    memory: 2048
-    provider_raw_config_args: *raw_config
-
-  # RedHat like
-  - name: centos9s  # EOL 2027-05-31
-    box: generic-x64/centos9s
+    memory: 2
+  - name: centos9s
     groups:
       - redhat_like
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  # - name: centos10s  # EOL 2027-05-31
-  #   box: alvistack/centos-10-stream
-  #   groups:
-  #     - redhat_like
-  #   memory: 2048
-  #   provider_raw_config_args: *raw_config
-  - name: alma9     # EOL 2027-05-31
-    box: generic-x64/alma9
+    memory: 2
+  - name: alma9
     groups:
       - redhat_like
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: fedora41  # EOL 2025-11-19
-    box: fedora/41-cloud-base
+    memory: 2
+  - name: centos10s
     groups:
       - redhat_like
-    memory: 2048
-    provider_raw_config_args: *raw_config
-  - name: fedora42  # EOL 2026-05-13
-    box: alvistack/fedora-42
+    memory: 2
+  - name: alma10
     groups:
       - redhat_like
-    memory: 2048
-    provider_raw_config_args: *raw_config
+    memory: 2
+  - name: fedora43
+    groups:
+      - redhat_like
+    memory: 2
+  - name: fedora44
+    groups:
+      - redhat_like
+    memory: 2
+  # gentoo is intentionally left out: its cloudinit autobuild is mis-detected by
+  # Ansible (reported as Clear Linux, so gentoo-like.yml never loads) and would
+  # source-compile libvirt/qemu, which is impractical for a routine matrix. The
+  # platform stays catalogued in molecule/shared/platforms.yml for manual runs.
 provisioner:
   name: ansible
+  playbooks:
+    create: ../shared/create.yml
+    destroy: ../shared/destroy.yml
+    prepare: ../shared/prepare.yml
 verifier:
   name: ansible

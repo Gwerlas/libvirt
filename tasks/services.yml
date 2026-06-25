@@ -78,6 +78,16 @@
     - name: Services - Gather service facts
       ansible.builtin.service_facts:
 
+    - name: Services - List installed libvirt units  # noqa command-instead-of-module
+      # service_facts only enumerates .service units, never .socket. Filtering
+      # the modular sockets through it drops them all, leaving qemu:///system
+      # without a socket on a fresh install. List the unit files directly so we
+      # match both services and sockets.
+      ansible.builtin.command:
+        cmd: systemctl list-unit-files --no-legend --type=service,socket
+      register: libvirt_unit_files
+      changed_when: false
+
     - name: Services - Enable and start
       ansible.builtin.systemd:
         name: "{{ socket }}"
@@ -99,12 +109,13 @@
           - virtlogd.socket
         _legacy:
           - libvirtd.service
+        _available: "{{ libvirt_unit_files.stdout_lines | map('split') | map('first') | list }}"
         _desired: >-
           {{
             _modular if libvirtd_version is version('6.0.0', '>=')
             else _socket_activated if libvirtd_version is version('5.6.0', '>=')
             else _legacy
           }}
-      loop: "{{ _desired | select('in', ansible_facts.services) | list }}"
+      loop: "{{ _desired | select('in', _available) | list }}"
       loop_control:
         loop_var: socket

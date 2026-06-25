@@ -1,1 +1,25 @@
-../default/molecule.yml
+---
+dependency:
+  name: galaxy
+driver:
+  name: default
+# Feature scenario: a representative Debian-like + RedHat-like pair is enough.
+platforms:
+  - name: bookworm
+    groups:
+      - debian_like
+      - debian
+    memory: 2
+  - name: alma9
+    groups:
+      - redhat_like
+    memory: 2
+provisioner:
+  name: ansible
+  # prepare is auto-discovered (add-user/prepare.yml): it first provisions
+  # libvirt with no allowed users, so converge can prove the role adds one.
+  playbooks:
+    create: ../shared/create.yml
+    destroy: ../shared/destroy.yml
+verifier:
+  name: ansible

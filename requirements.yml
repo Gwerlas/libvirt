@@ -1,9 +1,6 @@
 collections:
+  - name: ansible.posix
+  - name: community.general
+    version: ">=8.2.0"
   - name: community.libvirt
     version: ">=2.0"
-
-roles:
-  - name: gwerlas.system
-    scm: git
-    src: https://gitlab.com/yoanncolin/ansible/roles/system.git
-    version: 0.18.1
