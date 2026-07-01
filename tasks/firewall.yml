@@ -17,7 +17,7 @@
 
     - name: Firewall - TCP ports range for domain migration
       ansible.posix.firewalld:
-        port: 19215-49152/tcp
+        port: 49152-49215/tcp
         state: enabled
         zone: "{{ libvirt_firewall_zone | default(omit) }}"
         immediate: true

@@ -120,6 +120,8 @@ consistent with the daemon configuration.
 
 The `libvirt` and `libvirt-tls` firewalld services (the latter opens the
 TLS port `16514/tcp`) are both enabled when `libvirt_manage_firewall` is `true`.
+The migration data port range `49152-49215/tcp` is opened as well, so live
+migration between hosts works without further tuning.
 
 ### Provisioning
 
