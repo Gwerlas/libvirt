@@ -119,6 +119,14 @@ molecule test -s block-disk        # raw /dev/vdb attached as a block device
 molecule test -s qemu-user         # domains provisioned over qemu:///session
 ```
 
+The `libvirt_units` filter (`filter_plugins/libvirt_units.py`) resolves the
+libvirt daemon layout (monolithic vs modular) from the installed unit files. Its
+logic is plain Python, unit-tested without Ansible:
+
+```sh
+python -m pytest tests/unit
+```
+
 Develop / Debug
 ---------------
 

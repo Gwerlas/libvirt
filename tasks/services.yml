@@ -18,7 +18,7 @@
         line: bind-interfaces
         regexp: '^#?bind-interfaces'
         mode: "0644"
-       
+
     - name: Services - DNSMasq ethernet interfaces
       ansible.builtin.lineinfile:
         path: /etc/dnsmasq.conf
@@ -54,89 +54,34 @@
   when: ansible_facts.service_mgr == 'systemd'
   become: true
   block:
-    - name: Services - Get the libvirtd version
-      environment:
-        PATH: /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/bin:/sbin
-      block:
-        - name: Services - Get version from libvirtd
-          ansible.builtin.command:
-            cmd: libvirtd -V
-          register: result
-          changed_when: false
-          check_mode: false
-      rescue:
-        - name: Services - Get version from virtlogd
-          ansible.builtin.command:
-            cmd: virtlogd -V
-          register: result
-          changed_when: false
-          check_mode: false
-
-    - name: Services - Register the libvirtd version
-      ansible.builtin.set_fact:
-        libvirtd_version: "{{ result.stdout | split(' ') | last }}"
-
-    - name: Services - Gather service facts
-      ansible.builtin.service_facts:
-
     - name: Services - List installed libvirt units  # noqa command-instead-of-module
-      # service_facts only enumerates .service units, never .socket. Filtering
-      # the modular sockets through it drops them all, leaving qemu:///system
-      # without a socket on a fresh install. List the unit files directly so we
-      # match both services and sockets.
+      # service_facts only enumerates .service units, never .socket, so the
+      # modular sockets would all be dropped. List the unit files directly to
+      # match both services and sockets, then resolve the layout from them.
       ansible.builtin.command:
         cmd: systemctl list-unit-files --no-legend --type=service,socket
       register: libvirt_unit_files
       changed_when: false
 
-    # The daemon units that actually exist on this host, so the "Restart libvirt
-    # service" handler reloads the right ones regardless of the layout: the
-    # modular daemons on EL/Arch/Fedora, or the monolithic libvirtd on Debian
-    # (which ships it even at libvirt >= 6.0). Restarting the *service* (not just
-    # the socket) is what makes a libvirtd.conf change take effect.
-    - name: Services - Register the libvirt daemons to restart
+    # Resolve the daemon layout (monolithic vs modular) from the units actually
+    # installed rather than from the libvirt version -- Debian ships the
+    # monolithic daemon even at 9.x. See filter_plugins/libvirt_units.py.
+    - name: Services - Resolve the libvirt unit layout
       ansible.builtin.set_fact:
-        libvirt_restart_units: "{{ _candidates | select('in', _available) | list }}"
-      vars:
-        _available: "{{ libvirt_unit_files.stdout_lines | map('split') | map('first') | list }}"
-        _candidates: >-
-          {{
-            ['libvirtd.service', 'virtlogd.service', 'virtlockd.service',
-             'virtnetworkd.service', 'virtnodedevd.service', 'virtstoraged.service',
-             'virtproxyd.service'] +
-            libvirt_backends |
-            map('extract', {'qemu': 'virtqemud.service', 'lxc': 'virtlxcd.service'}) |
-            select | list
-          }}
+        libvirt_layout: "{{ libvirt_unit_files.stdout_lines | libvirt_units(libvirt_backends) }}"
+
+    - name: Services - Register the libvirt daemons to restart
+      # Restarting the *service* (not just the socket) is what makes a
+      # libvirtd.conf change take effect; the "Restart libvirt service" handler
+      # consumes this list.
+      ansible.builtin.set_fact:
+        libvirt_restart_units: "{{ libvirt_layout.restart_units }}"
 
     - name: Services - Enable and start
       ansible.builtin.systemd:
-        name: "{{ socket }}"
+        name: "{{ unit }}"
         state: started
         enabled: true
-      vars:
-        _modular: >-
-          {{
-            ['libvirt-guests.service', 'virtlogd.socket', 'virtlockd.socket',
-             'virtnetworkd.socket', 'virtnodedevd.socket', 'virtstoraged.socket'] +
-            libvirt_backends |
-            map('extract', {'qemu': 'virtqemud.socket', 'lxc': 'virtlxcd.socket'}) |
-            select | list
-          }}
-        _socket_activated:
-          - libvirt-guests.service
-          - libvirtd.socket
-          - virtlockd.socket
-          - virtlogd.socket
-        _legacy:
-          - libvirtd.service
-        _available: "{{ libvirt_unit_files.stdout_lines | map('split') | map('first') | list }}"
-        _desired: >-
-          {{
-            _modular if libvirtd_version is version('6.0.0', '>=')
-            else _socket_activated if libvirtd_version is version('5.6.0', '>=')
-            else _legacy
-          }}
-      loop: "{{ _desired | select('in', _available) | list }}"
+      loop: "{{ libvirt_layout.boot_units }}"
       loop_control:
-        loop_var: socket
+        loop_var: unit

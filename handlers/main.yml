@@ -27,51 +27,6 @@
     name: dbus
     state: reloaded
 
-- name: Get libvirtd version
-  listen:
-    - emerge --deep --newuse
-    - Restart libvirt service
-  when:
-    - ansible_facts.service_mgr == 'systemd'
-    - libvirtd_version is not defined
-  environment:
-    PATH: /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/bin:/sbin
-  ansible.builtin.command:
-    cmd: libvirtd -V
-  register: _libvirtd_version_result
-  failed_when: false
-  changed_when: false
-  check_mode: false
-
-- name: Get libvirtd version (virtlogd fallback)
-  listen:
-    - emerge --deep --newuse
-    - Restart libvirt service
-  when:
-    - ansible_facts.service_mgr == 'systemd'
-    - libvirtd_version is not defined
-    - _libvirtd_version_result is defined
-    - _libvirtd_version_result.rc != 0
-  environment:
-    PATH: /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/bin:/sbin
-  ansible.builtin.command:
-    cmd: virtlogd -V
-  register: _libvirtd_version_result
-  changed_when: false
-  check_mode: false
-
-- name: Set libvirtd version fact
-  listen:
-    - emerge --deep --newuse
-    - Restart libvirt service
-  when:
-    - ansible_facts.service_mgr == 'systemd'
-    - libvirtd_version is not defined
-    - _libvirtd_version_result is defined
-    - _libvirtd_version_result.rc == 0
-  ansible.builtin.set_fact:
-    libvirtd_version: "{{ _libvirtd_version_result.stdout | split(' ') | last }}"
-
 - name: Restart libvirt service
   listen:
     - emerge --deep --newuse
@@ -82,6 +37,9 @@
     state: restarted
   when: ansible_facts.service_mgr != 'systemd'
 
+# Restarting the *service* (not just the socket) is what makes a libvirtd.conf
+# change take effect; libvirt_layout.restart_units (from tasks/services.yml) is
+# the list of daemons to restart for the detected layout.
 - name: Restart libvirt daemons
   listen:
     - emerge --deep --newuse
@@ -90,12 +48,12 @@
   ansible.builtin.systemd:
     name: "{{ unit }}"
     state: restarted
-  loop: "{{ libvirt_restart_units | default([]) }}"
+  loop: "{{ (libvirt_layout | default({})).restart_units | default([]) }}"
   loop_control:
     loop_var: unit
   when:
     - ansible_facts.service_mgr == 'systemd'
-    - libvirt_restart_units | default([]) | length > 0
+    - (libvirt_layout | default({})).restart_units | default([]) | length > 0
 
 - name: Wait for libvirtd ready
   listen:

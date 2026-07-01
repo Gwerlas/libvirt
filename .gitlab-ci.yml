@@ -5,16 +5,29 @@ workflow:
       changes:
         - defaults/*
         - files/**/*
+        - filter_plugins/**/*
         - handlers/*
         - meta/*
         - molecule/**/*
         - tasks/**/*
         - templates/**/*
+        - tests/**/*
         - vars/**/*
 
 lint:
   image: gwerlas/ansible-lint
   script: ansible-lint
+
+unit:
+  image: python:3
+  before_script:
+    - pip install --quiet pytest
+  script: python -m pytest tests/unit
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - filter_plugins/**/*
+        - tests/**/*
 
 import:
   stage: deploy
