@@ -15,6 +15,8 @@
       vars:
         src_file: "{{ libvirt_ca_file }}"
         dest_file: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/CA/cacert.pem') }}"
+        ca_restart:
+          - Restart libvirt service
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/tls/ca-file.yml"
 

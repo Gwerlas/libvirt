@@ -22,3 +22,7 @@
         serole: object_r
         setype: cert_t
         selevel: s0
+      # The daemon reads the CA at startup, so a rotated CA needs a restart to
+      # take effect. Only the daemon copy (configure.yml) sets this; the
+      # per-user CA (users.yml) is client-side and needs no restart.
+      notify: "{{ ca_restart | default([]) }}"

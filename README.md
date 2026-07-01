@@ -111,6 +111,10 @@ The CA and server destinations follow the matching `libvirtd` directives when se
 in `libvirt_config` (`ca_file`, `cert_file` and `key_file`), so they stay
 consistent with the daemon configuration.
 
+Re-running the role after replacing any of these files on the controller
+redeploys it and restarts the TLS-serving daemon (`libvirtd`, or `virtproxyd` on
+hosts running the modular daemons), so a rotated certificate or CA takes effect.
+
 ### Firewall
 
 | Variable                  | Default   | Description                                                  |
