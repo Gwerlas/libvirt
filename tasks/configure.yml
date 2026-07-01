@@ -37,3 +37,46 @@
         dest_key: /etc/pki/libvirt/private/clientkey.pem
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/tls/cert.yml"
+
+    # A socket-activated daemon ignores `listen_tls` in libvirtd.conf, so the
+    # directive alone never opens the TLS port. Enable the TLS socket resolved
+    # for this host's layout (libvirtd-tls.socket monolithic, virtproxyd-tls
+    # modular). libvirtd-tls.socket is ordered Before=libvirtd.service and can't
+    # be added while libvirtd holds the socket set, so the monolithic daemon is
+    # stopped, the socket started, then the daemon brought back listening on it.
+    # Modular hosts activate virtproxyd on demand, nothing needs stopping there.
+    - name: TLS socket
+      when:
+        - libvirt_layout is defined
+        - libvirt_layout.tls_socket is not none
+        - (libvirt_config.libvirtd.listen_tls | default(0)) | int == 1
+      block:
+        - name: TLS socket - Current state  # noqa command-instead-of-module
+          # service_facts does not enumerate .socket units, so query systemd
+          # directly to keep the stop/start below idempotent.
+          ansible.builtin.command:
+            cmd: systemctl is-active {{ libvirt_layout.tls_socket }}
+          register: libvirt_tls_socket_state
+          changed_when: false
+          failed_when: false
+
+        - name: TLS socket - Free the socket set on the monolithic daemon
+          when:
+            - not libvirt_layout.modular
+            - libvirt_tls_socket_state.stdout != 'active'
+          ansible.builtin.systemd:
+            name: libvirtd.service
+            state: stopped
+
+        - name: TLS socket - Enable and start
+          ansible.builtin.systemd:
+            name: "{{ libvirt_layout.tls_socket }}"
+            state: started
+            enabled: true
+          notify: Restart libvirt service
+
+        - name: TLS socket - Bring the monolithic daemon back to serve the socket
+          when: not libvirt_layout.modular
+          ansible.builtin.systemd:
+            name: libvirtd.service
+            state: started

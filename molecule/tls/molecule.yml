@@ -3,17 +3,62 @@ dependency:
   name: galaxy
 driver:
   name: default
-# Feature scenario: a representative Debian-like + RedHat-like pair is enough.
+# TLS socket activation depends on each distribution's libvirt packaging (the
+# libvirtd-tls.socket / virtproxyd-tls.socket unit must exist), so this scenario
+# runs the full platform matrix like `default`, not a representative pair.
 platforms:
+  - name: archlinux
+    groups:
+      - archlinux
+    memory: 2
   - name: bookworm
     groups:
       - debian_like
       - debian
     memory: 2
+  - name: trixie
+    groups:
+      - debian_like
+      - debian
+    memory: 2
+  - name: jammy
+    groups:
+      - debian_like
+      - ubuntu
+    memory: 2
+  - name: noble
+    groups:
+      - debian_like
+      - ubuntu
+    memory: 2
+  - name: centos9s
+    groups:
+      - redhat_like
+    memory: 2
   - name: alma9
     groups:
       - redhat_like
     memory: 2
+  - name: centos10s
+    groups:
+      - redhat_like
+    memory: 2
+  - name: alma10
+    groups:
+      - redhat_like
+    memory: 2
+  - name: fedora43
+    groups:
+      - redhat_like
+    memory: 2
+  - name: fedora44
+    groups:
+      - redhat_like
+    memory: 2
+  # gentoo is intentionally left out: its cloudinit autobuild is mis-detected by
+  # Ansible (reported as Clear Linux, so gentoo-like.yml never loads) and would
+  # source-compile libvirt/qemu, which is impractical for a routine matrix. The
+  # platform stays catalogued in molecule/shared/platforms.yml for manual runs.
 provisioner:
   name: ansible
   playbooks:

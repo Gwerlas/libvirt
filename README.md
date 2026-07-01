@@ -406,6 +406,10 @@ to create them):
         libvirt_clientkey: files/pki/private/clientkey.pem
 ```
 
+Setting `listen_tls: 1` also makes the role enable the daemon's TLS socket
+(`libvirtd-tls.socket`, or `virtproxyd-tls.socket` on hosts running the modular
+daemons), since a socket-activated daemon ignores the directive on its own.
+
 Clients can then reach the daemon over TLS:
 
 ```sh

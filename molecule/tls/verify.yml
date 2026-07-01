@@ -15,6 +15,12 @@
         cmd: virsh -c qemu:///system version
       changed_when: false
 
+    - name: Check the libvirt TLS port is listening
+      become: true
+      ansible.builtin.wait_for:
+        port: 16514
+        timeout: 30
+
     - name: Stat the deployed files
       become: true
       ansible.builtin.stat:
