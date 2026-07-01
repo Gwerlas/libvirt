@@ -440,6 +440,36 @@ certificate virsh reads in her home, not from a username (that would only matter
 for the SSH transport). The path stays `/system` to reach the remote system
 daemon — `/session` is a separate, local per-user daemon.
 
+Once TLS is enabled on two hosts, a running domain can be live-migrated from one
+to the other. Use the **peer-to-peer** mode (`--p2p`) so the *source* daemon —
+which holds the CA and client certificate deployed by this role — opens the
+connection to the destination itself :
+
+```sh
+virsh migrate --live --p2p vm1 qemu+tls://hyp2/system
+```
+
+Without `--p2p`, `virsh` connects to the destination from wherever you run it (the
+Ansible controller, for instance), which then needs its own client certificate —
+otherwise the migration fails on a missing `/etc/pki/CA/cacert.pem`. The migration
+data stream flows on the `49152-49215/tcp` range opened by the firewall rules
+above.
+
+The remaining options depend on where the domain's disks live :
+
+- **Shared storage** (same NFS / Ceph / iSCSI backing on both hosts) : a plain
+  migration works. If libvirt cannot confirm the storage is shared, or the disk
+  cache mode is not `none`, add `--unsafe`.
+- **Local storage** : copy the disks along with the domain using
+  `--copy-storage-all` (full copy) or `--copy-storage-inc` (delta over a base
+  image already present on the destination). Pre-create a target volume of the
+  same virtual size on the destination pool, unless your libvirt/qemu is recent
+  enough to allocate it automatically :
+
+  ```sh
+  virsh migrate --live --p2p --copy-storage-all vm1 qemu+tls://hyp2/system
+  ```
+
 Limitations
 -----------
 
