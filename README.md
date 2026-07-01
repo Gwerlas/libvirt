@@ -5,19 +5,19 @@ Libvirt
 
 Install, configure and provision libvirt resources.
 
-GitLab project : [yoanncolin/ansible/roles/libvirt](https://gitlab.com/yoanncolin/ansible/roles/libvirt)
+GitLab project: [yoanncolin/ansible/roles/libvirt](https://gitlab.com/yoanncolin/ansible/roles/libvirt)
 
 Requirements
 ------------
 
-The Linux base system configured with :
+The Linux base system configured with:
 
 - SSH
 - Python (for Ansible)
 - Sudo
 - Package manager ready to use
 
-The `gwerlas.system` role can help You :
+The `gwerlas.system` role can help You:
 
 ```sh
 ansible-galaxy install gwerlas.system
@@ -34,11 +34,11 @@ ansible-galaxy install gwerlas.system
 Facts
 -----
 
-Defined facts of this role :
+Defined facts of this role:
 
 - `libvirt_packages`
 
-You can get the facts only, without doing any changes on your nodes :
+You can get the facts only, without doing any changes on your nodes:
 
 ```yaml
 - name: My playbook
@@ -57,10 +57,10 @@ You can get the facts only, without doing any changes on your nodes :
 Tags
 ----
 
-You can filter on some specific tasks using this tags :
+You can filter on some specific tasks using this tags:
 
-- `provision` : Provision resources only
-- `users` : Set users environment and permissions
+- `provision`: Provision resources only
+- `users`: Set users environment and permissions
 
 Role Variables
 --------------
@@ -76,7 +76,7 @@ Role Variables
 | `libvirt_dnsmasq_management_method` | `auto`                                  | DNSMasq management: `auto`, `bind`, `disable`, or `none`                             |
 | `libvirt_dnsmasq_interface_types`   | `[ether]`                               | Interface types for DNSMasq to listen on (when method is `bind`)                     |
 
-Each `libvirt_users` entry is a dictionary supporting the following keys :
+Each `libvirt_users` entry is a dictionary supporting the following keys:
 
 | Key          | Description                                                                                            |
 | ------------ | ------------------------------------------------------------------------------------------------------ |
@@ -97,7 +97,7 @@ Each `libvirt_users` entry is a dictionary supporting the following keys :
 | `libvirt_clientkey`  | _(unset)_ | Path **on the controller** to the client private key to deploy                                    |
 
 The TLS files are deployed to the standard libvirt locations (see the
-[libvirt TLS knowledge base](https://libvirt.org/kbase/tlscerts.html)) :
+[libvirt TLS knowledge base](https://libvirt.org/kbase/tlscerts.html)):
 
 | Variable             | Destination on the node                  |
 | -------------------- | ---------------------------------------- |
@@ -280,7 +280,7 @@ or present in your `requirements.yml`.
 Example Playbook
 ----------------
 
-An exemple of the way to install and configure libvirt on a node :
+An exemple of the way to install and configure libvirt on a node:
 
 ```yaml
 - name: Libvirt
@@ -289,7 +289,7 @@ An exemple of the way to install and configure libvirt on a node :
     - name: gwerlas.libvirt
 ```
 
-Provision some resources :
+Provision some resources:
 
 ```yaml
 - name: Libvirt
@@ -384,7 +384,7 @@ Provision some resources :
 
 Enable TLS on the libvirt daemon, deploying the certificates generated on the
 controller (see the [libvirt TLS knowledge base](https://libvirt.org/kbase/tlscerts.html)
-to create them) :
+to create them):
 
 ```yaml
 - name: Libvirt over TLS
@@ -406,14 +406,14 @@ to create them) :
         libvirt_clientkey: files/pki/private/clientkey.pem
 ```
 
-Clients can then reach the daemon over TLS :
+Clients can then reach the daemon over TLS:
 
 ```sh
 virsh -c qemu://node.example.com/system list
 ```
 
 Per-user client credentials can also be deployed, so a given user can connect to
-a remote daemon over TLS from their own session :
+a remote daemon over TLS from their own session:
 
 ```yaml
 - name: Libvirt user TLS access
@@ -429,13 +429,13 @@ a remote daemon over TLS from their own session :
 ```
 
 The certificates are installed under `alice`'s home (`~/.pki`), letting her reach
-a remote host :
+a remote host:
 
 ```sh
 virsh -c qemu://node.example.com/system list
 ```
 
-The URI carries no `alice@` part : over TLS the identity comes from the client
+The URI carries no `alice@` part: over TLS the identity comes from the client
 certificate virsh reads in her home, not from a username (that would only matter
 for the SSH transport). The path stays `/system` to reach the remote system
 daemon — `/session` is a separate, local per-user daemon.
@@ -443,7 +443,7 @@ daemon — `/session` is a separate, local per-user daemon.
 Once TLS is enabled on two hosts, a running domain can be live-migrated from one
 to the other. Use the **peer-to-peer** mode (`--p2p`) so the *source* daemon —
 which holds the CA and client certificate deployed by this role — opens the
-connection to the destination itself :
+connection to the destination itself:
 
 ```sh
 virsh migrate --live --p2p vm1 qemu+tls://hyp2/system
@@ -455,16 +455,16 @@ otherwise the migration fails on a missing `/etc/pki/CA/cacert.pem`. The migrati
 data stream flows on the `49152-49215/tcp` range opened by the firewall rules
 above.
 
-The remaining options depend on where the domain's disks live :
+The remaining options depend on where the domain's disks live:
 
-- **Shared storage** (same NFS / Ceph / iSCSI backing on both hosts) : a plain
+- **Shared storage** (same NFS / Ceph / iSCSI backing on both hosts): a plain
   migration works. If libvirt cannot confirm the storage is shared, or the disk
   cache mode is not `none`, add `--unsafe`.
-- **Local storage** : copy the disks along with the domain using
+- **Local storage**: copy the disks along with the domain using
   `--copy-storage-all` (full copy) or `--copy-storage-inc` (delta over a base
   image already present on the destination). Pre-create a target volume of the
   same virtual size on the destination pool, unless your libvirt/qemu is recent
-  enough to allocate it automatically :
+  enough to allocate it automatically:
 
   ```sh
   virsh migrate --live --p2p --copy-storage-all vm1 qemu+tls://hyp2/system
