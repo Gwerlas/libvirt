@@ -62,6 +62,11 @@
         cmd: systemctl list-unit-files --no-legend --type=service,socket
       register: libvirt_unit_files
       changed_when: false
+      # Also selected by the `ca`/`ssl` tags: a tagged cert/CA update reruns this
+      # detection so the restart handler has the daemons to restart.
+      tags:
+        - ca
+        - ssl
 
     # Resolve the daemon layout (monolithic vs modular) from the units actually
     # installed rather than from the libvirt version -- Debian ships the
@@ -69,13 +74,9 @@
     - name: Services - Resolve the libvirt unit layout
       ansible.builtin.set_fact:
         libvirt_layout: "{{ libvirt_unit_files.stdout_lines | libvirt_units(libvirt_backends) }}"
-
-    - name: Services - Register the libvirt daemons to restart
-      # Restarting the *service* (not just the socket) is what makes a
-      # libvirtd.conf change take effect; the "Restart libvirt service" handler
-      # consumes this list.
-      ansible.builtin.set_fact:
-        libvirt_restart_units: "{{ libvirt_layout.restart_units }}"
+      tags:
+        - ca
+        - ssl
 
     - name: Services - Enable and start
       ansible.builtin.systemd:

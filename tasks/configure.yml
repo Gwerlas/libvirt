@@ -19,6 +19,9 @@
           - Restart libvirt service
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/tls/ca-file.yml"
+      # Tagged so `-t ca` redeploys the CA (and restarts the daemon to apply it).
+      tags:
+        - ca
 
     - name: TLS Server certificate
       when: libvirt_servercert is defined
@@ -29,6 +32,9 @@
         dest_key: "{{ libvirt_config.libvirtd.key_file | default('/etc/pki/libvirt/private/serverkey.pem') }}"
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/tls/cert.yml"
+      # Tagged so `-t ssl` redeploys the certificates (and restarts to apply).
+      tags:
+        - ssl
 
     - name: TLS Client certificate
       when: libvirt_clientcert is defined
@@ -39,6 +45,8 @@
         dest_key: /etc/pki/libvirt/private/clientkey.pem
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/tls/cert.yml"
+      tags:
+        - ssl
 
     # A socket-activated daemon ignores `listen_tls` in libvirtd.conf, so the
     # directive alone never opens the TLS port. Enable the TLS socket resolved
