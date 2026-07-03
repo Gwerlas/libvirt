@@ -15,5 +15,5 @@
 
 - name: Pools - Debug
   ansible.builtin.debug:
-    var: ansible_libvirt_pools
+    var: ansible_facts.ansible_libvirt_pools
     verbosity: 1

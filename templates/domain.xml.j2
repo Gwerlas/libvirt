@@ -33,7 +33,7 @@
 {% for disk in domain.disks %}
 {% set disk_type = disk.type | default('file') %}
 {% set pool_name = disk.pool | default('default') %}
-{% set pool_path = ansible_libvirt_pools[pool_name].path %}
+{% set pool_path = ansible_facts.ansible_libvirt_pools[pool_name].path %}
     <disk type="{{ disk_type }}" device="disk">
       <driver name="qemu" type="{{ disk.format | default(libvirt_default_disk_format) }}"/>
 {% if disk_type == "file" %}

@@ -15,7 +15,7 @@
       (
         (networks | selectattr('state', 'undefined'))
       + (networks | selectattr('state', 'defined') | selectattr('state', '!=', 'absent'))
-      ) | rejectattr('name', 'in', ansible_libvirt_networks)
+      ) | rejectattr('name', 'in', ansible_facts.ansible_libvirt_networks)
     }}
   loop_control:
     loop_var: network
