@@ -16,7 +16,7 @@
         (
           (items | selectattr('state', 'undefined'))
         + (items | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
-        ) | rejectattr('name', 'in', ansible_libvirt_pools)
+        ) | rejectattr('name', 'in', ansible_facts.ansible_libvirt_pools)
       }}
 
 - name: Pools - Update facts

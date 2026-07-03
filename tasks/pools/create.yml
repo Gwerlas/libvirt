@@ -4,7 +4,7 @@
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
 
 - name: Getent
-  when: getent_passwd is undefined or not libvirt_system_users.libvirt in getent_passwd
+  when: ansible_facts.getent_passwd is undefined or not libvirt_system_users.libvirt in ansible_facts.getent_passwd
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/getent.yml"
 
 - name: Pools - Create - Define
