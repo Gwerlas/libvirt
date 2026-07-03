@@ -42,3 +42,26 @@
           - tls_files.results | map(attribute='stat.exists') | min
         success_msg: libvirtd TLS config and all certificates were deployed
         fail_msg: "missing: {{ tls_files.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+
+    - name: Stat the per-user client key
+      become: true
+      ansible.builtin.stat:
+        path: /home/molecule/.pki/libvirt/clientkey.pem
+      register: user_clientkey
+
+    # The per-user client credentials are read by the user's own virsh, not the
+    # qemu daemon: they must stay least-privilege (owned by the user, 0400, no
+    # qemu group), unlike the system copies under /etc/pki.
+    - name: Per-user client key is least-privilege
+      ansible.builtin.assert:
+        that:
+          - user_clientkey.stat.exists
+          - user_clientkey.stat.pw_name == 'molecule'
+          - user_clientkey.stat.gr_name != 'qemu'
+          - user_clientkey.stat.mode == '0400'
+        success_msg: the per-user client key is 0400 and owned by the user
+        fail_msg: >-
+          unexpected per-user client key perms:
+          owner={{ user_clientkey.stat.pw_name }}
+          group={{ user_clientkey.stat.gr_name }}
+          mode={{ user_clientkey.stat.mode }}

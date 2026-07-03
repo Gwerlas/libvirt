@@ -1,4 +1,10 @@
 ---
+# Deploys a certificate + key pair. Defaults target the system daemon copies
+# under /etc/pki (owned by the qemu group, labelled cert_t, read by libvirtd).
+# The per-user client path (users.yml) sets `tls_client_side: true`: the files
+# live under the user's ~/.pki, are read by the user's own virsh, and so get no
+# qemu group, no forced SELinux context, a 0400 private key and no daemon
+# restart (`cert_restart: []`).
 - name: TLS Server certificate
   tags:
     - ssl
@@ -7,12 +13,12 @@
       ansible.builtin.file:
         path: "{{ libvirt_pki_dir }}"
         state: directory
-        group: "{{ grps.qemu | default('qemu') }}"
+        group: "{{ tls_client_side | default(false) | ternary(omit, grps.qemu | default('qemu')) }}"
         mode: "0755"
-        seuser: system_u
-        serole: object_r
-        setype: cert_t
-        selevel: s0
+        seuser: "{{ tls_client_side | default(false) | ternary(omit, 'system_u') }}"
+        serole: "{{ tls_client_side | default(false) | ternary(omit, 'object_r') }}"
+        setype: "{{ tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
+        selevel: "{{ tls_client_side | default(false) | ternary(omit, 's0') }}"
       loop:
         - "{{ dest_cert | dirname }}"
         - "{{ dest_key | dirname }}"
@@ -23,19 +29,19 @@
       ansible.builtin.copy:
         src: "{{ libvirt_pki_file.src }}"
         dest: "{{ libvirt_pki_file.dest }}"
-        group: "{{ grps.qemu | default('qemu') }}"
+        group: "{{ tls_client_side | default(false) | ternary(omit, grps.qemu | default('qemu')) }}"
         mode: "{{ libvirt_pki_file.mode }}"
-        seuser: system_u
-        serole: object_r
-        setype: cert_t
-        selevel: s0
+        seuser: "{{ tls_client_side | default(false) | ternary(omit, 'system_u') }}"
+        serole: "{{ tls_client_side | default(false) | ternary(omit, 'object_r') }}"
+        setype: "{{ tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
+        selevel: "{{ tls_client_side | default(false) | ternary(omit, 's0') }}"
       loop:
         - src: "{{ src_cert }}"
           dest: "{{ dest_cert }}"
           mode: "0444"
         - src: "{{ src_key }}"
           dest: "{{ dest_key }}"
-          mode: "0440"
+          mode: "{{ tls_client_side | default(false) | ternary('0400', '0440') }}"
       loop_control:
         loop_var: libvirt_pki_file
-      notify: Restart libvirt service
+      notify: "{{ cert_restart | default(['Restart libvirt service']) }}"

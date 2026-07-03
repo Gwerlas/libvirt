@@ -26,6 +26,7 @@
     task: tls/ca-file.yml
     src_file: "{{ libvirt_user.ca_file }}"
     dest_file: "{{ ansible_user_dir + '/.pki/cacert.pem' }}"
+    tls_client_side: true
   tags:
     - ca
 
@@ -41,5 +42,7 @@
     dest_cert: "{{ ansible_user_dir + '/.pki/libvirt/clientcert.pem' }}"
     src_key: "{{ libvirt_user.clientkey }}"
     dest_key: "{{ ansible_user_dir + '/.pki/libvirt/clientkey.pem' }}"
+    tls_client_side: true
+    cert_restart: []
   tags:
     - ssl

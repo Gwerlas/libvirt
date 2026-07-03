@@ -18,4 +18,6 @@ is granted access.
 Deploying the `ca_file` / `clientcert` / `clientkey` keys lets a user reach a
 remote daemon over TLS from their own session; see the
 [per-user client credentials](tls.md#per-user-client-credentials) section of the
-TLS documentation.
+TLS documentation. These files are read by the user's own `virsh`, not the
+daemon, so they are deployed least-privilege: owned by the user, the private key
+in mode `0400`, with no qemu group or system SELinux label.

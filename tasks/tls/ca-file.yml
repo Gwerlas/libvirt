@@ -8,21 +8,21 @@
         path: "{{ dest_file | dirname }}"
         state: directory
         mode: "0755"
-        seuser: system_u
-        serole: object_r
-        setype: cert_t
-        selevel: s0
+        seuser: "{{ tls_client_side | default(false) | ternary(omit, 'system_u') }}"
+        serole: "{{ tls_client_side | default(false) | ternary(omit, 'object_r') }}"
+        setype: "{{ tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
+        selevel: "{{ tls_client_side | default(false) | ternary(omit, 's0') }}"
 
     - name: TLS CA daemon file
       ansible.builtin.copy:
         src: "{{ src_file }}"
         dest: "{{ dest_file }}"
         mode: "0444"
-        seuser: system_u
-        serole: object_r
-        setype: cert_t
-        selevel: s0
+        seuser: "{{ tls_client_side | default(false) | ternary(omit, 'system_u') }}"
+        serole: "{{ tls_client_side | default(false) | ternary(omit, 'object_r') }}"
+        setype: "{{ tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
+        selevel: "{{ tls_client_side | default(false) | ternary(omit, 's0') }}"
       # The daemon reads the CA at startup, so a rotated CA needs a restart to
       # take effect. Only the daemon copy (configure.yml) sets this; the
-      # per-user CA (users.yml) is client-side and needs no restart.
+      # per-user CA (users.yml, tls_client_side) is client-side and needs none.
       notify: "{{ ca_restart | default([]) }}"
