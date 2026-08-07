@@ -60,7 +60,7 @@ Tags
 You can filter on some specific tasks using this tags:
 
 - `provision`: Provision resources only
-- `users`: Set users environment and permissions
+- `users`: Set users environment and permissions (groups, per-user resources and TLS credentials)
 - `ca`: Redeploy the CA certificate and restart the daemon to apply it
 - `ssl`: Redeploy the server/client certificates and restart the daemon to apply them
 

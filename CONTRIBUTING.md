@@ -52,6 +52,29 @@ is then derived (in `volumes_computed`, `vars/main.yml`) into a faithful
 `libvirt_volumes` entry, so the same volume is never declared twice — and
 `libvirt_volumes` itself mirrors `<volume>` (`capacity`, `target.format.type`).
 
+Backends
+--------
+
+A backend listed in `libvirt_backends` is a directory under `tasks/`, and
+`tasks/main.yml` / `tasks/users.yml` loop over the list to reach it. Each backend
+directory must provide the three files they include, even if empty :
+
+| File               | Included from | Purpose                                           |
+| ------------------ | ------------- | ------------------------------------------------- |
+| `checks.yml`       | `main.yml`    | Fail early on an unsupported host                 |
+| `post-install.yml` | `main.yml`    | System-wide setup, run as root after the packages |
+| `users.yml`        | `users.yml`   | Per-user access: extra groups, per-user resources |
+
+The per-user tasks live in `users.yml` rather than in `post-install.yml` on
+purpose: `main.yml` reaches the backends through `include_tasks` (the loop rules
+out `import_tasks`), and `--tags` can not descend into a dynamic include. Tagging
+the include itself would drag the whole `post-install.yml` into `-t users`, so
+`tasks/users.yml` includes the backend's `users.yml` directly, with
+`apply: {tags: [users]}` to tag its tasks.
+
+For the same reason nothing under `tasks/<backend>/` should carry a `users` tag
+of its own — it would never be selectable.
+
 Requirements
 ------------
 

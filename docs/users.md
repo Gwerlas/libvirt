@@ -15,6 +15,15 @@ personal TLS client credentials.
 It defaults to `[{name: {{ ansible_facts.user_id }}}]`, i.e. the connecting user
 is granted access.
 
+Granting access to a new user on an already provisioned host does not need a full
+role run: `--tags users` covers everything the list drives — the `libvirt` group,
+the backend groups (`kvm`, `qemu`), the user's `qemu:///session` default pool and
+their TLS client credentials.
+
+```sh
+ansible-playbook site.yml --tags users
+```
+
 Deploying the `ca_file` / `clientcert` / `clientkey` keys lets a user reach a
 remote daemon over TLS from their own session; see the
 [per-user client credentials](tls.md#per-user-client-credentials) section of the

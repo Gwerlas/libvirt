@@ -2,22 +2,6 @@
 - name: Become superuser
   become: true
   block:
-    - name: Qemu - Users - Group
-      tags:
-        - users
-      ansible.builtin.user:
-        name: "{{ libvirt_user.name }}"
-        append: true
-        groups:
-          - "{{ libvirt_system_groups.kvm }}"
-          - "{{ libvirt_system_groups.qemu }}"
-      loop: "{{ libvirt_users }}"
-      loop_control:
-        loop_var: libvirt_user
-
-    - name: Reset connection to take effect of new grps relationship
-      ansible.builtin.meta: reset_connection
-
     - name: Qemu - Security driver
       when: libvirt_security_driver | bool
       ansible.builtin.lineinfile:
@@ -71,22 +55,3 @@
               permissions:
                 owner: "{{ libvirt_system_users.qemu }}"
                 group: "{{ libvirt_system_groups.qemu }}"
-
-    - name: Qemu - Users - Default pool
-      tags:
-        - users
-      loop: "{{ libvirt_users }}"
-      loop_control:
-        loop_var: libvirt_user
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/run-as.yml"
-      vars:
-        libvirt_uri: qemu:///session
-        task: pools.yml
-        libvirt_pools:
-          - name: default
-            type: dir
-            target:
-              path: "{{ ansible_user_dir + '/.local/share/libvirt/images' }}"
-              permissions:
-                owner: "{{ ansible_user_uid }}"
-                group: "{{ ansible_user_gid }}"

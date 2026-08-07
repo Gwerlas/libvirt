@@ -1,16 +1,42 @@
 ---
-- name: Verify the user was added to the libvirt group
+- name: Verify the user was granted libvirt access
   hosts: all
   gather_facts: false
   tasks:
-    - name: Read the libvirt group
+    - name: Read the molecule user
       ansible.builtin.getent:
-        database: group
-        key: libvirt
+        database: passwd
+        key: molecule
 
-    - name: The molecule user belongs to the libvirt group
+    - name: Read the molecule user supplementary groups
+      ansible.builtin.command:
+        cmd: id -nG molecule
+      register: molecule_groups
+      changed_when: false
+
+    # kvm/qemu come from the backend user tasks (tasks/qemu/users.yml), libvirt
+    # from tasks/users.yml itself: assert both so the split stays honest.
+    - name: The molecule user belongs to the libvirt, kvm and qemu groups
+      vars:
+        # The qemu group is named after the distribution (vars/debian-like.yml
+        # renames it libvirt-qemu), so accept either spelling.
+        groups_got: "{{ molecule_groups.stdout.split() }}"
       ansible.builtin.assert:
         that:
-          - "'molecule' in ansible_facts.getent_group['libvirt'][2].split(',')"
-        success_msg: molecule is a member of the libvirt group
-        fail_msg: molecule was not added to the libvirt group
+          - "'libvirt' in groups_got"
+          - "'kvm' in groups_got"
+          - groups_got | select('in', ['qemu', 'libvirt-qemu']) | length == 1
+        success_msg: molecule is a member of the libvirt, kvm and qemu groups
+        fail_msg: molecule groups are {{ molecule_groups.stdout }}
+
+    - name: Read the molecule user session pool directory
+      ansible.builtin.stat:
+        path: "{{ ansible_facts.getent_passwd['molecule'][4] }}/.local/share/libvirt/images"
+      register: session_pool
+
+    - name: The molecule user got its qemu:///session default pool
+      ansible.builtin.assert:
+        that:
+          - session_pool.stat.isdir | default(false)
+        success_msg: the qemu:///session default pool was created for molecule
+        fail_msg: molecule has no qemu:///session default pool
