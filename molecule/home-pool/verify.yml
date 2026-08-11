@@ -1,0 +1,27 @@
+---
+- name: Verify qemu can traverse to the home pool
+  hosts: all
+  gather_facts: false
+  vars:
+    domain: my-node
+  tasks:
+    - name: The domain is running (qemu opened its disk under the home)
+      community.libvirt.virt:
+        command: info
+        name: "{{ domain }}"
+      register: domain_info
+
+    - name: Read the ACL on the user home
+      ansible.builtin.command:
+        cmd: getfacl -p /home/molecule
+      register: home_acl
+      changed_when: false
+
+    - name: Traversal assertions
+      ansible.builtin.assert:
+        that:
+          - domain in domain_info
+          - domain_info[domain].state == "running"
+          # a named-user traverse-only entry was granted to the qemu user
+          - home_acl.stdout is search('user:[^:]+:--x')
+        success_msg: the qemu user was granted traverse access and the domain runs

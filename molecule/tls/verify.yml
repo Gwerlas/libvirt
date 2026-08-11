@@ -1,0 +1,67 @@
+---
+- name: Verify libvirt TLS configuration and certificates
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Read libvirtd.conf
+      become: true
+      ansible.builtin.slurp:
+        src: /etc/libvirt/libvirtd.conf
+      register: libvirtd_conf
+
+    - name: Check libvirt is operational after the config change and restart
+      become: true
+      ansible.builtin.command:
+        cmd: virsh -c qemu:///system version
+      changed_when: false
+
+    - name: Check the libvirt TLS port is listening
+      become: true
+      ansible.builtin.wait_for:
+        port: 16514
+        timeout: 30
+
+    - name: Stat the deployed files
+      become: true
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: tls_files
+      loop:
+        - /etc/pki/CA/cacert.pem
+        - /etc/pki/libvirt/servercert.pem
+        - /etc/pki/libvirt/private/serverkey.pem
+        - /etc/pki/libvirt/clientcert.pem
+        - /home/molecule/.pki/libvirt/clientcert.pem
+        - /home/molecule/.pki/cacert.pem
+
+    - name: TLS assertions
+      ansible.builtin.assert:
+        that:
+          - "'listen_tls = 1' in (libvirtd_conf.content | b64decode)"
+          - "'unix_sock_rw_perms = \"0750\"' in (libvirtd_conf.content | b64decode)"
+          - tls_files.results | map(attribute='stat.exists') | min
+        success_msg: libvirtd TLS config and all certificates were deployed
+        fail_msg: "missing: {{ tls_files.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+
+    - name: Stat the per-user client key
+      become: true
+      ansible.builtin.stat:
+        path: /home/molecule/.pki/libvirt/clientkey.pem
+      register: user_clientkey
+
+    # The per-user client credentials are read by the user's own virsh, not the
+    # qemu daemon: they must stay least-privilege (owned by the user, 0400, no
+    # qemu group), unlike the system copies under /etc/pki.
+    - name: Per-user client key is least-privilege
+      ansible.builtin.assert:
+        that:
+          - user_clientkey.stat.exists
+          - user_clientkey.stat.pw_name == 'molecule'
+          - user_clientkey.stat.gr_name != 'qemu'
+          - user_clientkey.stat.mode == '0400'
+        success_msg: the per-user client key is 0400 and owned by the user
+        fail_msg: >-
+          unexpected per-user client key perms:
+          owner={{ user_clientkey.stat.pw_name }}
+          group={{ user_clientkey.stat.gr_name }}
+          mode={{ user_clientkey.stat.mode }}

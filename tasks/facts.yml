@@ -41,8 +41,9 @@
       kvm: kvm
       libvirt: libvirt
       qemu: qemu
+  # Deliberately not `cacheable`: the task files guard their own load of this
+  # file on these facts being undefined, so a persisted value would skip the
+  # reload and serve vars derived from another distribution or backend set.
   ansible.builtin.set_fact:
-    cacheable: true
-    libvirt_packages: "{{ packages_computed }}"
     libvirt_system_users: "{{ default_users | combine(usrs | default({})) }}"
     libvirt_system_groups: "{{ default_groups | combine(grps | default({})) }}"

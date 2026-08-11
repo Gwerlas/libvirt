@@ -13,7 +13,10 @@
             disks:
               - name: os
               - name: data
-                size: 2G
+                capacity: 2G
                 target: vdb
-            networks:
+              - name: legacy
+                capacity: 1G
+                target: hda
+            interfaces:
               - type: user

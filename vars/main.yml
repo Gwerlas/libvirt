@@ -6,17 +6,24 @@ packages_computed: |
     flatten | sort | unique
   }}
 
-disks_computed: |
-  {{
-    libvirt_volumes
-  + (libvirt_domains | map(attribute='disks') | flatten)
-  }}
-
-volumes_computed:  |
-  {{
-    (disks_computed | selectattr('type', 'undefined'))
-  + (disks_computed | selectattr('type', 'defined') | selectattr('type', '==', 'volume'))
-  }}
+# A domain's `disks` are a convenience DSL: each non-block disk's backing volume
+# is derived here into a faithful `libvirt_volumes` entry, so it is never declared
+# twice. Block disks back onto an existing device and get no volume.
+volumes_computed: |
+  {%- set ns = namespace(volumes=libvirt_volumes) -%}
+  {%- for domain in libvirt_domains -%}
+  {%- for disk in domain.disks | default([]) -%}
+  {%- if 'type' not in disk or disk.type == 'volume' -%}
+  {%- set ns.volumes = ns.volumes + [{
+        'name': disk.name,
+        'pool': disk.pool | default('default'),
+        'capacity': disk.capacity | default('10G'),
+        'target': {'format': {'type': disk.format | default(libvirt_default_disk_format)}},
+      }] -%}
+  {%- endif -%}
+  {%- endfor -%}
+  {%- endfor -%}
+  {{ ns.volumes }}
 
 # Networking
 default_dnsmasq_management_method: none

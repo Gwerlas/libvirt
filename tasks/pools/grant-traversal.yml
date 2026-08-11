@@ -1,0 +1,41 @@
+---
+# A qemu:///system pool whose target sits under a user's home is unreachable by
+# the qemu process (it runs as a dedicated, unprivileged user): even though the
+# pool directory itself is owned/permissioned correctly, an intermediate home
+# directory is usually not world-traversable (e.g. ~/.local and ~/.local/share
+# are 0700), so the VM gets "Permission denied" opening its disk. Grant the qemu
+# user execute-only (traverse, no read) access on those ancestor directories,
+# which fixes the access without loosening the directories for everyone else.
+- name: Pools - Traversal
+  vars:
+    pool_owner: "{{ (libvirt_pool.target.permissions | default({})).owner | default(libvirt_system_users.qemu) }}"
+    pool_owner_home: "{{ ansible_facts.getent_passwd[pool_owner][4] | default('') }}"
+  when:
+    - libvirt_pool.target.path is defined
+    - pool_owner != libvirt_system_users.qemu
+    - pool_owner_home | length > 0
+    - libvirt_pool.target.path.startswith(pool_owner_home ~ '/')
+  become: true
+  block:
+    - name: Pools - Traversal - Ensure setfacl is available
+      ansible.builtin.package:
+        name: acl
+        state: present
+
+    - name: Pools - Traversal - Let qemu cross the owner home directories
+      ansible.posix.acl:
+        path: "{{ ancestor }}"
+        entity: "{{ libvirt_system_users.qemu }}"
+        etype: user
+        permissions: x
+        state: present
+      loop: >-
+        {%- set tp = libvirt_pool.target.path.split('/') -%}
+        {%- set hl = pool_owner_home.split('/') | length -%}
+        {%- set ns = namespace(out=[]) -%}
+        {%- for i in range(hl, tp | length) -%}
+        {%- set ns.out = ns.out + [tp[:i] | join('/')] -%}
+        {%- endfor -%}
+        {{ ns.out }}
+      loop_control:
+        loop_var: ancestor

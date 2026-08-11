@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get(\"tool_input\",{}).get(\"file_path\") or d.get(\"tool_response\",{}).get(\"filePath\") or \"\")'); case \"$file\" in *.yml|*.yaml) ;; *) exit 0 ;; esac; output=$(ansible-lint --offline \"$file\" 2>&1) && exit 0; F=\"$file\" OUT=\"$output\" python3 -c 'import json,os; print(json.dumps({\"decision\":\"block\",\"reason\":\"ansible-lint failed for \"+os.environ[\"F\"]+\":\\n\"+os.environ[\"OUT\"]}))'",
+            "statusMessage": "Running ansible-lint..."
+          }
+        ]
+      }
+    ]
+  }
+}

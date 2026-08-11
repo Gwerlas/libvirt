@@ -8,7 +8,8 @@
 
         libvirt_pools:
           - name: data-dir
-            path: /home/molecule/images
+            target:
+              path: /home/molecule/images
 
         libvirt_domains:
           - name: my-node
@@ -19,8 +20,8 @@
             disks:
               - name: os
               - name: data
-                size: 2G
+                capacity: 2G
                 target: vdb
                 pool: data-dir
-            networks:
+            interfaces:
               - type: user

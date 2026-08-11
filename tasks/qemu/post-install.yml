@@ -2,20 +2,6 @@
 - name: Become superuser
   become: true
   block:
-    - name: Qemu - Users - Group
-      tags:
-        - users
-      ansible.builtin.user:
-        name: "{{ item }}"
-        append: true
-        groups:
-          - "{{ libvirt_system_groups.kvm }}"
-          - "{{ libvirt_system_groups.qemu }}"
-      loop: "{{ libvirt_users }}"
-
-    - name: Reset connection to take effect of new grps relationship
-      ansible.builtin.meta: reset_connection
-
     - name: Qemu - Security driver
       when: libvirt_security_driver | bool
       ansible.builtin.lineinfile:
@@ -45,13 +31,17 @@
           - name: default
             state: "{{ 'active' if libvirt_active_default_network else 'absent' }}"
             autostart: true
-            bridge: virbr0
-            ip:
-              address: 192.168.122.1
-              netmask: 255.255.255.0
-              dhcp:
-                start: 192.168.122.2
-                end: 192.168.122.254
+            forward:
+              mode: nat
+            bridge:
+              name: virbr0
+            ips:
+              - address: 192.168.122.1
+                netmask: 255.255.255.0
+                dhcp:
+                  ranges:
+                    - start: 192.168.122.2
+                      end: 192.168.122.254
 
     - name: Default pool
       ansible.builtin.import_tasks: "{{ role_path }}/tasks/pools.yml"
@@ -60,23 +50,8 @@
         libvirt_pools:
           - name: default
             type: dir
-            path: /var/lib/libvirt/images
-            owner: "{{ libvirt_system_users.qemu }}"
-            group: "{{ libvirt_system_groups.qemu }}"
-
-    - name: Qemu - Users - Default pool
-      tags:
-        - users
-      loop: "{{ libvirt_users }}"
-      loop_control:
-        loop_var: username
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/run-as.yml"
-      vars:
-        libvirt_uri: qemu:///session
-        task: pools.yml
-        libvirt_pools:
-          - name: default
-            type: dir
-            path: "{{ ansible_user_dir + '/.local/share/libvirt/images' }}"
-            owner: "{{ ansible_user_uid }}"
-            group: "{{ ansible_user_gid }}"
+            target:
+              path: /var/lib/libvirt/images
+              permissions:
+                owner: "{{ libvirt_system_users.qemu }}"
+                group: "{{ libvirt_system_groups.qemu }}"

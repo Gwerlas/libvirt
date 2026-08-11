@@ -4,21 +4,24 @@
   <name>{{ libvirt_pool.name }}</name>
 {% if pool_type == 'netfs' %}
   <source>
-    <host name="{{ libvirt_pool.source.host }}"/>
-    <dir path="{{ libvirt_pool.source.dir }}"/>
-    <format type='{{ libvirt_pool.source.type | default("nfs") }}'/>
+{% for host in libvirt_pool.source.hosts %}
+    <host name="{{ host.name }}"/>
+{% endfor %}
+    <dir path="{{ libvirt_pool.source.dir.path }}"/>
+    <format type='{{ (libvirt_pool.source.format | default({})).type | default("nfs") }}'/>
 {% if 'protocol' in libvirt_pool.source %}
-    <protocol ver='{{ libvirt_pool.source.protocol }}'/>
+    <protocol ver='{{ libvirt_pool.source.protocol.ver }}'/>
 {% endif %}
   </source>
 {% endif %}
 {% if pool_type in ['dir', 'fs', 'netfs', 'logical', 'disk', 'iscsi', 'scsi', 'mpath', 'zfs'] %}
-{% set pool_owner = libvirt_pool.owner | default(system_wide | ternary(libvirt_system_users.qemu, ansible_facts.user_id)) %}
-{% set pool_group = libvirt_pool.group | default(ansible_facts.getent_passwd[pool_owner][2]) %}
+{% set pool_perms = libvirt_pool.target.permissions | default({}) %}
+{% set pool_owner = pool_perms.owner | default(system_wide | ternary(libvirt_system_users.qemu, ansible_facts.user_id)) %}
+{% set pool_group = pool_perms.group | default(ansible_facts.getent_passwd[pool_owner][2]) %}
   <target>
-    <path>{{ libvirt_pool.path }}</path>
+    <path>{{ libvirt_pool.target.path }}</path>
     <permissions>
-      <mode>{{ libvirt_pool.mode | default(system_wide | ternary('0771', '0711')) }}</mode>
+      <mode>{{ pool_perms.mode | default(system_wide | ternary('0771', '0711')) }}</mode>
       <owner>{{ pool_owner if pool_owner | string is match('^\d+$') else ansible_facts.getent_passwd[pool_owner][1] }}</owner>
       <group>{{ pool_group if pool_group | string is match('^\d+$') else ansible_facts.getent_group[pool_group][1] }}</group>
 {% if 'mode' in ansible_facts.selinux %}

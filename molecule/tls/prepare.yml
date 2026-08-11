@@ -1,0 +1,42 @@
+---
+- name: Shared instance preparation
+  ansible.builtin.import_playbook: ../shared/prepare.yml
+
+# Generate a throwaway CA + server + client certificate on the controller for the
+# role to deploy (both system-wide and per-user). Kept out of converge so it runs
+# once and never interferes with the idempotence check.
+- name: Generate test TLS certificates
+  hosts: localhost
+  gather_facts: false
+  vars:
+    certdir: /tmp/molecule-libvirt-tls
+  tasks:
+    - name: Certificate directory
+      ansible.builtin.file:
+        path: "{{ certdir }}"
+        state: directory
+        mode: "0755"
+
+    - name: CA private key
+      ansible.builtin.command:
+        cmd: openssl genrsa -out {{ certdir }}/cakey.pem 2048
+        creates: "{{ certdir }}/cakey.pem"
+
+    - name: CA certificate
+      ansible.builtin.command:
+        cmd: >-
+          openssl req -new -x509 -days 3650 -key {{ certdir }}/cakey.pem
+          -out {{ certdir }}/cacert.pem -subj "/CN=Molecule Test CA"
+        creates: "{{ certdir }}/cacert.pem"
+
+    - name: Entity keys and certificates
+      ansible.builtin.shell:
+        cmd: |
+          set -e
+          openssl genrsa -out {{ certdir }}/{{ item }}key.pem 2048
+          openssl req -new -key {{ certdir }}/{{ item }}key.pem -out {{ certdir }}/{{ item }}.csr -subj "/CN=molecule-{{ item }}"
+          openssl x509 -req -days 3650 -in {{ certdir }}/{{ item }}.csr -CA {{ certdir }}/cacert.pem -CAkey {{ certdir }}/cakey.pem -CAcreateserial -out {{ certdir }}/{{ item }}cert.pem
+        creates: "{{ certdir }}/{{ item }}cert.pem"
+      loop:
+        - server
+        - client

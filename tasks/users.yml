@@ -1,0 +1,72 @@
+---
+- name: Load variables
+  when: libvirt_system_groups is undefined
+  ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
+
+- name: Users
+  vars:
+    group: "{{ libvirt_system_groups.libvirt }}"
+  when:
+    - "'libvirtd' in libvirt_install"
+    - group | length > 0
+  become: true
+  ansible.builtin.user:
+    name: "{{ libvirt_user.name }}"
+    append: true
+    groups:
+      - "{{ group }}"
+  loop: "{{ libvirt_users }}"
+  loop_control:
+    loop_var: libvirt_user
+
+# Each backend grants its own extra access (groups, per-user resources). Reached
+# from here rather than from the backend post-install so that `-t users` covers
+# it: main.yml pulls the backends through a dynamic include, which `--tags` can
+# not descend into.
+- name: Users - Backends
+  when: "'libvirtd' in libvirt_install"
+  ansible.builtin.include_tasks:
+    file: "{{ role_path }}/tasks/{{ backend }}/users.yml"
+    apply:
+      tags:
+        - users
+  loop: "{{ libvirt_backends }}"
+  loop_control:
+    loop_var: backend
+
+- name: Users - Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Users - Reset connection to take effect of new groups relationship
+  ansible.builtin.meta: reset_connection
+
+- name: Users - TLS CA file
+  ansible.builtin.include_tasks:
+    file: "{{ role_path }}/tasks/run-as.yml"
+  loop: "{{ libvirt_users | selectattr('ca_file', 'defined') }}"
+  loop_control:
+    loop_var: libvirt_user
+  vars:
+    task: tls/ca-file.yml
+    src_file: "{{ libvirt_user.ca_file }}"
+    dest_file: "{{ ansible_user_dir + '/.pki/cacert.pem' }}"
+    tls_client_side: true
+  tags:
+    - ca
+
+- name: Users - TLS Client certificate
+  ansible.builtin.include_tasks:
+    file: "{{ role_path }}/tasks/run-as.yml"
+  loop: "{{ libvirt_users | selectattr('clientcert', 'defined') }}"
+  loop_control:
+    loop_var: libvirt_user
+  vars:
+    task: tls/cert.yml
+    src_cert: "{{ libvirt_user.clientcert }}"
+    dest_cert: "{{ ansible_user_dir + '/.pki/libvirt/clientcert.pem' }}"
+    src_key: "{{ libvirt_user.clientkey }}"
+    dest_key: "{{ ansible_user_dir + '/.pki/libvirt/clientkey.pem' }}"
+    tls_client_side: true
+    cert_restart: []
+  tags:
+    - ssl

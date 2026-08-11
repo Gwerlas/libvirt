@@ -1,1 +1,8 @@
-../qemu-user/converge.yml
+---
+- name: Grant a named user access to libvirt
+  hosts: all
+  roles:
+    - role: gwerlas.libvirt
+      vars:
+        libvirt_users:
+          - name: molecule

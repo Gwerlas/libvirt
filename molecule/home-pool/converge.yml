@@ -1,0 +1,30 @@
+---
+# A qemu:///system pool whose target sits under a user's home: qemu runs as its
+# own unprivileged user and must be granted traverse access to the home to reach
+# the disk. Exercises tasks/pools/grant-traversal.yml.
+- name: Qemu system pool under a user home
+  hosts: all
+  roles:
+    - role: gwerlas.libvirt
+      vars:
+        libvirt_pools:
+          - name: home-dir
+            target:
+              path: /home/molecule/images
+              permissions:
+                owner: molecule
+
+        libvirt_domains:
+          - name: my-node
+            type: qemu
+            memory: 128M
+            cpu:
+              mode: custom
+            disks:
+              - name: os
+              - name: data
+                capacity: 2G
+                target: vdb
+                pool: home-dir
+            interfaces:
+              - type: user
