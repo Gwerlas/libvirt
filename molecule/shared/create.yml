@@ -8,8 +8,10 @@
     platforms_db: "{{ (lookup('file', lookup('env', 'MOLECULE_PROJECT_DIRECTORY') + '/molecule/shared/platforms.yml') | from_yaml).platforms }}"
     platform: "{{ molecule_yml.platforms | selectattr('name', 'equalto', inventory_hostname) | first }}"
     platform_data: "{{ platforms_db | selectattr('name', 'equalto', inventory_hostname) | first }}"
-    memory: "{{ platform.memory | default(1) }}"
-    vcpus: "{{ platform.vcpus | default(1) }}"
+    # Per-run override; its caveat sits with the other libvirt environment
+    # variables in CONTRIBUTING.md.
+    memory: "{{ lookup('env', 'MOLECULE_MEMORY') | default(platform.memory | default(1), true) }}"
+    vcpus: "{{ lookup('env', 'MOLECULE_VCPUS') | default(platform.vcpus | default(1), true) }}"
     # platform_data.image_url is a fixed URL; rolling platforms instead set
     # image_latest (a `latest-*.txt` pointer) and image_url is resolved from it
     # into resolved_image_url by the task below.
