@@ -15,6 +15,13 @@ flags:
     - package: net-dns/dnsmasq
       use:
         - script
+    # firewalld is a hard dependency of libvirt[firewalld], and it requires
+    # these three on nftables. Portage will not set a USE flag on its own, so
+    # without them the emerge stops and asks. The binhost already publishes
+    # nftables built this way, so declaring them makes the prebuilt package
+    # eligible rather than triggering a build.
+    - package: net-firewall/nftables
+      use: "{{ libvirt_manage_firewall | ternary(['json', 'python', 'xtables'], []) }}"
   clients:
     - package: app-emulation/libvirt
       use:
