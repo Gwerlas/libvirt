@@ -3,7 +3,9 @@ flags:
   libvirtd:
     - package: app-emulation/libvirt
       use:
-        - "{{ libvirt_manage_firewall | ternary('firewalld', omit) }}"
+        # A list, not `omit`: omit is not dropped from a list, it survives as
+        # an object and the sort in package.use.j2 then fails.
+        - "{{ libvirt_manage_firewall | ternary(['firewalld'], []) }}"
         - libvirtd
         - numa
         - pcap
