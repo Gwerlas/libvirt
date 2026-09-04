@@ -8,13 +8,19 @@
     platforms_db: "{{ (lookup('file', lookup('env', 'MOLECULE_PROJECT_DIRECTORY') + '/molecule/shared/platforms.yml') | from_yaml).platforms }}"
     platform: "{{ molecule_yml.platforms | selectattr('name', 'equalto', inventory_hostname) | first }}"
     platform_data: "{{ platforms_db | selectattr('name', 'equalto', inventory_hostname) | first }}"
-    memory: "{{ platform.memory | default(1) }}"
-    vcpus: "{{ platform.vcpus | default(1) }}"
+    # Per-run override; its caveat sits with the other libvirt environment
+    # variables in CONTRIBUTING.md.
+    memory: "{{ lookup('env', 'MOLECULE_MEMORY') | default(platform.memory | default(1), true) }}"
+    vcpus: "{{ lookup('env', 'MOLECULE_VCPUS') | default(platform.vcpus | default(1), true) }}"
     # platform_data.image_url is a fixed URL; rolling platforms instead set
     # image_latest (a `latest-*.txt` pointer) and image_url is resolved from it
     # into resolved_image_url by the task below.
     image_url: "{{ platform_data.image_url | default(resolved_image_url | default('')) }}"
-    image_name: "{{ image_url | basename }}"
+    # One cached base image per platform, fingerprinted from the metadata the
+    # publisher returns for image_url — the storage pool section of
+    # CONTRIBUTING.md says why its file name cannot do that job.
+    image_fingerprint: "{{ (image_head.last_modified ~ image_head.content_length) | hash('md5') | truncate(8, true, '') }}"
+    image_name: "molecule-image-{{ inventory_hostname }}-{{ image_fingerprint }}.qcow2"
     volume_disk: "molecule-{{ inventory_hostname }}.qcow2"
     volume_cidata: "molecule-{{ inventory_hostname }}-cidata.iso"
     extra_disks: "{{ platform.extra_disks | default([]) }}"
@@ -61,6 +67,27 @@
                   {{ (platform_data.image_latest | dirname) ~ '/'
                      ~ (latest_pointer.content | regex_search('\S+\.qcow2')) }}
 
+        # Both headers are served by every platform's URL, and both survive the
+        # mirror redirection some of them answer with — unlike an ETag, which
+        # the mirror computes for its own copy.
+        - name: Read the image metadata the publisher serves
+          ansible.builtin.uri:
+            url: "{{ image_url }}"
+            method: HEAD
+          register: image_head
+          until: image_head is success
+          retries: 5
+          delay: 10
+
+        - name: Check the metadata identifies the snapshot
+          ansible.builtin.assert:
+            that:
+              - image_head.last_modified is defined
+              - image_head.content_length is defined
+            fail_msg: >-
+              {{ image_url }} served no Last-Modified and Content-Length;
+              a run cannot tell one snapshot from the next without them.
+
         - name: Get pool informations
           community.libvirt.virt_pool:
             command: info
@@ -86,6 +113,11 @@
                 path: "/tmp/{{ image_name }}"
               register: image_stat
 
+            # virt_volume resizes the volume it just created down to the
+            # declared capacity, and libvirt rounds a qcow2 virtual size up to
+            # the next 1024 bytes — a shrink it then refuses. Round to 1024, and
+            # say bytes: the module parses the unit itself and silently reads an
+            # unknown one as bytes.
             - name: Create empty volume for the base image
               community.libvirt.virt_volume:
                 pool: "{{ libvirt_pool }}"
@@ -93,7 +125,7 @@
                 xml: |
                   <volume type='file'>
                     <name>{{ image_name }}</name>
-                    <capacity unit='bytes'>{{ image_stat.stat.size }}</capacity>
+                    <capacity unit='bytes'>{{ (image_stat.stat.size / 1024) | round(0, 'ceil') | int * 1024 }}</capacity>
                     <target>
                       <format type='qcow2'/>
                     </target>
@@ -112,6 +144,21 @@
               ansible.builtin.file:
                 path: "/tmp/{{ image_name }}"
                 state: absent
+
+        # Safe while a VM exists: a VM disk is cloned with createXMLFrom, a
+        # full copy, so no domain is backed by the image it came from.
+        - name: Remove superseded base images
+          when:
+            - stale_image != image_name
+            - stale_image.startswith('molecule-image-' ~ inventory_hostname ~ '-')
+          community.libvirt.virt_volume:
+            pool: "{{ libvirt_pool }}"
+            command: delete
+            name: "{{ stale_image }}"
+            uri: "{{ libvirt_uri }}"
+          loop: "{{ pools.pools[libvirt_pool].volumes }}"
+          loop_control:
+            loop_var: stale_image
 
         - name: Create VM disk by cloning the base image
           when: volume_disk not in pools.pools[libvirt_pool].volumes

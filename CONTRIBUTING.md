@@ -97,16 +97,28 @@ cat /sys/module/kvm_intel/parameters/nested   # or kvm_amd — must print Y or 1
 libvirt connection and storage pool
 -----------------------------------
 
-`create.yml` / `destroy.yml` honour two environment variables, with sensible
+`create.yml` / `destroy.yml` honour four environment variables, with sensible
 defaults when unset:
 
-| Variable               | Default          | Purpose                         |
-| ---------------------- | ---------------- | ------------------------------- |
-| `LIBVIRT_DEFAULT_URI`  | `qemu:///system` | libvirt connection URI          |
-| `LIBVIRT_DEFAULT_POOL` | `default`        | name of the storage pool to use |
+| Variable               | Default              | Purpose                         |
+| ---------------------- | -------------------- | ------------------------------- |
+| `LIBVIRT_DEFAULT_URI`  | `qemu:///system`     | libvirt connection URI          |
+| `LIBVIRT_DEFAULT_POOL` | `default`            | name of the storage pool to use |
+| `MOLECULE_MEMORY`      | the platform's value | GB of RAM per VM                |
+| `MOLECULE_VCPUS`       | the platform's value | vCPUs per VM                    |
 
 `LIBVIRT_DEFAULT_URI` is the standard libvirt env var; `LIBVIRT_DEFAULT_POOL` is
 local to this project but follows the same naming convention.
+
+`MOLECULE_MEMORY` and `MOLECULE_VCPUS` override what the scenario asks for,
+which is what you want when a VM has to boot domains of its own rather than
+just run the daemon. They apply to every platform of the run, so pair them with
+`-p`: `default` creates eleven VMs, and eleven times eight gigabytes is not a
+number your workstation has.
+
+```sh
+MOLECULE_MEMORY=8 MOLECULE_VCPUS=4 molecule test -s attached-volume -p trixie
+```
 
 Recommended setup if the system pool sits on a small partition: create a
 dedicated pool on a larger filesystem and point molecule at it. For example:
@@ -123,6 +135,21 @@ molecule test
 
 The directory must be reachable by the `qemu` user (group `qemu` + setgid parent
 works, provided your user is in `qemu`).
+
+The pool also caches the cloud images the VMs are cloned from, one per platform,
+as `molecule-image-<platform>-<id>.qcow2`. `<id>` fingerprints the
+`Last-Modified` and `Content-Length` the publisher serves for the image URL,
+read with a `HEAD` before every create. Most platforms track a rolling `latest/`
+or `current/` URL whose file name never changes, so the name alone cannot say
+whether the cache is still the published image; those two headers can. A
+republished image gets a new fingerprint, hence a new volume, and the one it
+supersedes is deleted on the same run.
+
+The sweep only ever considers `molecule-image-<platform>-*` volumes, for the
+platform being created — `LIBVIRT_DEFAULT_POOL` may well be your own `default`
+pool, and it is also the pool `gwerlas.system` caches into, sharing the images
+of the platforms both roles declare. Nothing outside that prefix is a candidate,
+and neither is the image of another platform.
 
 Run tests
 ---------
