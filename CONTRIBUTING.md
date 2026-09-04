@@ -204,12 +204,47 @@ at runtime via a `lookup` on it. Add an entry there, then reference it by name
 scenario's `molecule.yml`. `meta/main.yml`'s `galaxy_info.platforms` is
 hand-maintained — update it too if the new platform is officially supported.
 
-If the role's packages don't work out of the box on the new distro, define the
-needed defaults in the `vars` directory.
-
 `molecule/shared/` also hosts the `create.yml` / `destroy.yml` / `prepare.yml`
 playbooks every scenario points at via `provisioner.playbooks`; molecule ignores
 the directory as a scenario because it carries no `molecule.yml`.
+
+Target properties: `vars/` files and issue labels
+-------------------------------------------------
+
+`tasks/facts.yml` reads a handful of properties off the target — service
+manager, OS family, distribution, major version, release — and loads
+`vars/<value>.yml` for each one it finds, from the least specific to the most.
+The last file loaded wins. A second pass does the same for every entry of
+`libvirt_backends`, an axis that describes what was asked for rather than what
+the host is.
+
+So a value lives in the file named after the property it is *actually* true of,
+and the narrowest one that still covers every target it applies to. Something
+true of every OpenRC host belongs in `openrc.yml`, not copied into each
+distribution's file; something true of Gentoo hosts belongs in
+`gentoo-like.yml`. Because the cascade runs from least to most specific,
+refining a value at a narrower level is deliberate — `debian-like.yml` can set
+a default that `debian12.yml` overrides. What to avoid is setting the same
+value at two levels by accident: the wider one is then silently dead.
+
+The axis is a property of the target or of the requested backend, never of this
+repository's own layout.
+
+Issue labels follow the same rule, one step wider: an issue carries what it is
+true *of*. For the role's behaviour that is a property of the managed host, or
+the backend it concerns — and the host properties available are not limited to
+the ones this cascade has a file for, `portage` naming the package manager
+layer although no `portage.yml` exists here. For the project's own machinery it
+is the thing impacted, which is why `ci` and `molecule` exist. What an issue
+never carries is the directory it happens to touch: that is a property of this
+repository, not of anything the role acts on. An issue true of every target
+carries no dimension label at all, and that absence is the correct answer
+rather than an oversight. On top of that, one label for the kind: `bug`,
+`feature` or `tech-debt`.
+
+Labels are created on demand and never in advance, so the list only ever holds
+what some issue actually needed. If none of the existing ones fits, say so in
+the issue rather than stretching a label to cover it.
 
 Editing documentation
 ---------------------
