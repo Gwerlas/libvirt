@@ -55,9 +55,11 @@ platforms:
     groups:
       - redhat_like
     memory: 2
-  # gentoo is intentionally left out: it would source-compile libvirt and qemu,
-  # hours per converge, which is impractical for a routine matrix. The platform
-  # stays catalogued in molecule/shared/platforms.yml for manual runs.
+  - name: gentoo
+    groups:
+      - gentoo
+    memory: 8
+    vcpus: 8
 provisioner:
   name: ansible
   playbooks:
