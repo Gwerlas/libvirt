@@ -1,4 +1,9 @@
 ---
+# On Portage this handler is what actually installs, packages.yml having written
+# the USE flags and flushed. The `Packages` task then finds nothing to do and
+# reports ok, so the notification it carries never fires — hence the same one
+# here, or firewalld would keep running without the zone libvirt just dropped in
+# /usr/lib/firewalld/zones.
 - name: Rebuild with new use flags
   listen:
     - emerge --deep --newuse
@@ -7,6 +12,7 @@
     package: "{{ packages_computed }}"
     deep: true
     newuse: true
+  notify: Restart firewalld service
 
 - name: Restart dnsmasq service
   listen:
