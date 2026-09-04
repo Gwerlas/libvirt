@@ -1,18 +1,32 @@
+# `workflow:` answers one question: is there anything to test at all. Which
+# jobs are worth running is each job's own business, through its own `rules:`.
+#
+# `compare_to` is what makes `changes:` mean something stable. Without it the
+# comparison is against the branch's previous push, so amending a commit
+# message — an identical tree — matches nothing, creates no pipeline, and a
+# merge request that requires one waits for ever.
 workflow:
   rules:
     - if: $CI_COMMIT_TAG
+    # The default branch compares against itself and would match nothing, so it
+    # is named before the rule that compares.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH
       changes:
-        - defaults/*
-        - files/**/*
-        - filter_plugins/**/*
-        - handlers/*
-        - meta/*
-        - molecule/**/*
-        - tasks/**/*
-        - templates/**/*
-        - tests/**/*
-        - vars/**/*
+        compare_to: refs/heads/main
+        paths:
+          - .gitlab-ci.yml
+          - "**/*.md"
+          - defaults/**/*
+          - files/**/*
+          - filter_plugins/**/*
+          - handlers/**/*
+          - meta/**/*
+          - molecule/**/*
+          - tasks/**/*
+          - templates/**/*
+          - tests/**/*
+          - vars/**/*
 
 lint:
   image: gwerlas/ansible-lint
@@ -24,10 +38,13 @@ unit:
     - pip install --quiet pytest
   script: python -m pytest tests/unit
   rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH
       changes:
-        - filter_plugins/**/*
-        - tests/**/*
+        compare_to: refs/heads/main
+        paths:
+          - filter_plugins/**/*
+          - tests/**/*
 
 import:
   stage: deploy
