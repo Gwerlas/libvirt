@@ -179,10 +179,67 @@ needed defaults in the `vars` directory.
 playbooks every scenario points at via `provisioner.playbooks`; molecule ignores
 the directory as a scenario because it carries no `molecule.yml`.
 
+Editing documentation
+---------------------
+
+### Where a rationale lives
+
+A reason is written in exactly one place. From the narrowest home to the
+widest:
+
+| Home                     | What it holds                                         |
+| ------------------------ | ----------------------------------------------------- |
+| Code comment             | what this line does, and under which rule             |
+| `CONTRIBUTING` / `docs/` | what the reader has to be able to predict or do       |
+| Commit message           | what changes, and why now                             |
+| Issue / merge request    | the derivation, the measurements, the paths not taken |
+| Upstream documentation   | the rule itself, whenever the rule is not ours        |
+
+Two of those are easy to get wrong, and both make comments longer than they
+need to be.
+
+**Cite upstream, never re-derive it.** When the reason is a third-party tool's
+behaviour — Portage, libvirt, firewalld, systemd, Jinja — the rule already has
+a home, and it is not this repository. Quote one sentence, give the URL, stop.
+A reconstruction of your own goes stale without warning the day upstream
+changes its mind, and it reads as an opinion of this role when it is in fact
+an external constraint. Look the source up *before* writing the comment: done
+the other way round, you produce a careful demonstration of something that
+fits in one quotable line, and you miss whatever else that page says.
+
+**A comment summarises, it does not narrate.** It says what the line does and
+under which rule. The investigation that led there — when it was observed,
+what was measured, which false trail was followed — belongs to the issue and
+the commit message, where someone doing archaeology will go looking for it.
+The test is mechanical: remove everything written in the past tense. What
+falls out did not belong in a comment; what is left is the rule.
+
 Submit your changes
 -------------------
 
 Merge request in [Gitlab][].
+
+A change comes with its tests and its documentation, in the same commit. A new
+variable, or a change in behaviour, is not finished until:
+
+- a molecule scenario exercises it — an existing one where it fits, `tls` for
+  the daemon's TLS surface, `add-user` for user access, `qemu-user` for the
+  session backend, `default` for the role's own defaults;
+- the user-facing half is written in `README.md` or under `docs/`: what the
+  variable does, its default, an example;
+- the reasoning a future maintainer will need — an upstream constraint, a
+  Portage quirk, why two tasks must run in that order — goes in a code comment
+  or in this file, not in the user documentation.
+
+Keeping the three together is what makes a commit reviewable on its own: a
+change that arrives without its test looks finished when it is not, and one
+that arrives without its reason forces the next reader to guess.
+
+The issue is referenced from the commit body, and only from there. `Closes #4`
+if the commit settles the whole ticket; a bare `#4` if it settles one of the
+three things the ticket asks for, so the other two stay visible. Neither
+`README.md` nor `docs/` ever carries an issue number — a user can do nothing
+with it, and it goes stale the day the issue closes.
 
 <!-- Links section -->
 [Gitlab]: https://gitlab.com/gwerlas/ansible/roles/libvirt/-/merge_requests
