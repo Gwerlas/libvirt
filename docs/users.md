@@ -15,6 +15,11 @@ personal TLS client credentials.
 It defaults to `[{name: {{ ansible_facts.user_id }}}]`, i.e. the connecting user
 is granted access.
 
+On Gentoo the `libvirt` group is not shipped with the daemon: it comes from the
+`policykit` USE flag on `app-emulation/libvirt`, which the role requests only
+when this list is not empty. An empty `libvirt_users` there leaves the daemon
+reachable by root alone, its socket owned `root:root`.
+
 Granting access to a new user on an already provisioned host does not need a full
 role run: `--tags users` covers everything the list drives — the `libvirt` group,
 the backend groups (`kvm`, `qemu`), the user's `qemu:///session` default pool and

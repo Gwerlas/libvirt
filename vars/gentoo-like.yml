@@ -3,16 +3,33 @@ flags:
   libvirtd:
     - package: app-emulation/libvirt
       use:
-        - "{{ libvirt_manage_firewall | ternary('firewalld', omit) }}"
+        # A list, not `omit`: omit is not dropped from a list, it survives as
+        # an object and the sort in package.use.j2 then fails.
+        - "{{ libvirt_manage_firewall | ternary(['firewalld'], []) }}"
+        # policykit is what pulls acct-group/libvirt, so it is the flag that
+        # creates the group users.yml adds libvirt_users to. No users, no group
+        # to join, and the role drives libvirt as root.
+        - "{{ (libvirt_users | length > 0) | ternary(['policykit'], []) }}"
         - libvirtd
         - numa
         - pcap
-        - policykit
         - virt-network
     - package: app-emulation/qemu
     - package: net-dns/dnsmasq
       use:
         - script
+    # firewalld is a hard dependency of libvirt[firewalld], and it requires
+    # these three on nftables. Portage will not set a USE flag on its own, so
+    # without them the emerge stops and asks. The binhost already publishes
+    # nftables built this way, so declaring them makes the prebuilt package
+    # eligible rather than triggering a build.
+    - package: net-firewall/nftables
+      use: "{{ libvirt_manage_firewall | ternary(['json', 'python', 'xtables'], []) }}"
+    # polkit, which libvirt[policykit] pulls in, is built against systemd on a
+    # systemd profile and needs the flag there too. Same condition, so the
+    # package renders no line at all when no user has to reach the daemon.
+    - package: sys-apps/systemd
+      use: "{{ (libvirt_users | length > 0) | ternary(['policykit'], []) }}"
   clients:
     - package: app-emulation/libvirt
       use:
