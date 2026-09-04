@@ -7,7 +7,7 @@ galaxy_info:
 
   license: BSD-3-Clause
 
-  min_ansible_version: "2.18"
+  min_ansible_version: "2.20"
 
   platforms:
     - name: ArchLinux
@@ -15,11 +15,12 @@ galaxy_info:
         - all
     - name: Debian
       versions:
-        - bullseye
         - bookworm
+        - trixie
     - name: EL
       versions:
         - "9"
+        - "10"
     - name: Fedora
       versions:
         - all

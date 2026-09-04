@@ -55,10 +55,9 @@ platforms:
     groups:
       - redhat_like
     memory: 2
-  # gentoo is intentionally left out: its cloudinit autobuild is mis-detected by
-  # Ansible (reported as Clear Linux, so gentoo-like.yml never loads) and would
-  # source-compile libvirt/qemu, which is impractical for a routine matrix. The
-  # platform stays catalogued in molecule/shared/platforms.yml for manual runs.
+  # gentoo is intentionally left out: it would source-compile libvirt and qemu,
+  # hours per converge, which is impractical for a routine matrix. The platform
+  # stays catalogued in molecule/shared/platforms.yml for manual runs.
 provisioner:
   name: ansible
   playbooks:
