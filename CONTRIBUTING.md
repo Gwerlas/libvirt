@@ -113,8 +113,13 @@ local to this project but follows the same naming convention.
 `MOLECULE_MEMORY` and `MOLECULE_VCPUS` override what the scenario asks for,
 which is what you want when a VM has to boot domains of its own rather than
 just run the daemon. They apply to every platform of the run, so pair them with
-`-p`: `default` creates eleven VMs, and eleven times eight gigabytes is not a
-number your workstation has.
+`-p`: `default` and `tls` create twelve VMs each, and twelve times eight
+gigabytes is not a number your workstation has.
+
+Those two scenarios run the whole matrix, which is eleven platforms at 2 GB
+plus gentoo at 8 GB and 8 vCPU — 30 GB for a full run. gentoo is sized apart
+because it is the only platform that compiles libvirt and qemu rather than
+installing them.
 
 ```sh
 MOLECULE_MEMORY=8 MOLECULE_VCPUS=4 molecule test -s attached-volume -p trixie
