@@ -32,12 +32,16 @@
             state: destroyed
             uri: "{{ libvirt_uri }}"
 
+        # nvram: the EFI platforms keep a variable store libvirt refuses to
+        # orphan. managed_save: a host shut down while an instance runs suspends
+        # it to disk rather than killing it, and undefine refuses just the same.
         - name: Undefine the VM
           when: inventory_hostname in existing_vms.list_vms
           community.libvirt.virt:
             name: "{{ inventory_hostname }}"
             command: undefine
             flags:
+              - managed_save
               - nvram
             uri: "{{ libvirt_uri }}"
 

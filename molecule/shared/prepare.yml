@@ -3,7 +3,7 @@
 # dependencies; here we only bring the VM to a baseline before converge:
 #  - refresh/upgrade packages (Arch is rolling, so a full `pacman -Syu` is
 #    mandatory; Debian/Ubuntu need a dist-upgrade; EL/Fedora only a cache refresh;
-#    Gentoo a Portage tree sync),
+#    Gentoo a Portage tree sync and a Portage able to install what follows),
 #  - reboot when a new kernel was pulled,
 #  - install firewalld. The libvirt role only *adds its own rules* when
 #    libvirt_manage_firewall is true; providing firewalld is the operator's job
@@ -31,10 +31,32 @@
         upgrade: true
       register: prepare_upgrade_arch
 
-    - name: Sync the Portage tree
+    - name: Prepare Portage
       when: ansible_facts.os_family == "Gentoo"
-      community.general.portage:
-        sync: web
+      block:
+        - name: Sync the Portage tree
+          community.general.portage:
+            sync: web
+
+        # The cloudinit image ships the official binhost in binrepos.conf but
+        # leaves getbinpkg off, so Portage ignores it and builds every
+        # dependency from source. Enabling a binhost is host policy, which here
+        # is the test baseline's job.
+        - name: Pull binary packages from the binhost the image declares
+          ansible.builtin.lineinfile:
+            path: /etc/portage/make.conf
+            line: FEATURES="${FEATURES} getbinpkg"
+            regexp: ^FEATURES="\$\{FEATURES\} getbinpkg"$
+
+        # firewalld requires them on nftables, and Portage will not set a USE
+        # flag on its own. The role declares the same for its own emerge, but
+        # that happens after this play, and firewalld is installed here.
+        - name: Declare the USE flags firewalld requires
+          ansible.builtin.copy:
+            dest: /etc/portage/package.use/molecule
+            content: |
+              net-firewall/nftables json python xtables
+            mode: "0644"
 
     # A full upgrade can pull a new kernel. Without a reboot the running kernel
     # and the upgraded userspace mismatch — on Arch this breaks nftables (cache
