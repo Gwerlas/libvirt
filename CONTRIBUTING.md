@@ -211,35 +211,38 @@ Editing documentation
 
 ### Where a rationale lives
 
-A reason is written in exactly one place. From the narrowest home to the
-widest:
+Every artifact starts empty: a sentence earns its place when its absence would
+cost the reader something precise, not when a home can be found for it. A
+reason then lives in exactly one of these, the others pointing at it:
 
-| Home                     | What it holds                                         |
-| ------------------------ | ----------------------------------------------------- |
-| Code comment             | what this line does, and under which rule             |
-| `CONTRIBUTING` / `docs/` | what the reader has to be able to predict or do       |
-| Commit message           | what changes, and why now                             |
-| Issue / merge request    | the derivation, the measurements, the paths not taken |
-| Upstream documentation   | the rule itself, whenever the rule is not ours        |
+| Home                     | What it holds                                       |
+| ------------------------ | --------------------------------------------------- |
+| Code comment             | what this line does, and under which rule           |
+| `CONTRIBUTING` / `docs/` | what the reader has to be able to predict or do     |
+| Commit message           | what changes, and why it is right                   |
+| Issue / merge request    | how we know: what was run, measured, tried, dropped |
+| Upstream documentation   | the rule itself, whenever the rule is not ours      |
 
-Two of those are easy to get wrong, and both make comments longer than they
-need to be.
+Write in that order, narrowest first. A merge request is written **against**
+its commits, not from the same head of context: after one opening sentence
+naming what it does, it holds only what the diff and the commit messages do not
+already say. A one-line pointer beats a restatement every time.
+
+Two boundaries, two tests, both by deletion.
+
+**A comment summarises, it does not narrate.** Remove everything written in the
+past tense — when it was observed, what was measured, which false trail was
+followed. What is left is the rule.
+
+**A commit is knowable without running anything.** Remove from the merge
+request every sentence that would already be true had the work never run: it
+belongs to the commit. Remove from the commit every sentence that only became
+true by running something: it belongs to the merge request.
 
 **Cite upstream, never re-derive it.** When the reason is a third-party tool's
-behaviour — Portage, libvirt, firewalld, systemd, Jinja — the rule already has
-a home, and it is not this repository. Quote one sentence, give the URL, stop.
-A reconstruction of your own goes stale without warning the day upstream
-changes its mind, and it reads as an opinion of this role when it is in fact
-an external constraint. Look the source up *before* writing the comment: done
-the other way round, you produce a careful demonstration of something that
-fits in one quotable line, and you miss whatever else that page says.
-
-**A comment summarises, it does not narrate.** It says what the line does and
-under which rule. The investigation that led there — when it was observed,
-what was measured, which false trail was followed — belongs to the issue and
-the commit message, where someone doing archaeology will go looking for it.
-The test is mechanical: remove everything written in the past tense. What
-falls out did not belong in a comment; what is left is the rule.
+behaviour — Portage, libvirt, systemd, Jinja — quote one sentence, give the
+URL, stop. A reconstruction of your own goes stale the day upstream changes its
+mind, and reads as this role's opinion when it is an external constraint.
 
 Submit your changes
 -------------------
