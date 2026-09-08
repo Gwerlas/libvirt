@@ -125,6 +125,10 @@ installing them.
 MOLECULE_MEMORY=8 MOLECULE_VCPUS=4 molecule test -s attached-volume -p trixie
 ```
 
+`-p` is how a run is narrowed to one platform; trimming `platforms:` in a
+`molecule.yml` is not, and with those two variables there is no reason left to
+open that file for a single run.
+
 Recommended setup if the system pool sits on a small partition: create a
 dedicated pool on a larger filesystem and point molecule at it. For example:
 
