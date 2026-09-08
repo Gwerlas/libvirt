@@ -186,13 +186,22 @@ python -m pytest tests/unit
 Develop / Debug
 ---------------
 
+A failing run destroys its instances; `--destroy never` keeps them. Read its
+help line — "the destroy strategy used at the conclusion of a Molecule run" —
+as covering both destroy steps of the sequence, not only the trailing one:
+that is what makes a second `test` land on the instances the first one left.
+
 ```sh
-molecule create
-molecule converge
-molecule login -h <instance_name>
-# Do your changes by hand
-molecule verify
+molecule test -s <scenario> --destroy never
+molecule login -s <scenario> -h <instance>   # change things by hand
+molecule converge -s <scenario>              # re-apply after an edit
+molecule destroy -s <scenario>               # when you are done
 ```
+
+Prefer it to running `create` / `converge` / `verify` by hand. `molecule test
+--help` prints the sequence those three leave out, idempotence included, and
+this role's defects live there — a daemon reconfigured twice is exactly what a
+second converge catches.
 
 Supporting a new distribution / version
 ---------------------------------------
