@@ -324,6 +324,20 @@ three things the ticket asks for, so the other two stay visible. Neither
 `README.md` nor `docs/` ever carries an issue number — a user can do nothing
 with it, and it goes stale the day the issue closes.
 
+Tagging a release
+-----------------
+
+A tag publishes. The `import` job pushes the role to Ansible Galaxy and runs
+on a protected tag and nowhere else.
+
+What users install is not the repository either. Galaxy only records the tag
+and serves GitHub's archive of it, which `git archive` builds, so every path
+marked `export-ignore` in [`.gitattributes`][gitattributes] stays out of it:
+Molecule, unit tests, CI, linter and editor settings, this guide. A new file
+that only serves development belongs in that list; check what a tag would ship
+with `git archive HEAD | tar t`.
+
 <!-- Links section -->
+[gitattributes]: .gitattributes
 [Gitlab]: https://gitlab.com/gwerlas/ansible/roles/libvirt/-/merge_requests
 [platforms]: molecule/shared/platforms.yml
