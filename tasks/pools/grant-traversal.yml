@@ -8,13 +8,13 @@
 # which fixes the access without loosening the directories for everyone else.
 - name: Pools - Traversal
   vars:
-    pool_owner: "{{ (libvirt_pool.target.permissions | default({})).owner | default(libvirt_system_users.qemu) }}"
-    pool_owner_home: "{{ ansible_facts.getent_passwd[pool_owner][4] | default('') }}"
+    _libvirt_pool_owner: "{{ (_libvirt_pool.target.permissions | default({})).owner | default(_libvirt_system_users.qemu) }}"
+    _libvirt_pool_owner_home: "{{ ansible_facts.getent_passwd[_libvirt_pool_owner][4] | default('') }}"
   when:
-    - libvirt_pool.target.path is defined
-    - pool_owner != libvirt_system_users.qemu
-    - pool_owner_home | length > 0
-    - libvirt_pool.target.path.startswith(pool_owner_home ~ '/')
+    - _libvirt_pool.target.path is defined
+    - _libvirt_pool_owner != _libvirt_system_users.qemu
+    - _libvirt_pool_owner_home | length > 0
+    - _libvirt_pool.target.path.startswith(_libvirt_pool_owner_home ~ '/')
   become: true
   block:
     - name: Pools - Traversal - Ensure setfacl is available
@@ -24,18 +24,18 @@
 
     - name: Pools - Traversal - Let qemu cross the owner home directories
       ansible.posix.acl:
-        path: "{{ ancestor }}"
-        entity: "{{ libvirt_system_users.qemu }}"
+        path: "{{ _libvirt_ancestor_dir }}"
+        entity: "{{ _libvirt_system_users.qemu }}"
         etype: user
         permissions: x
         state: present
       loop: >-
-        {%- set tp = libvirt_pool.target.path.split('/') -%}
-        {%- set hl = pool_owner_home.split('/') | length -%}
+        {%- set tp = _libvirt_pool.target.path.split('/') -%}
+        {%- set hl = _libvirt_pool_owner_home.split('/') | length -%}
         {%- set ns = namespace(out=[]) -%}
         {%- for i in range(hl, tp | length) -%}
         {%- set ns.out = ns.out + [tp[:i] | join('/')] -%}
         {%- endfor -%}
         {{ ns.out }}
       loop_control:
-        loop_var: ancestor
+        loop_var: _libvirt_ancestor_dir

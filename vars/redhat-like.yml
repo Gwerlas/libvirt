@@ -1,5 +1,5 @@
 ---
-packages:
+_libvirt_packages:
   libvirtd:
     # bridge-utils (brctl) was dropped from EL9+ and is no longer needed:
     # modern libvirt manages bridges through netlink (iproute).

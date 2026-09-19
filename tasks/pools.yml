@@ -4,18 +4,14 @@
     command: facts
     uri: "{{ libvirt_uri }}"
 
-- name: Pools - Items
-  ansible.builtin.set_fact:
-    libvirt_pools_input: "{{ libvirt_pools }}"
-
 - name: Pools - Create
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/pools/create.yml"
   vars:
-    libvirt_pools: |
+    _libvirt_pools_to_create: |
       {{
         (
-          (libvirt_pools_input | selectattr('state', 'undefined'))
-        + (libvirt_pools_input | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
+          (libvirt_pools | selectattr('state', 'undefined'))
+        + (libvirt_pools | selectattr('state', 'defined') | selectattr('state', 'in', ['active', 'present']))
         ) | rejectattr('name', 'in', ansible_facts.libvirt_pools)
       }}
 
@@ -26,8 +22,8 @@
 
 - name: Pools - Autostart
   community.libvirt.virt_pool:
-    name: "{{ pool.name }}"
-    autostart: "{{ pool.autostart }}"
+    name: "{{ _libvirt_pool.name }}"
+    autostart: "{{ _libvirt_pool.autostart }}"
     uri: "{{ libvirt_uri }}"
   loop: |
     {{
@@ -37,20 +33,20 @@
       ) | selectattr('autostart', 'defined')
     }}
   loop_control:
-    loop_var: pool
+    loop_var: _libvirt_pool
 
 - name: Pools - Status
   community.libvirt.virt_pool:
-    name: "{{ pool.name }}"
-    state: "{{ pool.state | default('active') }}"
+    name: "{{ _libvirt_pool.name }}"
+    state: "{{ _libvirt_pool.state | default('active') }}"
     uri: "{{ libvirt_uri }}"
   loop: "{{ libvirt_pools }}"
   loop_control:
-    loop_var: pool
+    loop_var: _libvirt_pool
 
 - name: Pools - Allow qemu to reach pools located under a user home
-  when: system_wide
+  when: _libvirt_runs_system_wide
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/pools/grant-traversal.yml"
-  loop: "{{ libvirt_pools_input }}"
+  loop: "{{ libvirt_pools }}"
   loop_control:
-    loop_var: libvirt_pool
+    loop_var: _libvirt_pool

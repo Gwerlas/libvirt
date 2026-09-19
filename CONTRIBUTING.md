@@ -47,10 +47,42 @@ derived from the `target` prefix (`vd*` → virtio, `hd*` → ide) in
 their bus is ambiguous in libvirt (`sata`/`scsi`/`usb`) and needs an extra
 controller; adding them later is purely additive — an inventory that errors
 today starts working, never the reverse — so the `target`-as-string contract is
-locked for good. Each non-block disk's backing volume
-is then derived (in `volumes_computed`, `vars/main.yml`) into a faithful
-`libvirt_volumes` entry, so the same volume is never declared twice — and
+locked for good. Each non-block disk's backing volume is then derived (in
+`_libvirt_volumes_to_create`, `vars/main.yml`) into a faithful `libvirt_volumes`
+entry, so the same volume is never declared twice — and
 `libvirt_volumes` itself mirrors `<volume>` (`capacity`, `target.format.type`).
+
+Variable names
+--------------
+
+`libvirt_` is the role's public surface: what an inventory sets, what
+`meta/argument_specs.yml` declares, what `README.md` and `docs/` document.
+Everything the role defines for itself carries `_libvirt_` — a `vars/` entry, a
+fact, a register, a `loop_var`, a variable handed to an included file — and the
+leading underscore is the whole message: the role computed it, nothing outside
+sets it. A Jinja `{% set %}` lives and dies inside its template, and stays bare.
+
+Where the name is a choice rather than a prefix, it says what the variable
+holds: `_libvirt_os_groups`, not `grps`. A register names what is read out of
+it — `_libvirt_unit_files`, `_libvirt_defined_domains`. One that only feeds an
+`until:` carries a task result and no data of its own, so it names the action
+whose failure it reports instead: `_libvirt_spice_build`, `_libvirt_daemon_probe`.
+
+`ansible-lint` asks for the prefix on every key of `defaults/` and `vars/`, a
+private one included — "Variables names from within roles should use
+`role_name_` as a prefix. Underlines are accepted before the prefix."
+([var-naming][var-naming]) — so `_libvirt_` satisfies it. The rule stays silent
+in this repository because the role is the root of it, leaving no
+`roles/<name>/` above the file for the linter to read the role name from. It
+does not stay silent for whoever installs the role under `~/.ansible/roles/`,
+so lint the layout they get, built from what a tag ships:
+
+```sh
+mkdir -p /tmp/lint/roles/libvirt
+git archive HEAD | tar -x -C /tmp/lint/roles/libvirt
+cp -a .config .yamllint /tmp/lint/
+cd /tmp/lint && ansible-lint
+```
 
 Backends
 --------
@@ -338,6 +370,7 @@ that only serves development belongs in that list; check what a tag would ship
 with `git archive HEAD | tar t`.
 
 <!-- Links section -->
+[var-naming]: https://docs.ansible.com/projects/lint/rules/var-naming/
 [gitattributes]: .gitattributes
 [Gitlab]: https://gitlab.com/gwerlas/ansible/roles/libvirt/-/merge_requests
 [platforms]: molecule/shared/platforms.yml

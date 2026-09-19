@@ -2,11 +2,11 @@
 - name: Pools - Refresh
   community.libvirt.virt_pool:
     command: refresh
-    name: "{{ pool.name }}"
+    name: "{{ _libvirt_pool.name }}"
     uri: "{{ libvirt_uri }}"
   loop: "{{ libvirt_pools }}"
   loop_control:
-    loop_var: pool
+    loop_var: _libvirt_pool
 
 - name: Pools - Facts
   community.libvirt.virt_pool:

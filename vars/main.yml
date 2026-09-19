@@ -1,15 +1,15 @@
 ---
-packages_computed: |
+_libvirt_packages_to_install: |
   {{
     (libvirt_install + libvirt_backends) |
-    map('extract', packages) |
+    map('extract', _libvirt_packages) |
     flatten | sort | unique
   }}
 
 # A domain's `disks` are a convenience DSL: each non-block disk's backing volume
 # is derived here into a faithful `libvirt_volumes` entry, so it is never declared
 # twice. Block disks back onto an existing device and get no volume.
-volumes_computed: |
+_libvirt_volumes_to_create: |
   {%- set ns = namespace(volumes=libvirt_volumes) -%}
   {%- for domain in libvirt_domains -%}
   {%- for disk in domain.disks | default([]) -%}
@@ -26,13 +26,13 @@ volumes_computed: |
   {{ ns.volumes }}
 
 # Networking
-default_dnsmasq_management_method: none
+_libvirt_default_dnsmasq_management_method: none
 
-dnsmasq_management_method: |-
+_libvirt_dnsmasq_management_method: |-
   {{
     (libvirt_dnsmasq_management_method == "auto") |
     ternary(
-      default_dnsmasq_management_method,
+      _libvirt_default_dnsmasq_management_method,
       libvirt_dnsmasq_management_method
     )
   }}

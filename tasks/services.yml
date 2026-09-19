@@ -1,6 +1,6 @@
 ---
 - name: Services - DNSMasq
-  when: dnsmasq_management_method == 'disable'
+  when: _libvirt_dnsmasq_management_method == 'disable'
   become: true
   ansible.builtin.service:
     name: dnsmasq
@@ -8,7 +8,7 @@
     enabled: false
 
 - name: Services - DNSMasq
-  when: dnsmasq_management_method == 'bind'
+  when: _libvirt_dnsmasq_management_method == 'bind'
   become: true
   notify: Restart dnsmasq service
   block:
@@ -22,7 +22,7 @@
     - name: Services - DNSMasq ethernet interfaces
       ansible.builtin.lineinfile:
         path: /etc/dnsmasq.conf
-        line: interface={{ interface }}
+        line: interface={{ _libvirt_interface }}
         insertafter: '^#?interface='
         mode: "0644"
       loop: |
@@ -35,20 +35,20 @@
           map(attribute='device')
         }}
       loop_control:
-        loop_var: interface
+        loop_var: _libvirt_interface
 
 - name: Services - Enable and start
   when: ansible_facts.service_mgr != 'systemd'
   become: true
   ansible.builtin.service:
-    name: "{{ service }}"
+    name: "{{ _libvirt_service }}"
     state: started
     enabled: true
   loop:
     - dbus
     - libvirtd
   loop_control:
-    loop_var: service
+    loop_var: _libvirt_service
 
 - name: Services - Systemd
   when: ansible_facts.service_mgr == 'systemd'
@@ -60,7 +60,7 @@
       # match both services and sockets, then resolve the layout from them.
       ansible.builtin.command:
         cmd: systemctl list-unit-files --no-legend --type=service,socket
-      register: libvirt_unit_files
+      register: _libvirt_unit_files
       changed_when: false
       # Also selected by the `ca`/`ssl` tags: a tagged cert/CA update reruns this
       # detection so the restart handler has the daemons to restart.
@@ -73,16 +73,16 @@
     # monolithic daemon even at 9.x. See filter_plugins/libvirt_units.py.
     - name: Services - Resolve the libvirt unit layout
       ansible.builtin.set_fact:
-        libvirt_layout: "{{ libvirt_unit_files.stdout_lines | libvirt_units(libvirt_backends) }}"
+        _libvirt_daemon_layout: "{{ _libvirt_unit_files.stdout_lines | libvirt_units(libvirt_backends) }}"
       tags:
         - ca
         - ssl
 
     - name: Services - Enable and start
       ansible.builtin.systemd:
-        name: "{{ unit }}"
+        name: "{{ _libvirt_unit }}"
         state: started
         enabled: true
-      loop: "{{ libvirt_layout.boot_units }}"
+      loop: "{{ _libvirt_daemon_layout.boot_units }}"
       loop_control:
-        loop_var: unit
+        loop_var: _libvirt_unit

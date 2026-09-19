@@ -1,6 +1,6 @@
 ---
 - name: Packages - Load variables
-  when: system_wide is undefined
+  when: _libvirt_runs_system_wide is undefined
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
 
 - name: Packages - Installation
@@ -16,20 +16,20 @@
           community.general.portage:
             package: app-emulation/spice
             oneshot: true
-          register: result
-          until: result.failed == false
+          register: _libvirt_spice_build
+          until: _libvirt_spice_build.failed == false
           retries: "{{ libvirt_retries }}"
 
         - name: Packages - Portage configuration
           ansible.builtin.template:
-            src: "{{ folder }}.j2"
-            dest: /etc/portage/{{ folder }}/libvirt
+            src: "{{ _libvirt_portage_dir }}.j2"
+            dest: /etc/portage/{{ _libvirt_portage_dir }}/libvirt
             group: portage
             mode: "664"
           loop:
             - package.use
           loop_control:
-            loop_var: folder
+            loop_var: _libvirt_portage_dir
           notify: emerge --deep --newuse
         
         - name: Packages - Rebuild packages with new use flags now
@@ -39,9 +39,9 @@
       tags:
         - packages
       ansible.builtin.package:
-        name: "{{ packages_computed }}"
-      register: result
-      until: result.failed == false
+        name: "{{ _libvirt_packages_to_install }}"
+      register: _libvirt_install_result
+      until: _libvirt_install_result.failed == false
       retries: "{{ libvirt_retries }}"
       notify: Restart firewalld service
 

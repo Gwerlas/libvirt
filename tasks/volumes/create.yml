@@ -1,7 +1,7 @@
 ---
 - name: Volumes - Create
   community.libvirt.virt_volume:
-    pool: "{{ libvirt_volume.pool | default('default') }}"
+    pool: "{{ _libvirt_volume.pool | default('default') }}"
     state: present
     uri: "{{ libvirt_uri }}"
     xml: "{{ lookup('template', 'volume.xml.j2') }}"

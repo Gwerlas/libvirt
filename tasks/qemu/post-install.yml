@@ -3,14 +3,14 @@
   become: true
   block:
     - name: Qemu - Security driver
-      when: libvirt_security_driver | bool
+      when: _libvirt_security_driver | bool
       ansible.builtin.lineinfile:
         path: /etc/libvirt/qemu.conf
-        line: 'security_driver = "{{ libvirt_security_driver }}"'
+        line: 'security_driver = "{{ _libvirt_security_driver }}"'
         regexp: '^#?security_driver\s*='
         mode: "0644"
       vars:
-        libvirt_security_driver: |-
+        _libvirt_security_driver: |-
           {% if ansible_facts.apparmor.status | default('') == 'enabled' %}apparmor
           {%- elif ansible_facts.selinux.mode | default('') in ['enforcing', 'permissive'] %}selinux
           {%- endif %}
@@ -27,7 +27,7 @@
       ansible.builtin.import_tasks: "{{ role_path }}/tasks/networks.yml"
       vars:
         libvirt_uri: qemu:///system
-        networks:
+        _libvirt_networks:
           - name: default
             state: "{{ 'active' if libvirt_active_default_network else 'absent' }}"
             autostart: true
@@ -53,5 +53,5 @@
             target:
               path: /var/lib/libvirt/images
               permissions:
-                owner: "{{ libvirt_system_users.qemu }}"
-                group: "{{ libvirt_system_groups.qemu }}"
+                owner: "{{ _libvirt_system_users.qemu }}"
+                group: "{{ _libvirt_system_groups.qemu }}"

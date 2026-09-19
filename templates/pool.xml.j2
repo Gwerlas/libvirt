@@ -1,27 +1,27 @@
 <!-- {{ ansible_managed }} -->
-{% set pool_type = libvirt_pool.type | default('netfs' if 'source' in libvirt_pool else 'dir') %}
+{% set pool_type = _libvirt_pool.type | default('netfs' if 'source' in _libvirt_pool else 'dir') %}
 <pool type="{{ pool_type }}">
-  <name>{{ libvirt_pool.name }}</name>
+  <name>{{ _libvirt_pool.name }}</name>
 {% if pool_type == 'netfs' %}
   <source>
-{% for host in libvirt_pool.source.hosts %}
+{% for host in _libvirt_pool.source.hosts %}
     <host name="{{ host.name }}"/>
 {% endfor %}
-    <dir path="{{ libvirt_pool.source.dir.path }}"/>
-    <format type='{{ (libvirt_pool.source.format | default({})).type | default("nfs") }}'/>
-{% if 'protocol' in libvirt_pool.source %}
-    <protocol ver='{{ libvirt_pool.source.protocol.ver }}'/>
+    <dir path="{{ _libvirt_pool.source.dir.path }}"/>
+    <format type='{{ (_libvirt_pool.source.format | default({})).type | default("nfs") }}'/>
+{% if 'protocol' in _libvirt_pool.source %}
+    <protocol ver='{{ _libvirt_pool.source.protocol.ver }}'/>
 {% endif %}
   </source>
 {% endif %}
 {% if pool_type in ['dir', 'fs', 'netfs', 'logical', 'disk', 'iscsi', 'scsi', 'mpath', 'zfs'] %}
-{% set pool_perms = libvirt_pool.target.permissions | default({}) %}
-{% set pool_owner = pool_perms.owner | default(system_wide | ternary(libvirt_system_users.qemu, ansible_facts.user_id)) %}
+{% set pool_perms = _libvirt_pool.target.permissions | default({}) %}
+{% set pool_owner = pool_perms.owner | default(_libvirt_runs_system_wide | ternary(_libvirt_system_users.qemu, ansible_facts.user_id)) %}
 {% set pool_group = pool_perms.group | default(ansible_facts.getent_passwd[pool_owner][2]) %}
   <target>
-    <path>{{ libvirt_pool.target.path }}</path>
+    <path>{{ _libvirt_pool.target.path }}</path>
     <permissions>
-      <mode>{{ pool_perms.mode | default(system_wide | ternary('0771', '0711')) }}</mode>
+      <mode>{{ pool_perms.mode | default(_libvirt_runs_system_wide | ternary('0771', '0711')) }}</mode>
       <owner>{{ pool_owner if pool_owner | string is match('^\d+$') else ansible_facts.getent_passwd[pool_owner][1] }}</owner>
       <group>{{ pool_group if pool_group | string is match('^\d+$') else ansible_facts.getent_group[pool_group][1] }}</group>
 {% if 'mode' in ansible_facts.selinux %}

@@ -1,2 +1,2 @@
 ---
-default_dnsmasq_management_method: bind
+_libvirt_default_dnsmasq_management_method: bind

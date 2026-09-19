@@ -1,47 +1,47 @@
 ---
 # Deploys a certificate + key pair. Defaults target the system daemon copies
 # under /etc/pki (owned by the qemu group, labelled cert_t, read by libvirtd).
-# The per-user client path (users.yml) sets `tls_client_side: true`: the files
+# The per-user client path (users.yml) sets `_libvirt_tls_client_side: true`: the files
 # live under the user's ~/.pki, are read by the user's own virsh, and so get no
 # qemu group, no forced SELinux context, a 0400 private key and no daemon
-# restart (`cert_restart: []`).
+# restart (`_libvirt_cert_restart: []`).
 - name: TLS Server certificate
   tags:
     - ssl
   block:
     - name: TLS Server certificate directories
       ansible.builtin.file:
-        path: "{{ libvirt_pki_dir }}"
+        path: "{{ _libvirt_pki_dir }}"
         state: directory
-        group: "{{ tls_client_side | default(false) | ternary(omit, grps.qemu | default('qemu')) }}"
+        group: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, _libvirt_os_groups.qemu | default('qemu')) }}"
         mode: "0755"
-        seuser: "{{ tls_client_side | default(false) | ternary(omit, 'system_u') }}"
-        serole: "{{ tls_client_side | default(false) | ternary(omit, 'object_r') }}"
-        setype: "{{ tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
-        selevel: "{{ tls_client_side | default(false) | ternary(omit, 's0') }}"
+        seuser: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'system_u') }}"
+        serole: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'object_r') }}"
+        setype: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
+        selevel: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 's0') }}"
       loop:
-        - "{{ dest_cert | dirname }}"
-        - "{{ dest_key | dirname }}"
+        - "{{ _libvirt_dest_cert | dirname }}"
+        - "{{ _libvirt_dest_key | dirname }}"
       loop_control:
-        loop_var: libvirt_pki_dir
+        loop_var: _libvirt_pki_dir
 
     - name: TLS Server certificate files
       ansible.builtin.copy:
-        src: "{{ libvirt_pki_file.src }}"
-        dest: "{{ libvirt_pki_file.dest }}"
-        group: "{{ tls_client_side | default(false) | ternary(omit, grps.qemu | default('qemu')) }}"
-        mode: "{{ libvirt_pki_file.mode }}"
-        seuser: "{{ tls_client_side | default(false) | ternary(omit, 'system_u') }}"
-        serole: "{{ tls_client_side | default(false) | ternary(omit, 'object_r') }}"
-        setype: "{{ tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
-        selevel: "{{ tls_client_side | default(false) | ternary(omit, 's0') }}"
+        src: "{{ _libvirt_pki_file.src }}"
+        dest: "{{ _libvirt_pki_file.dest }}"
+        group: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, _libvirt_os_groups.qemu | default('qemu')) }}"
+        mode: "{{ _libvirt_pki_file.mode }}"
+        seuser: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'system_u') }}"
+        serole: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'object_r') }}"
+        setype: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
+        selevel: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 's0') }}"
       loop:
-        - src: "{{ src_cert }}"
-          dest: "{{ dest_cert }}"
+        - src: "{{ _libvirt_src_cert }}"
+          dest: "{{ _libvirt_dest_cert }}"
           mode: "0444"
-        - src: "{{ src_key }}"
-          dest: "{{ dest_key }}"
-          mode: "{{ tls_client_side | default(false) | ternary('0400', '0440') }}"
+        - src: "{{ _libvirt_src_key }}"
+          dest: "{{ _libvirt_dest_key }}"
+          mode: "{{ _libvirt_tls_client_side | default(false) | ternary('0400', '0440') }}"
       loop_control:
-        loop_var: libvirt_pki_file
-      notify: "{{ cert_restart | default(['Restart libvirt service']) }}"
+        loop_var: _libvirt_pki_file
+      notify: "{{ _libvirt_cert_restart | default(['Restart libvirt service']) }}"

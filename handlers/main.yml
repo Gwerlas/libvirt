@@ -9,7 +9,7 @@
     - emerge --deep --newuse
   become: true
   community.general.portage:
-    package: "{{ packages_computed }}"
+    package: "{{ _libvirt_packages_to_install }}"
     deep: true
     newuse: true
   notify: Restart firewalld service
@@ -44,28 +44,28 @@
   when: ansible_facts.service_mgr != 'systemd'
 
 # Restarting the *service* (not just the socket) is what makes a libvirtd.conf
-# change take effect; libvirt_layout.restart_units (from tasks/services.yml) is
-# the list of daemons to restart for the detected layout.
+# change take effect; _libvirt_daemon_layout.restart_units (from
+# tasks/services.yml) is the list of daemons to restart for the detected layout.
 - name: Restart libvirt daemons
   listen:
     - emerge --deep --newuse
     - Restart libvirt service
   become: true
   ansible.builtin.systemd:
-    name: "{{ unit }}"
+    name: "{{ _libvirt_unit }}"
     state: restarted
-  loop: "{{ (libvirt_layout | default({})).restart_units | default([]) }}"
+  loop: "{{ (_libvirt_daemon_layout | default({})).restart_units | default([]) }}"
   loop_control:
-    loop_var: unit
+    loop_var: _libvirt_unit
   when:
     - ansible_facts.service_mgr == 'systemd'
-    - (libvirt_layout | default({})).restart_units | default([]) | length > 0
+    - (_libvirt_daemon_layout | default({})).restart_units | default([]) | length > 0
 
 # Guarded on the same conditions as the two restart handlers above, so the wait
 # happens only when one of them actually restarted something. On Portage the
 # `emerge --deep --newuse` notification is flushed from packages.yml, before
-# services.yml has resolved libvirt_layout: both restarts then skip, and an
-# unguarded wait would block on a socket no one has opened.
+# services.yml has resolved _libvirt_daemon_layout: both restarts then skip, and
+# an unguarded wait would block on a socket no one has opened.
 - name: Wait for libvirtd ready
   listen:
     - emerge --deep --newuse
@@ -73,12 +73,12 @@
   become: true
   ansible.builtin.command:
     cmd: virsh -c qemu:///system version
-  register: result
-  until: not result.failed
+  register: _libvirt_daemon_probe
+  until: not _libvirt_daemon_probe.failed
   changed_when: false
   when: >-
     ansible_facts.service_mgr != 'systemd'
-    or (libvirt_layout | default({})).restart_units | default([]) | length > 0
+    or (_libvirt_daemon_layout | default({})).restart_units | default([]) | length > 0
 
 - name: Restart firewalld service
   when:

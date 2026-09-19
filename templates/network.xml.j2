@@ -1,13 +1,13 @@
 {# https://libvirt.org/formatnetwork.html #}
 <network>
-  <name>{{ network.name }}</name>
-{% if 'forward' in network %}
-  <forward mode='{{ network.forward.mode | default('nat') }}'/>
+  <name>{{ _libvirt_network.name }}</name>
+{% if 'forward' in _libvirt_network %}
+  <forward mode='{{ _libvirt_network.forward.mode | default('nat') }}'/>
 {% endif %}
-{% if 'bridge' in network %}
-  <bridge name='{{ network.bridge.name }}'/>
+{% if 'bridge' in _libvirt_network %}
+  <bridge name='{{ _libvirt_network.bridge.name }}'/>
 {% endif %}
-{% for ip in network.ips | default([]) %}
+{% for ip in _libvirt_network.ips | default([]) %}
   <ip address='{{ ip.address }}' netmask='{{ ip.netmask }}'>
 {% if 'dhcp' in ip %}
     <dhcp>

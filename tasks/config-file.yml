@@ -1,17 +1,17 @@
 ---
-- name: Set directives in {{ libvirt_conf.key }}
+- name: Set directives in {{ _libvirt_config_file.key }}
   ansible.builtin.lineinfile:
-    path: /etc/libvirt/{{ libvirt_conf.key }}.conf
+    path: /etc/libvirt/{{ _libvirt_config_file.key }}.conf
     line: >-
-      {{ directive.key }} = {{
-        ('"' ~ directive.value ~ '"') if directive.value is string
-        else (directive.value | int) if directive.value is boolean
-        else directive.value
+      {{ _libvirt_directive.key }} = {{
+        ('"' ~ _libvirt_directive.value ~ '"') if _libvirt_directive.value is string
+        else (_libvirt_directive.value | int) if _libvirt_directive.value is boolean
+        else _libvirt_directive.value
       }}
-    regexp: "^#?\\s*{{ directive.key }}\\s*="
+    regexp: "^#?\\s*{{ _libvirt_directive.key }}\\s*="
     create: true
     mode: "0644"
-  with_dict: "{{ libvirt_conf.value }}"
+  with_dict: "{{ _libvirt_config_file.value }}"
   loop_control:
-    loop_var: directive
+    loop_var: _libvirt_directive
   notify: Restart libvirt service

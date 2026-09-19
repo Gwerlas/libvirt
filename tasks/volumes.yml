@@ -6,11 +6,11 @@
   ansible.builtin.include_tasks: "{{ role_path }}/tasks/volumes/create.yml"
   loop: |
     {{
-      (volumes | selectattr('state', 'undefined'))
-    + (volumes | selectattr('state', 'defined') | selectattr('state', '==', 'present'))
+      (_libvirt_volumes_to_create | selectattr('state', 'undefined'))
+    + (_libvirt_volumes_to_create | selectattr('state', 'defined') | selectattr('state', '==', 'present'))
     }}
   loop_control:
-    loop_var: libvirt_volume
+    loop_var: _libvirt_volume
 
 
 - name: Volumes - Refresh the pools again
