@@ -8,14 +8,14 @@
         file: "{{ role_path }}/tasks/config-file.yml"
       with_dict: "{{ libvirt_config }}"
       loop_control:
-        loop_var: libvirt_conf
+        loop_var: _libvirt_conf
 
     - name: TLS CA
       when: libvirt_ca_file is defined
       vars:
-        src_file: "{{ libvirt_ca_file }}"
-        dest_file: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/CA/cacert.pem') }}"
-        ca_restart:
+        _libvirt_src_file: "{{ libvirt_ca_file }}"
+        _libvirt_dest_file: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/CA/cacert.pem') }}"
+        _libvirt_ca_restart:
           - Restart libvirt service
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/tls/ca-file.yml"
@@ -26,10 +26,10 @@
     - name: TLS Server certificate
       when: libvirt_servercert is defined
       vars:
-        src_cert: "{{ libvirt_servercert }}"
-        dest_cert: "{{ libvirt_config.libvirtd.cert_file | default('/etc/pki/libvirt/servercert.pem') }}"
-        src_key: "{{ libvirt_serverkey }}"
-        dest_key: "{{ libvirt_config.libvirtd.key_file | default('/etc/pki/libvirt/private/serverkey.pem') }}"
+        _libvirt_src_cert: "{{ libvirt_servercert }}"
+        _libvirt_dest_cert: "{{ libvirt_config.libvirtd.cert_file | default('/etc/pki/libvirt/servercert.pem') }}"
+        _libvirt_src_key: "{{ libvirt_serverkey }}"
+        _libvirt_dest_key: "{{ libvirt_config.libvirtd.key_file | default('/etc/pki/libvirt/private/serverkey.pem') }}"
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/tls/cert.yml"
       # Tagged so `-t ssl` redeploys the certificates (and restarts to apply).
@@ -39,10 +39,10 @@
     - name: TLS Client certificate
       when: libvirt_clientcert is defined
       vars:
-        src_cert: "{{ libvirt_clientcert }}"
-        dest_cert: /etc/pki/libvirt/clientcert.pem
-        src_key: "{{ libvirt_clientkey }}"
-        dest_key: /etc/pki/libvirt/private/clientkey.pem
+        _libvirt_src_cert: "{{ libvirt_clientcert }}"
+        _libvirt_dest_cert: /etc/pki/libvirt/clientcert.pem
+        _libvirt_src_key: "{{ libvirt_clientkey }}"
+        _libvirt_dest_key: /etc/pki/libvirt/private/clientkey.pem
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/tls/cert.yml"
       tags:
@@ -57,36 +57,36 @@
     # Modular hosts activate virtproxyd on demand, nothing needs stopping there.
     - name: TLS socket
       when:
-        - libvirt_layout is defined
-        - libvirt_layout.tls_socket is not none
+        - _libvirt_layout is defined
+        - _libvirt_layout.tls_socket is not none
         - (libvirt_config.libvirtd.listen_tls | default(0)) | int == 1
       block:
         - name: TLS socket - Current state  # noqa command-instead-of-module
           # service_facts does not enumerate .socket units, so query systemd
           # directly to keep the stop/start below idempotent.
           ansible.builtin.command:
-            cmd: systemctl is-active {{ libvirt_layout.tls_socket }}
-          register: libvirt_tls_socket_state
+            cmd: systemctl is-active {{ _libvirt_layout.tls_socket }}
+          register: _libvirt_tls_socket_state
           changed_when: false
           failed_when: false
 
         - name: TLS socket - Free the socket set on the monolithic daemon
           when:
-            - not libvirt_layout.modular
-            - libvirt_tls_socket_state.stdout != 'active'
+            - not _libvirt_layout.modular
+            - _libvirt_tls_socket_state.stdout != 'active'
           ansible.builtin.systemd:
             name: libvirtd.service
             state: stopped
 
         - name: TLS socket - Enable and start
           ansible.builtin.systemd:
-            name: "{{ libvirt_layout.tls_socket }}"
+            name: "{{ _libvirt_layout.tls_socket }}"
             state: started
             enabled: true
           notify: Restart libvirt service
 
         - name: TLS socket - Bring the monolithic daemon back to serve the socket
-          when: not libvirt_layout.modular
+          when: not _libvirt_layout.modular
           ansible.builtin.systemd:
             name: libvirtd.service
             state: started

@@ -1,5 +1,5 @@
 ---
-flags:
+_libvirt_use_flags:
   libvirtd:
     - package: app-emulation/libvirt
       use:
@@ -69,7 +69,7 @@ flags:
       use:
         - usbredir
 
-packages:
+_libvirt_packages:
   libvirtd:
     - app-emulation/libvirt
     - app-emulation/virt-firmware

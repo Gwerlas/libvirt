@@ -5,24 +5,24 @@
   block:
     - name: TLS CA daemon directory
       ansible.builtin.file:
-        path: "{{ dest_file | dirname }}"
+        path: "{{ _libvirt_dest_file | dirname }}"
         state: directory
         mode: "0755"
-        seuser: "{{ tls_client_side | default(false) | ternary(omit, 'system_u') }}"
-        serole: "{{ tls_client_side | default(false) | ternary(omit, 'object_r') }}"
-        setype: "{{ tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
-        selevel: "{{ tls_client_side | default(false) | ternary(omit, 's0') }}"
+        seuser: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'system_u') }}"
+        serole: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'object_r') }}"
+        setype: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
+        selevel: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 's0') }}"
 
     - name: TLS CA daemon file
       ansible.builtin.copy:
-        src: "{{ src_file }}"
-        dest: "{{ dest_file }}"
+        src: "{{ _libvirt_src_file }}"
+        dest: "{{ _libvirt_dest_file }}"
         mode: "0444"
-        seuser: "{{ tls_client_side | default(false) | ternary(omit, 'system_u') }}"
-        serole: "{{ tls_client_side | default(false) | ternary(omit, 'object_r') }}"
-        setype: "{{ tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
-        selevel: "{{ tls_client_side | default(false) | ternary(omit, 's0') }}"
+        seuser: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'system_u') }}"
+        serole: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'object_r') }}"
+        setype: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 'cert_t') }}"
+        selevel: "{{ _libvirt_tls_client_side | default(false) | ternary(omit, 's0') }}"
       # The daemon reads the CA at startup, so a rotated CA needs a restart to
       # take effect. Only the daemon copy (configure.yml) sets this; the
-      # per-user CA (users.yml, tls_client_side) is client-side and needs none.
-      notify: "{{ ca_restart | default([]) }}"
+      # per-user CA (users.yml, _libvirt_tls_client_side) is client-side and needs none.
+      notify: "{{ _libvirt_ca_restart | default([]) }}"

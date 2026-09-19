@@ -1,21 +1,21 @@
 ---
 - name: Run as - Get user informations
   ansible.builtin.command:
-    cmd: "getent passwd {{ libvirt_user.name }}"
-  register: user_data
+    cmd: "getent passwd {{ _libvirt_user.name }}"
+  register: _libvirt_passwd_entry
   changed_when: false
   check_mode: false
 
 - name: Run as
   become: true
-  become_user: "{{ libvirt_user.name }}"
+  become_user: "{{ _libvirt_user.name }}"
   block:
     - name: Run task
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ task }}"
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ _libvirt_task }}"
       vars:
-        ansible_user_id: "{{ libvirt_user.name }}"
-        ansible_user_uid: "{{ (user_data.stdout | split(':'))[2] }}"
-        ansible_user_gid: "{{ (user_data.stdout | split(':'))[3] }}"
-        ansible_user_gecos: "{{ (user_data.stdout | split(':'))[4] }}"
-        ansible_user_dir: "{{ (user_data.stdout | split(':'))[5] }}"
-        ansible_user_shell: "{{ (user_data.stdout | split(':'))[6] }}"
+        ansible_user_id: "{{ _libvirt_user.name }}"
+        ansible_user_uid: "{{ (_libvirt_passwd_entry.stdout | split(':'))[2] }}"
+        ansible_user_gid: "{{ (_libvirt_passwd_entry.stdout | split(':'))[3] }}"
+        ansible_user_gecos: "{{ (_libvirt_passwd_entry.stdout | split(':'))[4] }}"
+        ansible_user_dir: "{{ (_libvirt_passwd_entry.stdout | split(':'))[5] }}"
+        ansible_user_shell: "{{ (_libvirt_passwd_entry.stdout | split(':'))[6] }}"

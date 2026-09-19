@@ -1,13 +1,13 @@
 {# https://libvirt.org/formatdomain.html #}
 <!-- {{ ansible_managed }} -->
-{% set memory = domain.memory | regex_search('^(\\d+)', '\\1') | first %}
-{% set memory_unit = domain.memory | regex_search('([KMGT]i?B?)$', '\\1') | default(['GiB'], boolean=true) | first %}
-{% set cpu = domain.cpu | default(libvirt_default_cpu) %}
-<domain type="{{ domain.type | default('kvm')}}">
-  <name>{{ domain.name }}</name>
+{% set memory = _libvirt_domain.memory | regex_search('^(\\d+)', '\\1') | first %}
+{% set memory_unit = _libvirt_domain.memory | regex_search('([KMGT]i?B?)$', '\\1') | default(['GiB'], boolean=true) | first %}
+{% set cpu = _libvirt_domain.cpu | default(libvirt_default_cpu) %}
+<domain type="{{ _libvirt_domain.type | default('kvm')}}">
+  <name>{{ _libvirt_domain.name }}</name>
   <memory unit="{{ memory_unit }}">{{ memory }}</memory>
-{% if 'vcpu' in domain %}
-  <vcpu{% if 'placement' in domain.vcpu %} placement="{{ domain.vcpu.placement }}"{% endif %}>{{ domain.vcpu.quantity | default(1) }}</vcpu>
+{% if 'vcpu' in _libvirt_domain %}
+  <vcpu{% if 'placement' in _libvirt_domain.vcpu %} placement="{{ _libvirt_domain.vcpu.placement }}"{% endif %}>{{ _libvirt_domain.vcpu.quantity | default(1) }}</vcpu>
 {% endif %}
   <os>
     <type>hvm</type>
@@ -30,7 +30,7 @@
   <on_crash>destroy</on_crash>
   <devices>
 
-{% for disk in domain.disks %}
+{% for disk in _libvirt_domain.disks %}
 {% set disk_type = disk.type | default('file') %}
 {% set pool_name = disk.pool | default('default') %}
 {% set pool_path = ansible_facts.libvirt_pools[pool_name].path %}
@@ -51,7 +51,7 @@
     </disk>
 {% endfor %}
     <controller type="pci" index="0" model="pci-root"/>
-{% for device in domain.interfaces %}
+{% for device in _libvirt_domain.interfaces %}
     <interface type="{{ device.type | default('network')}}">
 {% if 'name' in device %}
       <source network="{{ device.name }}" />
@@ -69,7 +69,7 @@
       <target type="serial" port="0"/>
     </console>
     <input type="keyboard" bus="ps2"/>
-{% for graphics in domain.graphics | default([{}]) %}
+{% for graphics in _libvirt_domain.graphics | default([{}]) %}
     <graphics type="vnc" port="-1" autoport="yes" listen="127.0.0.1" keymap="{{ graphics.keymap | default(libvirt_default_keymap) }}">
       <listen type="address" address="127.0.0.1"/>
     </graphics>

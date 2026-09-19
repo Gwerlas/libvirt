@@ -1,11 +1,11 @@
 ---
-usrs:
+_libvirt_os_users:
   qemu: libvirt-qemu
 
-grps:
+_libvirt_os_groups:
   qemu: libvirt-qemu
 
-packages:
+_libvirt_packages:
   libvirtd:
     - bridge-utils
     - dnsmasq

@@ -9,7 +9,7 @@
     - emerge --deep --newuse
   become: true
   community.general.portage:
-    package: "{{ packages_computed }}"
+    package: "{{ _libvirt_packages_computed }}"
     deep: true
     newuse: true
   notify: Restart firewalld service
@@ -44,7 +44,7 @@
   when: ansible_facts.service_mgr != 'systemd'
 
 # Restarting the *service* (not just the socket) is what makes a libvirtd.conf
-# change take effect; libvirt_layout.restart_units (from tasks/services.yml) is
+# change take effect; _libvirt_layout.restart_units (from tasks/services.yml) is
 # the list of daemons to restart for the detected layout.
 - name: Restart libvirt daemons
   listen:
@@ -52,19 +52,19 @@
     - Restart libvirt service
   become: true
   ansible.builtin.systemd:
-    name: "{{ unit }}"
+    name: "{{ _libvirt_unit }}"
     state: restarted
-  loop: "{{ (libvirt_layout | default({})).restart_units | default([]) }}"
+  loop: "{{ (_libvirt_layout | default({})).restart_units | default([]) }}"
   loop_control:
-    loop_var: unit
+    loop_var: _libvirt_unit
   when:
     - ansible_facts.service_mgr == 'systemd'
-    - (libvirt_layout | default({})).restart_units | default([]) | length > 0
+    - (_libvirt_layout | default({})).restart_units | default([]) | length > 0
 
 # Guarded on the same conditions as the two restart handlers above, so the wait
 # happens only when one of them actually restarted something. On Portage the
 # `emerge --deep --newuse` notification is flushed from packages.yml, before
-# services.yml has resolved libvirt_layout: both restarts then skip, and an
+# services.yml has resolved _libvirt_layout: both restarts then skip, and an
 # unguarded wait would block on a socket no one has opened.
 - name: Wait for libvirtd ready
   listen:
@@ -73,12 +73,12 @@
   become: true
   ansible.builtin.command:
     cmd: virsh -c qemu:///system version
-  register: result
-  until: not result.failed
+  register: _libvirt_virsh_version
+  until: not _libvirt_virsh_version.failed
   changed_when: false
   when: >-
     ansible_facts.service_mgr != 'systemd'
-    or (libvirt_layout | default({})).restart_units | default([]) | length > 0
+    or (_libvirt_layout | default({})).restart_units | default([]) | length > 0
 
 - name: Restart firewalld service
   when:

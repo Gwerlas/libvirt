@@ -1,10 +1,10 @@
 ---
 - name: Distribution variables
-  ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
+  ansible.builtin.include_vars: "{{ lookup('first_found', _libvirt_params) }}"
   vars:
-    params:
+    _libvirt_params:
       files:
-        - "{{ vars_file }}"
+        - "{{ _libvirt_vars_file }}"
         - empty.yml
       paths:
         - "{{ role_path }}/vars"
@@ -16,28 +16,28 @@
     - "{{ ansible_facts.distribution | lower }}{{ ansible_facts.distribution_major_version }}.yml"    # debian10
     - "{{ ansible_facts.distribution | lower }}-{{ ansible_facts.distribution_release | lower }}.yml" # ubuntu-bionic
   loop_control:
-    loop_var: vars_file
+    loop_var: _libvirt_vars_file
 
 - name: Backends variables
-  ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
+  ansible.builtin.include_vars: "{{ lookup('first_found', _libvirt_params) }}"
   vars:
-    params:
+    _libvirt_params:
       files:
-        - "{{ vars_file }}.yml"
+        - "{{ _libvirt_vars_file }}.yml"
         - empty.yml
       paths:
         - "{{ role_path }}/vars"
   loop: "{{ libvirt_backends }}"
   loop_control:
-    loop_var: vars_file
+    loop_var: _libvirt_vars_file
 
 - name: Facts
   vars:
-    default_users:
+    _libvirt_default_users:
       kvm: kvm
       libvirt: libvirt
       qemu: qemu
-    default_groups:
+    _libvirt_default_groups:
       kvm: kvm
       libvirt: libvirt
       qemu: qemu
@@ -45,5 +45,5 @@
   # file on these facts being undefined, so a persisted value would skip the
   # reload and serve vars derived from another distribution or backend set.
   ansible.builtin.set_fact:
-    libvirt_system_users: "{{ default_users | combine(usrs | default({})) }}"
-    libvirt_system_groups: "{{ default_groups | combine(grps | default({})) }}"
+    _libvirt_system_users: "{{ _libvirt_default_users | combine(_libvirt_os_users | default({})) }}"
+    _libvirt_system_groups: "{{ _libvirt_default_groups | combine(_libvirt_os_groups | default({})) }}"

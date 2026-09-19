@@ -1,6 +1,6 @@
 # {{ ansible_managed }}
 
-{% set data = (libvirt_install + libvirt_backends) | map('extract', flags) | flatten %}
+{% set data = (libvirt_install + libvirt_backends) | map('extract', _libvirt_use_flags) | flatten %}
 {% for pkg in data | map(attribute='package') | sort | unique %}
 {% set use_flags = data | selectattr('package', 'equalto', pkg) | selectattr('use', 'defined') | map(attribute='use') | flatten | sort | unique %}
 {% set softmmu_targets = data | selectattr('package', 'equalto', pkg) | selectattr('softmmu_targets', 'defined') | map(attribute='softmmu_targets') | flatten | sort | unique %}

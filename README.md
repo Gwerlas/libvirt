@@ -31,29 +31,6 @@ ansible-galaxy install gwerlas.system
     - role: gwerlas.libvirt
 ```
 
-Facts
------
-
-Defined facts of this role:
-
-- `libvirt_packages`
-
-You can get the facts only, without doing any changes on your nodes:
-
-```yaml
-- name: My playbook
-  hosts: all
-  tasks:
-    - name: Get facts
-      ansible.builtin.import_role:
-        name: gwerlas.libvirt
-        tasks_from: facts
-
-    - name: Display
-      ansible.builtin.debug:
-        var: libvirt_packages
-```
-
 Tags
 ----
 

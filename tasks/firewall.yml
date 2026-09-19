@@ -4,18 +4,18 @@
   block:
     - name: Firewall - Services
       ansible.posix.firewalld:
-        service: "{{ service }}"
+        service: "{{ _libvirt_service }}"
         state: enabled
         zone: "{{ libvirt_firewall_zone | default(omit) }}"
         immediate: true
         permanent: true
       # libvirt-tls (port 16514) is only opened when the daemon actually listens
       # on TLS; the plain libvirt service is always needed.
-      loop: "{{ ['libvirt'] + (['libvirt-tls'] if listen_tls else []) }}"
+      loop: "{{ ['libvirt'] + (['libvirt-tls'] if _libvirt_listen_tls else []) }}"
       vars:
-        listen_tls: "{{ (((libvirt_config | default({})).libvirtd | default({})).listen_tls | default(0)) | int == 1 }}"
+        _libvirt_listen_tls: "{{ (((libvirt_config | default({})).libvirtd | default({})).listen_tls | default(0)) | int == 1 }}"
       loop_control:
-        loop_var: service
+        loop_var: _libvirt_service
 
     - name: Firewall - TCP ports range for domain migration
       ansible.posix.firewalld:

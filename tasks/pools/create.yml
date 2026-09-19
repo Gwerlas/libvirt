@@ -1,27 +1,27 @@
 ---
 - name: Load variables
-  when: system_wide is undefined
+  when: _libvirt_system_wide is undefined
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
 
 - name: Getent
-  when: ansible_facts.getent_passwd is undefined or not libvirt_system_users.libvirt in ansible_facts.getent_passwd
+  when: ansible_facts.getent_passwd is undefined or not _libvirt_system_users.libvirt in ansible_facts.getent_passwd
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/getent.yml"
 
 - name: Pools - Create - Define
   community.libvirt.virt_pool:
-    name: "{{ libvirt_pool.name }}"
+    name: "{{ _libvirt_pool.name }}"
     xml: "{{ lookup('template', 'pool.xml.j2') }}"
     command: define
     uri: "{{ libvirt_uri }}"
-  loop: "{{ libvirt_pools }}"
+  loop: "{{ _libvirt_pools_to_create }}"
   loop_control:
-    loop_var: libvirt_pool
+    loop_var: _libvirt_pool
 
 - name: Pools - Create - Build
   community.libvirt.virt_pool:
-    name: "{{ libvirt_pool.name }}"
+    name: "{{ _libvirt_pool.name }}"
     command: build
     uri: "{{ libvirt_uri }}"
-  loop: "{{ libvirt_pools }}"
+  loop: "{{ _libvirt_pools_to_create }}"
   loop_control:
-    loop_var: libvirt_pool
+    loop_var: _libvirt_pool

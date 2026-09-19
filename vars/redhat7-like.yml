@@ -1,5 +1,5 @@
 ---
-packages:
+_libvirt_packages:
   libvirtd:
     - bridge-utils
     - libvirt-daemon

@@ -1,17 +1,17 @@
 ---
 - name: Load variables
   # Also under `ca`/`ssl`: the certificate tasks need the distribution vars
-  # (e.g. `grps.qemu` for file ownership), which this loads.
+  # (e.g. `_libvirt_os_groups.qemu` for file ownership), which this loads.
   tags:
     - ca
     - ssl
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/facts.yml"
 
 - name: Checks
-  ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ backend }}/checks.yml"
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ _libvirt_backend }}/checks.yml"
   loop: "{{ libvirt_backends }}"
   loop_control:
-    loop_var: backend
+    loop_var: _libvirt_backend
 
 - name: Packages
   tags:
@@ -29,10 +29,10 @@
   ansible.builtin.import_tasks: "{{ role_path }}/tasks/firewall.yml"
 
 - name: Backends
-  ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ backend }}/post-install.yml"
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/{{ _libvirt_backend }}/post-install.yml"
   loop: "{{ libvirt_backends }}"
   loop_control:
-    loop_var: backend
+    loop_var: _libvirt_backend
 
 # Static imports (not include_tasks) so the inner `ca`/`ssl` task tags are
 # individually selectable: `-t ssl` reaches the certificate tasks without a

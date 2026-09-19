@@ -1,25 +1,25 @@
 ---
 - name: Domains - Validate disk targets
   vars:
-    domain: "{{ item.0 }}"
-    disk: "{{ item.1 }}"
+    _libvirt_domain: "{{ item.0 }}"
+    _libvirt_disk: "{{ item.1 }}"
   ansible.builtin.assert:
     that:
-      - disk.target | default('vda') is match('(vd|hd)')
+      - _libvirt_disk.target | default('vda') is match('(vd|hd)')
     fail_msg: >-
-      Disk target '{{ disk.target | default('vda') }}' on domain
-      '{{ domain.name }}': only virtio (vd*) and ide (hd*) disks are supported
+      Disk target '{{ _libvirt_disk.target | default('vda') }}' on domain
+      '{{ _libvirt_domain.name }}': only virtio (vd*) and ide (hd*) disks are supported
       for now; sata/scsi/usb (sd*) will be added later.
     quiet: true
-  loop: "{{ domains | subelements('disks', skip_missing=true) }}"
+  loop: "{{ _libvirt_domains | subelements('disks', skip_missing=true) }}"
   loop_control:
-    label: "{{ domain.name }}: {{ disk.target | default('vda') }}"
+    label: "{{ _libvirt_domain.name }}: {{ _libvirt_disk.target | default('vda') }}"
 
 - name: Domains - List VMs
   community.libvirt.virt:
     command: list_vms
     uri: "{{ libvirt_uri }}"
-  register: result
+  register: _libvirt_vms
   check_mode: false
 
 - name: Domains - Create domain
@@ -30,27 +30,27 @@
   loop: |
     {{
       (
-        (domains | selectattr('state', 'undefined'))
-      + (domains | selectattr('state', 'defined') | selectattr('state', '!=', 'destroyed'))
-      ) | rejectattr('name', 'in', result.list_vms)
+        (_libvirt_domains | selectattr('state', 'undefined'))
+      + (_libvirt_domains | selectattr('state', 'defined') | selectattr('state', '!=', 'destroyed'))
+      ) | rejectattr('name', 'in', _libvirt_vms.list_vms)
     }}
   loop_control:
-    loop_var: domain
+    loop_var: _libvirt_domain
 
 - name: Domains - Autostart
   community.libvirt.virt:
-    name: "{{ domain.name }}"
-    autostart: "{{ domain.autostart | default(true) }}"
+    name: "{{ _libvirt_domain.name }}"
+    autostart: "{{ _libvirt_domain.autostart | default(true) }}"
     uri: "{{ libvirt_uri }}"
-  loop: "{{ domains }}"
+  loop: "{{ _libvirt_domains }}"
   loop_control:
-    loop_var: domain
+    loop_var: _libvirt_domain
 
 - name: Domains - State
   community.libvirt.virt:
-    name: "{{ domain.name }}"
-    state: "{{ domain.state | default('running') }}"
+    name: "{{ _libvirt_domain.name }}"
+    state: "{{ _libvirt_domain.state | default('running') }}"
     uri: "{{ libvirt_uri }}"
-  loop: "{{ domains }}"
+  loop: "{{ _libvirt_domains }}"
   loop_control:
-    loop_var: domain
+    loop_var: _libvirt_domain

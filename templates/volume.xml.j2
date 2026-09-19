@@ -1,11 +1,11 @@
 <!-- https://libvirt.org/formatstorage.html#storage-volume-xml -->
-{% set capacity, unit = libvirt_volume.capacity |
+{% set capacity, unit = _libvirt_volume.capacity |
                             default('10G') |
                             regex_search('(\\d+)([A-Za-z]*)', '\\1', '\\2') %}
-{% set volume_format = (libvirt_volume.target | default({})).format | default({}) %}
+{% set volume_format = (_libvirt_volume.target | default({})).format | default({}) %}
 {% set volume_format = volume_format.type | default(libvirt_default_disk_format) %}
 <volume>
-  <name>{{ libvirt_volume.name }}</name>
+  <name>{{ _libvirt_volume.name }}</name>
   <capacity{% if unit %} unit="{{ unit }}"{% endif %}>{{ capacity }}</capacity>
   <target>
     <format type="{{ volume_format }}"/>
