@@ -26,17 +26,17 @@
         permanent: true
 
     - name: Firewall - Backend
-      when: firewall_backend is defined
+      when: libvirt_firewall_backend is defined
       block:
         - name: Firewall - Backend - Packages
           ansible.builtin.package:
-            name: "{{ firewall_backend }}"
+            name: "{{ libvirt_firewall_backend }}"
             state: present
 
         - name: Firewall - Backend - Firewalld configuration
           ansible.builtin.lineinfile:
             path: /etc/firewalld/firewalld.conf
-            line: FirewallBackend={{ firewall_backend }}
+            line: FirewallBackend={{ libvirt_firewall_backend }}
             regexp: FirewallBackend=
           notify: Restart firewalld service
 
