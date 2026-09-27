@@ -7,6 +7,30 @@ Install, configure and provision libvirt resources.
 
 GitLab project: [yoanncolin/ansible/roles/libvirt](https://gitlab.com/yoanncolin/ansible/roles/libvirt)
 
+What it changes
+---------------
+
+With no variable set, the role installs libvirt with its QEMU backend and
+leaves the configuration your distribution ships as it is, but for what makes
+it usable right away:
+
+- the user running the play joins the libvirt groups; set `libvirt_users` to
+  an empty list to skip it;
+- the `default` NAT network is started and set to autostart, and the `default`
+  storage pool is created on `/var/lib/libvirt/images`, so a domain gets a
+  network and a disk without further setup;
+- where the distribution's packages do not work out of the box, the role fixes
+  what stops them, and nothing more — on Debian 12, the system dnsmasq is bound
+  to its own interfaces so that it leaves libvirt's networks alone.
+
+Two more changes are made today and are on their way out, because nothing
+needs them: the firewall ports opened for remote access and migration
+([#12](https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/12)), and
+the QEMU security driver written in `qemu.conf`
+([#13](https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/13)).
+
+Everything else happens only when You describe it.
+
 Requirements
 ------------
 

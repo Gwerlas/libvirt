@@ -8,6 +8,14 @@ Development guide
 
 This role should not need any external settings to work.
 
+An empty inventory installs libvirt, gives the user running the play access to
+it, and changes nothing else: the distribution's configuration is the
+reference, and the role corrects it only where its packages do not work out of
+the box — in the distribution's `vars/` file, with the reason next to it. A
+value the role would merely prefer, or upstream's default where the
+distribution chose otherwise, has no place there. `README.md` lists what the
+role changes on its own; keep that list in step.
+
 Inventory format
 ----------------
 
