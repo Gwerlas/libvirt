@@ -1,0 +1,20 @@
+---
+- name: Refresh packages
+  ansible.builtin.import_playbook: ../shared/prepare.yml
+
+# What a host that ran gwerlas.libvirt 0.3.0 to 0.6.2 has: the typo range, and a
+# port the operator opened by hand in the same zone, which must survive.
+- name: Open the stale range and a port of the operator's
+  hosts: all
+  become: true
+  tasks:
+    - name: Open ports
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        state: enabled
+        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        immediate: true
+        permanent: true
+      loop:
+        - 19215-49152/tcp
+        - 8080/tcp

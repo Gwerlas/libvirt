@@ -25,6 +25,29 @@
         immediate: true
         permanent: true
 
+    # `19215-49152/tcp` is a typo shipped by 0.3.0 to 0.6.2. Remove before 1.0.0.
+    # Reads and writes the zone the opening above uses.
+    - name: Firewall - Stale migration ports - Read
+      ansible.builtin.command:
+        argv: >-
+          {{ ['firewall-cmd', '--permanent']
+          + (['--zone=' ~ libvirt_firewall_zone] if libvirt_firewall_zone is defined else [])
+          + ['--list-ports'] }}
+      register: _libvirt_permanent_ports
+      changed_when: false
+      check_mode: false
+
+    - name: Firewall - Stale migration ports - Close
+      ansible.posix.firewalld:
+        port: 19215-49152/tcp
+        state: disabled
+        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        permanent: true
+      when: "'19215-49152/tcp' in _libvirt_permanent_ports.stdout.split()"
+      notify:
+        - Reload firewalld service
+        - Warn about the closed migration ports
+
     - name: Firewall - Backend
       when: libvirt_firewall_backend is defined
       block:

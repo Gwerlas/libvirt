@@ -88,3 +88,20 @@
   ansible.builtin.service:
     name: firewalld
     state: restarted
+
+# The stale entry is removed from the permanent configuration only; the runtime
+# one is the merge of the two ranges, and only a reload rebuilds it from the
+# permanent configuration.
+- name: Reload firewalld service
+  become: true
+  ansible.builtin.command:
+    cmd: firewall-cmd --reload
+  changed_when: true
+
+- name: Warn about the closed migration ports
+  warn:
+    msg: >-
+      {{ inventory_hostname }}: {{ 'would close' if ansible_check_mode else 'closed' }}
+      19215-49152/tcp, a firewalld port range opened by mistake by
+      gwerlas.libvirt 0.3.0 to 0.6.2, see
+      https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/5

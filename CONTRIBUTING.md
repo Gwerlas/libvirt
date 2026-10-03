@@ -216,6 +216,7 @@ molecule test -s add-user          # role adds a user to the libvirt group
 molecule test -s attached-volume   # extra disk created in a pool and attached
 molecule test -s block-disk        # raw /dev/vdb attached as a block device
 molecule test -s qemu-user         # domains provisioned over qemu:///session
+molecule test -s stale-ports       # mistyped migration range closed, nothing else
 molecule test -s tls               # libvirtd TLS config, certs and TLS socket
 ```
 

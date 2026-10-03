@@ -1,0 +1,30 @@
+---
+- name: Verify only the stale range was closed
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Read the ports of the zone
+      ansible.builtin.command:
+        argv: >-
+          {{ ['firewall-cmd']
+          + (['--permanent'] if item == 'permanent' else [])
+          + (['--zone=' ~ libvirt_firewall_zone] if libvirt_firewall_zone is defined else [])
+          + ['--list-ports'] }}
+      loop:
+        - permanent
+        - runtime
+      register: _ports
+      changed_when: false
+
+    - name: The migration range and the operator's port remain, alone
+      ansible.builtin.assert:
+        that:
+          # firewall-cmd prefixes the list with a notice when the default zone
+          # holds no interface: keep the port tokens only.
+          - item.stdout.split() | select('match', '^[0-9-]+/tcp$') | sort == ['49152-49215/tcp', '8080/tcp']
+        success_msg: "{{ item.item }}: {{ item.stdout }}"
+        fail_msg: "{{ item.item }} ports are {{ item.stdout }}"
+      loop: "{{ _ports.results }}"
+      loop_control:
+        label: "{{ item.item }}"

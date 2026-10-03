@@ -1,0 +1,29 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: default
+# Feature scenario: a representative Debian-like + RedHat-like pair is enough.
+# alma9 also targets a zone of its own, so the pair covers both the default zone
+# and `libvirt_firewall_zone`.
+platforms:
+  - name: bookworm
+    groups:
+      - debian_like
+      - debian
+    memory: 2
+  - name: alma9
+    groups:
+      - redhat_like
+    memory: 2
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      alma9:
+        libvirt_firewall_zone: work
+  playbooks:
+    create: ../shared/create.yml
+    destroy: ../shared/destroy.yml
+verifier:
+  name: ansible

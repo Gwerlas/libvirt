@@ -1,0 +1,5 @@
+---
+- name: Converge a host that still has the stale migration range open
+  hosts: all
+  roles:
+    - role: gwerlas.libvirt
