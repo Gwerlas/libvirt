@@ -8,13 +8,39 @@ Development guide
 
 This role should not need any external settings to work.
 
+The engineering handbook
+------------------------
+
+The rules shared by every project under `gitlab.com/yoanncolin` and
+`gitlab.com/gwerlas` are in the
+[engineering handbook](https://gitlab.com/yoanncolin/handbook#readme), and
+they apply here. This file keeps what is specific to this role, and nothing the
+handbook already says. The pages this work touches most:
+
+- [Code](https://gitlab.com/yoanncolin/handbook/-/blob/main/code.md): what to
+  write, what to remove, and how a test starts from a done criterion;
+- [CI](https://gitlab.com/yoanncolin/handbook/-/blob/main/ci.md): when a job
+  runs, pinned versions, tests anyone can run;
+- [Documentation](https://gitlab.com/yoanncolin/handbook/-/blob/main/documentation.md):
+  who reads what, where a reason lives, Markdown;
+- [Git](https://gitlab.com/yoanncolin/handbook/-/blob/main/git.md): commits,
+  history, issue references;
+- [Issues and merge requests](https://gitlab.com/yoanncolin/handbook/-/blob/main/issues-and-merge-requests.md),
+  [Releases](https://gitlab.com/yoanncolin/handbook/-/blob/main/releases.md)
+  and [Supported platforms](https://gitlab.com/yoanncolin/handbook/-/blob/main/platforms.md):
+  the rest of a change's way to a release.
+
+This is an Ansible project, so the handbook names the
+[`gwerlas.system` collection's `CONTRIBUTING.md`](https://gitlab.com/yoanncolin/ansible/collections/system/-/blob/main/CONTRIBUTING.md)
+as its reference guide, and the [principles](https://gitlab.com/yoanncolin/ansible/collections/system/-/blob/main/docs/principles.md)
+that guide enforces bind this role too. What follows adds to them.
+
 An empty inventory installs libvirt, gives the user running the play access to
-it, and changes nothing else: the distribution's configuration is the
-reference, and the role corrects it only where its packages do not work out of
-the box — in the distribution's `vars/` file, with the reason next to it. A
-value the role would merely prefer, or upstream's default where the
-distribution chose otherwise, has no place there. `README.md` lists what the
-role changes on its own; keep that list in step.
+it, and changes nothing else
+([principle 3](https://gitlab.com/yoanncolin/ansible/collections/system/-/blob/main/docs/principles.md#3-an-empty-inventory-changes-almost-nothing)).
+A correction to the distribution's configuration lives in the distribution's
+`vars/` file, with the reason next to it. `README.md` lists what the role
+changes on its own; keep that list in step.
 
 Inventory format
 ----------------
@@ -63,12 +89,11 @@ entry, so the same volume is never declared twice — and
 Variable names
 --------------
 
-`libvirt_` is the role's public surface: what an inventory sets, what
-`meta/argument_specs.yml` declares, what `README.md` and `docs/` document.
-Everything the role defines for itself carries `_libvirt_` — a `vars/` entry, a
-fact, a register, a `loop_var`, a variable handed to an included file — and the
-leading underscore is the whole message: the role computed it, nothing outside
-sets it. A Jinja `{% set %}` lives and dies inside its template, and stays bare.
+Public and internal variables are named as the guide's
+[Variables](https://gitlab.com/yoanncolin/ansible/collections/system/-/blob/main/CONTRIBUTING.md#variables)
+section says. Here, `_libvirt_` goes further than the `vars/` entries: a fact, a
+register, a `loop_var` and a variable handed to an included file carry it too.
+A Jinja `{% set %}` lives and dies inside its template, and stays bare.
 
 Where the name is a choice rather than a prefix, it says what the variable
 holds: `_libvirt_os_groups`, not `grps`. A register names what is read out of
@@ -305,9 +330,10 @@ Editing documentation
 
 ### Where a rationale lives
 
-Every artifact starts empty: a sentence earns its place when its absence would
-cost the reader something precise, not when a home can be found for it. A
-reason then lives in exactly one of these, the others pointing at it:
+The handbook's
+[Where a rationale lives](https://gitlab.com/yoanncolin/handbook/-/blob/main/documentation.md#where-a-rationale-lives)
+holds the rule and the tests by deletion that decide. A reason lives in exactly
+one of these, the others pointing at it:
 
 | Home                     | What it holds                                       |
 | ------------------------ | --------------------------------------------------- |
@@ -322,64 +348,25 @@ its commits, not from the same head of context: after one opening sentence
 naming what it does, it holds only what the diff and the commit messages do not
 already say. A one-line pointer beats a restatement every time.
 
-Two boundaries, two tests, both by deletion.
-
-**A comment summarises, it does not narrate.** Remove everything written in the
-past tense — when it was observed, what was measured, which false trail was
-followed. What is left is the rule.
-
-**A commit is knowable without running anything.** Remove from the merge
-request every sentence that would already be true had the work never run: it
-belongs to the commit. Remove from the commit every sentence that only became
-true by running something: it belongs to the merge request.
-
-**Cite upstream, never re-derive it.** When the reason is a third-party tool's
-behaviour — Portage, libvirt, systemd, Jinja — quote one sentence, give the
-URL, stop. A reconstruction of your own goes stale the day upstream changes its
-mind, and reads as this role's opinion when it is an external constraint.
-
 Submit your changes
 -------------------
 
-Merge request in [Gitlab][].
-
-A change comes with its tests and its documentation, in the same commit. A new
-variable, or a change in behaviour, is not finished until:
+Merge request in [Gitlab][]. A change comes with its tests and its
+documentation in the same commit
+([Git](https://gitlab.com/yoanncolin/handbook/-/blob/main/git.md#one-commit-one-change)).
+Here, a new variable or a change in behaviour is not finished until:
 
 - a molecule scenario exercises it — an existing one where it fits, `tls` for
   the daemon's TLS surface, `add-user` for user access, `qemu-user` for the
   session backend, `default` for the role's own defaults;
 - the user-facing half is written in `README.md` or under `docs/`: what the
-  variable does, its default, an example;
-- the reasoning a future maintainer will need — an upstream constraint, a
-  Portage quirk, why two tasks must run in that order — goes in a code comment
-  or in this file, not in the user documentation.
-
-Keeping the three together is what makes a commit reviewable on its own: a
-change that arrives without its test looks finished when it is not, and one
-that arrives without its reason forces the next reader to guess.
+  variable does, its default, an example.
 
 The issue is referenced from the commit body, and only from there. `Closes #4`
 if the commit settles the whole ticket; a bare `#4` if it settles one of the
-three things the ticket asks for, so the other two stay visible. Neither
-`README.md` nor `docs/` ever carries an issue number — a user can do nothing
-with it, and it goes stale the day the issue closes.
-
-Tagging a release
------------------
-
-A tag publishes. The `import` job pushes the role to Ansible Galaxy and runs
-on a protected tag and nowhere else.
-
-What users install is not the repository either. Galaxy only records the tag
-and serves GitHub's archive of it, which `git archive` builds, so every path
-marked `export-ignore` in [`.gitattributes`][gitattributes] stays out of it:
-Molecule, unit tests, CI, linter and editor settings, this guide. A new file
-that only serves development belongs in that list; check what a tag would ship
-with `git archive HEAD | tar t`.
+three things the ticket asks for, so the other two stay visible.
 
 <!-- Links section -->
 [var-naming]: https://docs.ansible.com/projects/lint/rules/var-naming/
-[gitattributes]: .gitattributes
 [Gitlab]: https://gitlab.com/gwerlas/ansible/roles/libvirt/-/merge_requests
 [platforms]: molecule/shared/platforms.yml
