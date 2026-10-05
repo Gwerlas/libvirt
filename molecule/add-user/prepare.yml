@@ -1,12 +1,11 @@
 ---
-# Refresh packages like every other scenario, then install libvirt with no
-# allowed users so converge can prove the role adds the molecule user.
+# Refresh packages like every other scenario, then install libvirt with the
+# role's default, which allows no user, so converge can prove the role adds
+# the molecule user.
 - name: Refresh packages
   ansible.builtin.import_playbook: ../shared/prepare.yml
 
-- name: Provision libvirt with no allowed users
+- name: Provision libvirt with its default, which allows no user
   hosts: all
   roles:
     - role: gwerlas.libvirt
-      vars:
-        libvirt_users: []

@@ -4,6 +4,9 @@
   roles:
     - role: gwerlas.libvirt
       vars:
+        libvirt_users:
+          - name: molecule
+
         libvirt_uri: qemu:///session
 
         libvirt_pools:

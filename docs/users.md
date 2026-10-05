@@ -12,8 +12,20 @@ personal TLS client credentials.
 | `clientcert` | Path **on the controller** to the user client certificate, deployed to `~/.pki/libvirt/clientcert.pem` |
 | `clientkey`  | Path **on the controller** to the user client private key, deployed to `~/.pki/libvirt/clientkey.pem`  |
 
-It defaults to `[{name: {{ ansible_facts.user_id }}}]`, i.e. the connecting user
-is granted access.
+It defaults to `[]`: no user is granted anything, the account Ansible
+connects as included. To grant it access, list it:
+
+```yaml
+libvirt_users:
+  - name: "{{ ansible_facts.user_id }}"
+```
+
+The role only adds users to groups: removing an entry later, or never listing a
+user who was granted access before, leaves their memberships as they are.
+
+Provisioning (`libvirt_pools`, `libvirt_networks`, `libvirt_domains`, …) over
+`qemu:///system` runs as the account Ansible connects as, with no privilege
+escalation. Unless that account is root, it has to be in this list.
 
 On Gentoo the `libvirt` group is not shipped with the daemon: it comes from the
 `policykit` USE flag on `app-emulation/libvirt`, which the role requests only

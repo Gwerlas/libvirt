@@ -14,8 +14,6 @@ With no variable set, the role installs libvirt with its QEMU backend and
 leaves the configuration your distribution ships as it is, but for what makes
 it usable right away:
 
-- the user running the play joins the libvirt groups; set `libvirt_users` to
-  an empty list to skip it;
 - the `default` NAT network is started and set to autostart, and the `default`
   storage pool is created on `/var/lib/libvirt/images`, so a domain gets a
   network and a disk without further setup;
@@ -74,7 +72,7 @@ Role Variables
 | ----------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------ |
 | `libvirt_backends`                  | `[qemu]`                                | List of backends to install                                                          |
 | `libvirt_install`                   | `[libvirtd, clients]`                   | Components to install (`libvirtd`, `clients`, `virt-manager`, `gnome-boxes`, `qemu`) |
-| `libvirt_users`                     | `[{name: {{ ansible_facts.user_id }}}]` | Users granted libvirt access (see [users][])                                         |
+| `libvirt_users`                     | `[]`                                    | Users granted libvirt access (see [users][])                                         |
 | `libvirt_retries`                   | `2`                                     | Number of retries for package installation                                           |
 | `libvirt_dnsmasq_management_method` | `auto`                                  | DNSMasq management: `auto`, `bind`, `disable`, or `none`                             |
 | `libvirt_dnsmasq_interface_types`   | `[ether]`                               | Interface types for DNSMasq to listen on (when method is `bind`)                     |
@@ -111,6 +109,23 @@ Documentation
 - [Firewall][] — firewalld rules and ports
 - [Users][] — grant users libvirt access
 - [Pools][], [Volumes][], [Networks][] and [Domains][] — provisioning resources
+
+Upgrading to 0.8.0
+------------------
+
+`0.8.0` no longer grants the account Ansible connects as access to libvirt:
+`libvirt_users` defaults to `[]`. Without editing a variable, a host that is
+provisioned from now on leaves that account out of the `libvirt`, `kvm` and
+`qemu` groups and gives it no `qemu:///session` default pool. To keep the
+previous behaviour, say so:
+
+```yaml
+libvirt_users:
+  - name: "{{ ansible_facts.user_id }}"
+```
+
+Memberships already granted stay, and provisioning over `qemu:///system` as a
+non-root account needs that account listed. See [users][] for both.
 
 Upgrading to 0.7.0
 ------------------

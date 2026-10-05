@@ -35,11 +35,10 @@ This is an Ansible project, so the handbook names the
 as its reference guide, and the [principles](https://gitlab.com/yoanncolin/ansible/collections/system/-/blob/main/docs/principles.md)
 that guide enforces bind this role too. What follows adds to them.
 
-An empty inventory installs libvirt, gives the user running the play access to
-it, and changes nothing else
+An empty inventory installs libvirt and grants no account access to it
 ([principle 3](https://gitlab.com/yoanncolin/ansible/collections/system/-/blob/main/docs/principles.md#3-an-empty-inventory-changes-almost-nothing)).
 A correction to the distribution's configuration lives in the distribution's
-`vars/` file, with the reason next to it. `README.md` lists what the role
+`vars/` file, with the reason next to it. `README.md` lists what else the role
 changes on its own; keep that list in step.
 
 Inventory format

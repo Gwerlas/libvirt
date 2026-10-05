@@ -11,6 +11,60 @@
       - file: kernel
         md5: ab34153f95d41544e9c35e9747cbe1de
   tasks:
+    - name: Read the groups of the account Ansible connects as
+      ansible.builtin.command:
+        cmd: id -nG
+      register: connecting_groups
+      changed_when: false
+
+    - name: Read the members of the libvirt group
+      ansible.builtin.getent:
+        database: group
+        key: libvirt
+        fail_key: false
+
+    - name: Read the qemu:///session pools
+      community.libvirt.virt_pool:
+        command: list_pools
+        uri: qemu:///session
+      register: session_pools
+
+    - name: An empty inventory adds the connecting account to no libvirt group
+      vars:
+        # The qemu group is named after the distribution (libvirt-qemu on Debian).
+        libvirt_groups: [libvirt, kvm, qemu, libvirt-qemu]
+      ansible.builtin.assert:
+        that:
+          - connecting_groups.stdout.split() | select('in', libvirt_groups) | length == 0
+
+    - name: An empty inventory puts no account in the libvirt group
+      ansible.builtin.assert:
+        that:
+          # The group may not exist at all (Gentoo, where nothing asked for it):
+          # getent then returns null.
+          - (ansible_facts.getent_group.libvirt | default(['', '', ''], true))[2] | length == 0
+
+    - name: An empty inventory creates no qemu:///session pool
+      ansible.builtin.assert:
+        that:
+          - "'default' not in session_pools.list_pools"
+
+    - name: An empty inventory builds nothing with policykit on Gentoo
+      when: "'gentoo' in group_names"
+      ansible.builtin.command:
+        argv:
+          - portageq
+          - has_version
+          - /
+          - "{{ item }}"
+      loop:
+        - app-emulation/libvirt[policykit]
+        - sys-apps/systemd[policykit]
+      register: policykit
+      changed_when: false
+      # has_version answers 0 for installed, 1 for not.
+      failed_when: policykit.rc != 1
+
     - name: Local files       # noqa run-once
       delegate_to: localhost
       run_once: true
@@ -64,6 +118,7 @@
             selevel: s0
 
         - name: Start CirrOS
+          become: true
           ansible.builtin.command:
             cmd: >
               virt-install
@@ -82,16 +137,19 @@
           changed_when: "'Domain creation completed.' in result.stdout"
 
         - name: Check that CirrOS is running
+          become: true
           community.libvirt.virt:
             name: cirros
             state: running
 
         - name: Destroy CirrOS
+          become: true
           community.libvirt.virt:
             name: cirros
             command: destroy
 
         - name: Undefine CirrOS
+          become: true
           community.libvirt.virt:
             name: cirros
             command: undefine

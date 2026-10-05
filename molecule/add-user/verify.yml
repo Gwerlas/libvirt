@@ -29,6 +29,21 @@
         success_msg: molecule is a member of the libvirt, kvm and qemu groups
         fail_msg: molecule groups are {{ molecule_groups.stdout }}
 
+    # The libvirt group exists on Gentoo only because policykit was requested,
+    # which the role does only when a user has to be granted.
+    - name: Gentoo builds libvirt and systemd with policykit once a user is listed
+      when: "'gentoo' in group_names"
+      ansible.builtin.command:
+        argv:
+          - portageq
+          - has_version
+          - /
+          - "{{ item }}"
+      loop:
+        - app-emulation/libvirt[policykit]
+        - sys-apps/systemd[policykit]
+      changed_when: false
+
     - name: Read the molecule user session pool directory
       ansible.builtin.stat:
         path: "{{ ansible_facts.getent_passwd['molecule'][4] }}/.local/share/libvirt/images"

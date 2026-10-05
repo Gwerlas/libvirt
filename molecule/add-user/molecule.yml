@@ -3,7 +3,8 @@ dependency:
   name: galaxy
 driver:
   name: default
-# Feature scenario: a representative Debian-like + RedHat-like pair is enough.
+# Feature scenario: a representative Debian-like + RedHat-like pair is enough,
+# plus gentoo, the one platform where granting a user changes what is installed.
 platforms:
   - name: bookworm
     groups:
@@ -14,6 +15,11 @@ platforms:
     groups:
       - redhat_like
     memory: 2
+  - name: gentoo
+    groups:
+      - gentoo
+    memory: 8
+    vcpus: 8
 provisioner:
   name: ansible
   # prepare is auto-discovered (add-user/prepare.yml): it first provisions
