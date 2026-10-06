@@ -260,6 +260,13 @@ pip install --requirement .gitlab/ci/requirements.txt
 antsibull-changelog lint
 ```
 
+Before tagging, check that the changelog holds the release, as the tag pipeline
+does:
+
+```sh
+CI_COMMIT_TAG=0.8.0 jobs/changelog-release
+```
+
 Develop / Debug
 ---------------
 

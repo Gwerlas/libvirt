@@ -23,6 +23,7 @@ workflow:
           - files/**/*
           - filter_plugins/**/*
           - handlers/**/*
+          - jobs/**/*
           - meta/**/*
           - molecule/**/*
           - tasks/**/*
@@ -66,9 +67,31 @@ changelog:
           - .gitlab/ci/requirements.txt
           - changelogs/**/*
 
+shellcheck:
+  image:
+    name: koalaman/shellcheck-alpine:v0.10.0
+    entrypoint: [""]
+  script: shellcheck jobs/*
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: refs/heads/main
+        paths:
+          - .gitlab-ci.yml
+          - jobs/**/*
+
+changelog-release:
+  image: python:3.13
+  script: jobs/changelog-release
+  rules:
+    - if: $CI_COMMIT_TAG
+
 import:
   stage: deploy
   image: gwerlas/ansible
+  needs: [changelog-release]
   script: ansible-galaxy role import --token $GALAXY_TOKEN Gwerlas libvirt
   rules:
     - if: '$CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG'

@@ -1,0 +1,20 @@
+#!/bin/sh
+# A tag may publish only a release the changelog already holds: no fragment
+# left to release, and a release named after the tag.
+set -eu
+
+: "${CI_COMMIT_TAG:?set CI_COMMIT_TAG to the tag to check}"
+
+cd "$(dirname "$0")/.."
+
+pending=$(find changelogs/fragments -type f \( -name '*.yml' -o -name '*.yaml' \))
+if [ -n "$pending" ]; then
+  echo "Fragments are still pending, run 'antsibull-changelog release':" >&2
+  echo "$pending" >&2
+  exit 1
+fi
+
+if ! grep -qxF "  ${CI_COMMIT_TAG}:" changelogs/changelog.yaml; then
+  echo "changelogs/changelog.yaml has no release for ${CI_COMMIT_TAG}" >&2
+  exit 1
+fi
