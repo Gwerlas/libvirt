@@ -1,0 +1,4 @@
+bugfixes:
+  - >-
+    The role waits for libvirtd only when something restarted it. On Gentoo it
+    no longer blocks on a daemon that nobody had started yet.

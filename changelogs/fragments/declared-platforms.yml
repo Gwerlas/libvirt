@@ -1,0 +1,5 @@
+minor_changes:
+  - >-
+    The role's metadata now declares the platforms its tests run on: Debian
+    trixie and EL 10 are added, and Debian bullseye, which is neither tested
+    nor supported upstream any more, is dropped.
