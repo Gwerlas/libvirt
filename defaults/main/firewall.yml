@@ -1,5 +1,6 @@
 ---
 libvirt_manage_firewall: "{{ system_manage_firewall | default(true) }}"
+libvirt_firewall_migration: false
 
 # Firewalld default zone if not set
 #libvirt_firewall_zone: public

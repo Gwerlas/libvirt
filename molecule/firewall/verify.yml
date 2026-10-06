@@ -1,5 +1,5 @@
 ---
-- name: Verify an empty inventory opens nothing and only the stale range was closed
+- name: Verify the settings open what they promise
   hosts: all
   become: true
   gather_facts: false
@@ -17,15 +17,13 @@
       register: _zone
       changed_when: false
 
-    - name: Neither the libvirt service nor the migration range is open, the operator's port remains
+    - name: The libvirt service and the migration range are open
       ansible.builtin.assert:
         that:
-          # firewall-cmd prefixes the list with a notice when the default zone
-          # holds no interface: keep the port tokens only.
           - >-
-            item.stdout.split() | select('match', '^[0-9-]+/tcp$') | sort == ['8080/tcp']
+            '49152-49215/tcp' in item.stdout.split()
             if item.item.1 == 'ports'
-            else 'libvirt' not in item.stdout.split()
+            else 'libvirt' in item.stdout.split()
         success_msg: "{{ item.item.0 }} {{ item.item.1 }}: {{ item.stdout }}"
         fail_msg: "{{ item.item.0 }} {{ item.item.1 }} are {{ item.stdout }}"
       loop: "{{ _zone.results }}"

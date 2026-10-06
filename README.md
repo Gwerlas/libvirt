@@ -21,10 +21,8 @@ it usable right away:
   what stops them, and nothing more — on Debian 12, the system dnsmasq is bound
   to its own interfaces so that it leaves libvirt's networks alone.
 
-Two more changes are made today and are on their way out, because nothing
-needs them: the firewall ports opened for remote access and migration
-([#12](https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/12)), and
-the QEMU security driver written in `qemu.conf`
+One more change is made today and is on its way out, because nothing needs
+it: the QEMU security driver written in `qemu.conf`
 ([#13](https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/13)).
 
 Everything else happens only when You describe it.

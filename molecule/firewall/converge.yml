@@ -1,0 +1,10 @@
+---
+- name: Ask for the TCP service and the migration range
+  hosts: all
+  roles:
+    - role: gwerlas.libvirt
+      vars:
+        libvirt_config:
+          libvirtd:
+            listen_tcp: 1
+        libvirt_firewall_migration: true

@@ -18,9 +18,10 @@ TLS here is only the *control* transport this role sets up; live migration itsel
 does not require it (`qemu+ssh://` or `qemu+tcp://` work too). The migration data
 stream — the domain's memory, and its disks when migrating local storage — flows
 on the `49152-49215/tcp` range **regardless of the control transport**, which is
-why the role opens that range unconditionally (see the [firewall](firewall.md)
-documentation). The sole exception is a `--tunnelled` migration, which routes the
-data through the control connection instead and leaves that range unused.
+why `libvirt_firewall_migration: true` opens that range whichever one you use (see
+the [firewall](firewall.md) documentation). The sole exception is a `--tunnelled`
+migration, which routes the data through the control connection instead and
+leaves that range unused.
 
 Everything beyond this — shared vs. local storage, the `virsh migrate` flags,
 copying disks, ejecting read-only media, and diagnosing a stalled transfer — is

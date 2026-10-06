@@ -1,0 +1,12 @@
+breaking_changes:
+  - >-
+    With ``libvirt_manage_firewall`` true, the role opens the ``libvirt``
+    firewalld service only when ``libvirt_config.libvirtd.listen_tcp`` is 1, and
+    the migration range ``49152-49215/tcp`` only when the new
+    ``libvirt_firewall_migration`` is true, where it opened both on every host
+    before. A host that migrates or takes TCP connections must set them. A host
+    already converged keeps both entries open, since the role closes neither
+    of them; close them with ``firewall-cmd --permanent --remove-service=libvirt``,
+    ``firewall-cmd --permanent --remove-port=49152-49215/tcp`` and
+    ``firewall-cmd --reload``, adding ``--zone=<zone>`` to the first two when
+    ``libvirt_firewall_zone`` is set.

@@ -9,10 +9,11 @@
         zone: "{{ libvirt_firewall_zone | default(omit) }}"
         immediate: true
         permanent: true
-      # libvirt-tls (port 16514) is only opened when the daemon actually listens
-      # on TLS; the plain libvirt service is always needed.
-      loop: "{{ ['libvirt'] + (['libvirt-tls'] if _libvirt_listens_tls else []) }}"
+      loop: >-
+        {{ (['libvirt'] if _libvirt_listens_tcp else [])
+        + (['libvirt-tls'] if _libvirt_listens_tls else []) }}
       vars:
+        _libvirt_listens_tcp: "{{ (((libvirt_config | default({})).libvirtd | default({})).listen_tcp | default(0)) | int == 1 }}"
         _libvirt_listens_tls: "{{ (((libvirt_config | default({})).libvirtd | default({})).listen_tls | default(0)) | int == 1 }}"
       loop_control:
         loop_var: _libvirt_firewalld_service
@@ -24,6 +25,7 @@
         zone: "{{ libvirt_firewall_zone | default(omit) }}"
         immediate: true
         permanent: true
+      when: libvirt_firewall_migration
 
     # `19215-49152/tcp` is a typo shipped by 0.3.0 to 0.6.2. Remove before 1.0.0.
     # Reads and writes the zone the opening above uses.
