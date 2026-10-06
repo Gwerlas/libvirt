@@ -1,0 +1,7 @@
+is_other_project: true
+title: gwerlas.libvirt
+changes_file: changelog.yaml
+changes_format: combined
+output:
+  - file: CHANGELOG.md
+    format: md

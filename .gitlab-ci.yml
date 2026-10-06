@@ -16,7 +16,9 @@ workflow:
         compare_to: refs/heads/main
         paths:
           - .gitlab-ci.yml
+          - .gitlab/**/*
           - "**/*.md"
+          - changelogs/**/*
           - defaults/**/*
           - files/**/*
           - filter_plugins/**/*
@@ -45,6 +47,24 @@ unit:
         paths:
           - filter_plugins/**/*
           - tests/**/*
+
+changelog:
+  image: python:3.13
+  before_script:
+    - pip install --quiet --requirement .gitlab/ci/requirements.txt
+  script:
+    - antsibull-changelog lint
+    - antsibull-changelog generate
+    - git diff --exit-code CHANGELOG.md
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: refs/heads/main
+        paths:
+          - .gitlab-ci.yml
+          - .gitlab/ci/requirements.txt
+          - changelogs/**/*
 
 import:
   stage: deploy

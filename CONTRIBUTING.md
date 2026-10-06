@@ -252,6 +252,14 @@ logic is plain Python, unit-tested without Ansible:
 python -m pytest tests/unit
 ```
 
+The changelog fragments are checked with the version CI pins, which is the one
+to install:
+
+```sh
+pip install --requirement .gitlab/ci/requirements.txt
+antsibull-changelog lint
+```
+
 Develop / Debug
 ---------------
 
@@ -359,7 +367,11 @@ Here, a new variable or a change in behaviour is not finished until:
   the daemon's TLS surface, `add-user` for user access, `qemu-user` for the
   session backend, `default` for the role's own defaults;
 - the user-facing half is written in `README.md` or under `docs/`: what the
-  variable does, its default, an example.
+  variable does, its default, an example;
+- a change a user can notice has a fragment in `changelogs/fragments/`, under
+  the section that fits it, as the handbook's
+  [Changelog](https://gitlab.com/yoanncolin/handbook/-/blob/main/releases.md#changelog)
+  says. A fragment is reStructuredText, so a literal takes two backticks.
 
 The issue is referenced from the commit body, and only from there. `Closes #4`
 if the commit settles the whole ticket; a bare `#4` if it settles one of the

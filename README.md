@@ -127,29 +127,11 @@ libvirt_users:
 Memberships already granted stay, and provisioning over `qemu:///system` as a
 non-root account needs that account listed. See [users][] for both.
 
-Upgrading to 0.7.0
-------------------
+Changelog
+---------
 
-`0.7.0` reworks the provisioning variables (`libvirt_pools`, `libvirt_networks`
-and `libvirt_domains`) to mirror libvirt's own XML structure. Existing
-inventories from `0.6.x` must be migrated as follows:
-
-| Resource | `0.6.x`                  | `0.7.0`                             |
-| -------- | ------------------------ | ----------------------------------- |
-| Networks | `forward_mode: nat`      | `forward: {mode: nat}`              |
-| Networks | `bridge: virbr0`         | `bridge: {name: virbr0}`            |
-| Networks | `ip: {address, netmask}` | `ips: [{address, netmask}]`         |
-| Networks | `ip.dhcp: {start, end}`  | `ips[].dhcp.ranges: [{start, end}]` |
-| Pools    | `path: …`                | `target: {path: …}`                 |
-| Pools    | `owner`, `group`, `mode` | moved under `target.permissions`    |
-| Pools    | `source.host: server`    | `source.hosts: [{name: server}]`    |
-| Pools    | `source.dir: /export`    | `source.dir: {path: /export}`       |
-| Pools    | `source.type: nfs`       | `source.format: {type: nfs}`        |
-| Pools    | `source.protocol: 4`     | `source.protocol: {ver: 4}`         |
-| Volumes  | `size: 200G`             | `capacity: 200G`                    |
-| Volumes  | `format: qcow2`          | `target: {format: {type: qcow2}}`   |
-| Domains  | `disks[].size: 2G`       | `disks[].capacity: 2G`              |
-| Domains  | `networks: [...]`        | `interfaces: [...]`                 |
+What changed in each release, and what an upgrade asks of your inventory, is
+in the [changelog][].
 
 Dependencies
 ------------
@@ -185,6 +167,7 @@ License
 [BSD 3-Clause License](LICENSE).
 
 <!-- Documentation links -->
+[changelog]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/CHANGELOG.md
 [TLS]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/docs/tls.md
 [migration]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/docs/migration.md
 [firewall]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/docs/firewall.md
