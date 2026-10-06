@@ -1,6 +1,0 @@
-minor_changes:
-  - >-
-    On Gentoo, the ``policykit`` USE flag, which creates the ``libvirt`` group,
-    is requested on ``app-emulation/libvirt`` and ``sys-apps/systemd`` only when
-    ``libvirt_users`` is not empty. With an empty list the daemon stays
-    reachable by root alone.

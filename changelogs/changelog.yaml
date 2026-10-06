@@ -3,159 +3,123 @@ releases:
   0.1.0:
     changes:
       minor_changes:
-      - >-
-        First release. The role installs libvirt with the ``qemu`` backend, grants
+      - First release. The role installs libvirt with the ``qemu`` backend, grants
         ``libvirt_users`` access to it, and provisions the storage pools, volumes,
-        networks and domains listed in ``libvirt_pools``, ``libvirt_volumes``,
-        ``libvirt_networks`` and ``libvirt_domains``.
+        networks and domains listed in ``libvirt_pools``, ``libvirt_volumes``, ``libvirt_networks``
+        and ``libvirt_domains``.
     release_date: '2023-03-12'
   0.1.1:
     changes:
       minor_changes:
-      - >-
-        Domain disks and network interfaces take a ``boot_order``. A domain no
-        longer forces a boot from the network then the disk, so a domain without
-        any ``boot_order`` boots as libvirt decides.
+      - Domain disks and network interfaces take a ``boot_order``. A domain no longer
+        forces a boot from the network then the disk, so a domain without any ``boot_order``
+        boots as libvirt decides.
     release_date: '2023-03-15'
   0.2.0:
     changes:
       minor_changes:
-      - >-
-        Domains take an ``autostart`` key to start with the host.
+      - Domains take an ``autostart`` key to start with the host.
     release_date: '2023-06-28'
   0.3.0:
     changes:
       minor_changes:
-      - >-
-        Gentoo is supported, including its Portage USE flags.
-      - >-
-        The role opens the ``libvirt`` and ``libvirt-tls`` firewalld services and
-        the migration port range, in the zone ``libvirt_firewall_zone`` names.
-        Setting ``libvirt_manage_firewall`` to ``false`` leaves the firewall alone.
+      - Gentoo is supported, including its Portage USE flags.
+      - The role opens the ``libvirt`` and ``libvirt-tls`` firewalld services and
+        the migration port range, in the zone ``libvirt_firewall_zone`` names. Setting
+        ``libvirt_manage_firewall`` to ``false`` leaves the firewall alone.
     release_date: '2023-11-13'
   0.3.1:
     changes:
       bugfixes:
-      - >-
-        The tag ``provision`` selects the provisioning tasks, and only them.
+      - The tag ``provision`` selects the provisioning tasks, and only them.
     release_date: '2024-04-24'
   0.3.2:
     changes:
       minor_changes:
-      - >-
-        The tag ``users`` runs the user access tasks alone.
+      - The tag ``users`` runs the user access tasks alone.
     release_date: '2024-10-30'
   0.3.3:
     changes:
       bugfixes:
-      - >-
-        Check mode no longer fails on the tasks that read the state of domains,
-        pools, services and the QEMU user.
+      - Check mode no longer fails on the tasks that read the state of domains, pools,
+        services and the QEMU user.
     release_date: '2024-12-06'
   0.4.0:
     changes:
       bugfixes:
-      - >-
-        dnsmasq no longer prevents libvirt's default network from starting.
-        ``libvirt_dnsmasq_management_method`` (``auto``, ``bind``, ``disable`` or
-        ``none``) chooses what the role does with dnsmasq, and
-        ``libvirt_dnsmasq_interface_types`` lists the interface types it binds.
-        ``auto`` binds dnsmasq on Debian bookworm and leaves it alone elsewhere.
+      - dnsmasq no longer prevents libvirt's default network from starting. ``libvirt_dnsmasq_management_method``
+        (``auto``, ``bind``, ``disable`` or ``none``) chooses what the role does with
+        dnsmasq, and ``libvirt_dnsmasq_interface_types`` lists the interface types
+        it binds. ``auto`` binds dnsmasq on Debian bookworm and leaves it alone elsewhere.
       minor_changes:
-      - >-
-        Raw block devices can be attached to domains, system wide.
+      - Raw block devices can be attached to domains, system wide.
     release_date: '2025-02-20'
   0.4.1:
     changes:
       bugfixes:
-      - >-
-        On Arch Linux, firewalld uses the ``iptables-nft`` backend instead of
-        ``iptables``.
+      - On Arch Linux, firewalld uses the ``iptables-nft`` backend instead of ``iptables``.
     release_date: '2025-03-04'
   0.4.2:
     changes:
       bugfixes:
-      - >-
-        The dnsmasq binding finds the network interfaces whose name holds a dash.
+      - The dnsmasq binding finds the network interfaces whose name holds a dash.
     release_date: '2025-03-04'
   0.4.3:
     changes:
       bugfixes:
-      - >-
-        ``libvirt_dnsmasq_interface_types`` defaults to ``[ether]``, so dnsmasq no
-        longer binds bonding interfaces.
+      - '``libvirt_dnsmasq_interface_types`` defaults to ``[ether]``, so dnsmasq no
+        longer binds bonding interfaces.'
     release_date: '2025-03-04'
   0.5.0:
     changes:
       breaking_changes:
-      - >-
-        The default type of a domain disk changes from ``volume`` to ``file``.
-      - >-
-        The internal variable ``pools`` is renamed ``libvirt_pools``, which affects
+      - The default type of a domain disk changes from ``volume`` to ``file``.
+      - The internal variable ``pools`` is renamed ``libvirt_pools``, which affects
         custom task includes.
-      - >-
-        The loop variable ``pool`` is renamed ``libvirt_pool`` in the pool templates.
+      - The loop variable ``pool`` is renamed ``libvirt_pool`` in the pool templates.
       minor_changes:
-      - >-
-        Add ``libvirt_default_disk_format``, which defaults to ``qcow2``.
-      - >-
-        Add the cached facts ``libvirt_system_users`` and ``libvirt_system_groups``.
-      - >-
-        The role configures QEMU's security driver, AppArmor or SELinux, by itself.
-      - >-
-        Each storage pool takes an explicit owner, group and mode.
-      - >-
-        The volume format is written in the volume XML.
-      - >-
-        The role requires ``community.libvirt`` 2.0 or later.
-      - >-
-        The role reads facts from the ``ansible_facts`` namespace.
-      - >-
-        Pool permissions are resolved with ``getent`` instead of shell commands.
-      - >-
-        The role waits for libvirtd to answer after restarting it.
-      - >-
-        Package lists are updated across distributions.
+      - Add ``libvirt_default_disk_format``, which defaults to ``qcow2``.
+      - Add the cached facts ``libvirt_system_users`` and ``libvirt_system_groups``.
+      - Each storage pool takes an explicit owner, group and mode.
+      - Package lists are updated across distributions.
+      - Pool permissions are resolved with ``getent`` instead of shell commands.
+      - The role configures QEMU's security driver, AppArmor or SELinux, by itself.
+      - The role reads facts from the ``ansible_facts`` namespace.
+      - The role requires ``community.libvirt`` 2.0 or later.
+      - The role waits for libvirtd to answer after restarting it.
+      - The volume format is written in the volume XML.
     release_date: '2026-02-13'
   0.5.1:
     changes:
       bugfixes:
-      - >-
-        The role manages the services of libvirt whether the distribution ships
-        the modular daemons or the monolithic one.
+      - The role manages the services of libvirt whether the distribution ships the
+        modular daemons or the monolithic one.
     release_date: '2026-03-16'
   0.6.0:
     changes:
       minor_changes:
-      - >-
-        ``netfs`` pools support NFS and CIFS, and the NFS version.
+      - '``netfs`` pools support NFS and CIFS, and the NFS version.'
     release_date: '2026-05-19'
   0.6.1:
     changes:
       bugfixes:
-      - >-
-        The role activates only the libvirt units the host provides. Debian
-        bookworm ships libvirt 6.0 or later without the modular daemon units, and
-        the role no longer fails on them.
+      - The role activates only the libvirt units the host provides. Debian bookworm
+        ships libvirt 6.0 or later without the modular daemon units, and the role
+        no longer fails on them.
     release_date: '2026-05-19'
   0.6.2:
     changes:
       bugfixes:
-      - >-
-        The ``source`` of a ``netfs`` pool follows libvirt's XML, where
-        ``source.version`` becomes ``source.protocol`` and ``source.format``
-        becomes ``source.type``.
+      - The ``source`` of a ``netfs`` pool follows libvirt's XML, where ``source.version``
+        becomes ``source.protocol`` and ``source.format`` becomes ``source.type``.
     release_date: '2026-05-20'
   0.7.0:
     changes:
       breaking_changes:
-      - >-
-        Each entry of ``libvirt_users`` is a dictionary, so ``- alice`` becomes
-        ``- {name: alice}``.
-      - >-
-        The role requires ansible-core 2.18 or later, and no longer claims 2.13.
       - 'Domains follow libvirt''s XML structure: ``disks[].size: 2G`` becomes ``disks[].capacity:
         2G`` and ``networks: [...]`` becomes ``interfaces: [...]``.'
+      - 'Each entry of ``libvirt_users`` is a dictionary, so ``- alice`` becomes ``-
+        {name: alice}``.'
       - 'Networks follow libvirt''s XML structure: ``forward_mode: nat`` becomes ``forward:
         {mode: nat}``, ``bridge: virbr0`` becomes ``bridge: {name: virbr0}``, ``ip:
         {address, netmask}`` becomes ``ips: [{address, netmask}]`` and ``ip.dhcp:
@@ -166,60 +130,117 @@ releases:
         /export`` becomes ``source.dir: {path: /export}``, ``source.type: nfs`` becomes
         ``source.format: {type: nfs}`` and ``source.protocol: 4`` becomes ``source.protocol:
         {ver: 4}``.'
+      - The role requires ansible-core 2.18 or later, and no longer claims 2.13.
       - 'Volumes follow libvirt''s XML structure: ``size: 200G`` becomes ``capacity:
         200G`` and ``format: qcow2`` becomes ``target: {format: {type: qcow2}}``.'
       bugfixes:
-      - >-
-        The role reads the facts of the provisioned resources from
-        ``ansible_facts.libvirt_pools`` and ``ansible_facts.libvirt_networks``,
-        which ansible-core 2.19 and later require.
-      - >-
-        The role declares the ``ansible.posix`` and ``community.general``
-        collections it uses.
-      - >-
-        The libvirt sockets start from the installed unit files, so
-        ``qemu:///system`` has its socket on a fresh install.
-      - >-
-        The package ``bridge-utils`` is no longer installed on EL9 and later and
-        on Arch Linux, where it no longer exists.
-      - >-
-        The role reloads dbus instead of restarting it, which dropped every
-        connected client and wedged the desktop.
-      - >-
-        The role opens the migration port range ``49152-49215/tcp``, where it
-        opened ``19215-49152/tcp`` before.
-      - >-
-        A pool under a user's home is reachable by the QEMU user, which gets an
-        execute-only ACL on the home directories leading to it.
-      - >-
-        The tag ``users`` reaches all the user access tasks, and no longer stops
-        on an undefined ``libvirt_system_groups``.
+      - A pool under a user's home is reachable by the QEMU user, which gets an execute-only
+        ACL on the home directories leading to it.
+      - The libvirt sockets start from the installed unit files, so ``qemu:///system``
+        has its socket on a fresh install.
+      - The package ``bridge-utils`` is no longer installed on EL9 and later and on
+        Arch Linux, where it no longer exists.
+      - The role declares the ``ansible.posix`` and ``community.general`` collections
+        it uses.
+      - The role opens the migration port range ``49152-49215/tcp``, where it opened
+        ``19215-49152/tcp`` before.
+      - The role reads the facts of the provisioned resources from ``ansible_facts.libvirt_pools``
+        and ``ansible_facts.libvirt_networks``, which ansible-core 2.19 and later
+        require.
+      - The role reloads dbus instead of restarting it, which dropped every connected
+        client and wedged the desktop.
+      - The tag ``users`` reaches all the user access tasks, and no longer stops on
+        an undefined ``libvirt_system_groups``.
       minor_changes:
-      - >-
-        Add ``libvirt_config``, which writes directives to
-        ``/etc/libvirt/<file>.conf``.
-      - >-
-        Configure the daemon over TLS. ``libvirt_ca_file``, ``libvirt_servercert``,
-        ``libvirt_serverkey``, ``libvirt_clientcert`` and ``libvirt_clientkey``
-        deploy the certificates and keys from the controller to libvirt's standard
-        locations.
-      - >-
-        With ``listen_tls`` enabled, the role starts the TLS socket of the daemon
-        and opens the ``libvirt-tls`` firewalld service.
-      - >-
-        Re-running the role after rotating the CA restarts the daemon that serves
+      - A ``libvirt_users`` entry takes ``ca_file``, ``clientcert`` and ``clientkey``,
+        deployed under the user's ``~/.pki`` with the least privileges, so the user
+        reaches a remote daemon over TLS.
+      - Add ``libvirt_config``, which writes directives to ``/etc/libvirt/<file>.conf``.
+      - Configure the daemon over TLS. ``libvirt_ca_file``, ``libvirt_servercert``,
+        ``libvirt_serverkey``, ``libvirt_clientcert`` and ``libvirt_clientkey`` deploy
+        the certificates and keys from the controller to libvirt's standard locations.
+      - On Gentoo, ``app-emulation/qemu`` is built with ``virtfs`` for the ``qemu``
+        backend.
+      - Re-running the role after rotating the CA restarts the daemon that serves
         TLS.
-      - >-
-        The tags ``ca`` and ``ssl`` redeploy and apply the certificates.
-      - >-
-        A ``libvirt_users`` entry takes ``ca_file``, ``clientcert`` and
-        ``clientkey``, deployed under the user's ``~/.pki`` with the least
-        privileges, so the user reaches a remote daemon over TLS.
-      - >-
-        The role detects whether the host runs the monolithic daemon or the
-        modular ones from the installed units, and manages the services in a
-        single place.
-      - >-
-        On Gentoo, ``app-emulation/qemu`` is built with ``virtfs`` for the
-        ``qemu`` backend.
+      - The role detects whether the host runs the monolithic daemon or the modular
+        ones from the installed units, and manages the services in a single place.
+      - The tags ``ca`` and ``ssl`` redeploy and apply the certificates.
+      - With ``listen_tls`` enabled, the role starts the TLS socket of the daemon
+        and opens the ``libvirt-tls`` firewalld service.
     release_date: '2026-08-11'
+  0.8.0:
+    changes:
+      breaking_changes:
+      - The role needs ``ansible-core`` 2.20 or later, up from 2.18. Earlier versions
+        read a Gentoo host as ClearLinux, so none of the role's variables for it were
+        loaded.
+      - The variable that picks firewalld's packet filtering backend is ``libvirt_firewall_backend``,
+        no longer ``firewall_backend``. An inventory that sets the old name keeps
+        firewalld's own backend until it is renamed. (`#6 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/6>`__)
+      - With ``libvirt_manage_firewall`` true, the role opens the ``libvirt`` firewalld
+        service only when ``libvirt_config.libvirtd.listen_tcp`` is 1, and the migration
+        range ``49152-49215/tcp`` only when the new ``libvirt_firewall_migration``
+        is true, where it opened both on every host before. A host that migrates or
+        takes TCP connections must set them. A host already converged keeps both entries
+        open, since the role closes neither of them; close them with ``firewall-cmd
+        --permanent --remove-service=libvirt``, ``firewall-cmd --permanent --remove-port=49152-49215/tcp``
+        and ``firewall-cmd --reload``, adding ``--zone=<zone>`` to the first two when
+        ``libvirt_firewall_zone`` is set. (`#12 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/12>`__)
+      - '``libvirt_config.libvirtd.listen_tcp`` set to 1 now makes the daemon listen,
+        as ``listen_tls`` does: the role enables the TCP socket unit. A host whose
+        inventory already sets it listens on ``16509/tcp``, unencrypted, and libvirt''s
+        default ``auth_tcp`` is ``sasl``, so clients are refused until SASL is set
+        up. (`#31 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/31>`__)'
+      - '``libvirt_users`` defaults to ``[]``, so the account Ansible connects as
+        is no longer added to the ``libvirt``, ``kvm`` and ``qemu`` groups and no
+        longer gets a ``qemu:///session`` default pool. Memberships already granted
+        stay. To keep the previous behaviour, set ``libvirt_users`` to ``[{name: "{{
+        ansible_facts.user_id }}"}]``, and list the account that provisions over ``qemu:///system``
+        when it is not root. (`#2 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/2>`__)'
+      bugfixes:
+      - 'On Gentoo, ``libvirt_manage_firewall: false`` no longer stops the play when
+        the USE flags are written.'
+      - On Gentoo, firewalld is restarted after the packages are built, so it knows
+        the ``libvirt`` zone libvirt installs and the network driver can start a network.
+      - On Gentoo, with the firewall managed, the role declares the ``json``, ``python``
+        and ``xtables`` USE flags that ``net-firewall/nftables`` needs for firewalld,
+        so the installation no longer stops asking for them.
+      - The role waits for libvirtd only when something restarted it. On Gentoo it
+        no longer blocks on a daemon that nobody had started yet.
+      - firewalld no longer keeps ``19215-49152/tcp``, the mistyped migration range
+        that 0.3.0 to 0.6.2 opened instead of the real one. The role removes that
+        entry, and only it, from the zone it manages, reloads firewalld and warns
+        once per host. Run the role once on every host that predates 0.7.0 before
+        upgrading to 1.0.0, which drops this cleanup. (`#5 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/5>`__)
+      minor_changes:
+      - On Gentoo, the ``policykit`` USE flag, which creates the ``libvirt`` group,
+        is requested on ``app-emulation/libvirt`` and ``sys-apps/systemd`` only when
+        ``libvirt_users`` is not empty. With an empty list the daemon stays reachable
+        by root alone.
+      - The archive Galaxy installs no longer holds the test scenarios, the CI configuration
+        and the contributor files.
+      - 'The role''s metadata now declares the platforms its tests run on: Debian
+        trixie and EL 10 are added, and Debian bullseye, which is neither tested nor
+        supported upstream any more, is dropped.'
+      - '``libvirt_`` now names only what an inventory may set: every variable, fact,
+        register and loop variable the role keeps for itself carries ``_libvirt_``.
+        A playbook that read one of those, such as ``libvirt_layout`` (now ``_libvirt_daemon_layout``),
+        has to follow the new name, and none of them is part of the role''s interface.
+        (`#6 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/6>`__)'
+    fragments:
+    - ansible-core-2.20.yml
+    - archive-without-development-files.yml
+    - declared-platforms.yml
+    - firewall-backend-prefix.yml
+    - firewall-opens-on-request.yml
+    - gentoo-firewalld-reload.yml
+    - gentoo-nftables-flags.yml
+    - gentoo-policykit-flag.yml
+    - gentoo-without-firewall.yml
+    - listen-tcp-socket.yml
+    - private-variables-prefix.yml
+    - stale-migration-range.yml
+    - users-default-empty.yml
+    - wait-for-restarted-libvirtd.yml
+    release_date: '2026-10-06'

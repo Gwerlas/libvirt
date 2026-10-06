@@ -1,7 +1,0 @@
-minor_changes:
-  - >-
-    ``libvirt_`` now names only what an inventory may set: every variable,
-    fact, register and loop variable the role keeps for itself carries
-    ``_libvirt_``. A playbook that read one of those, such as ``libvirt_layout``
-    (now ``_libvirt_daemon_layout``), has to follow the new name, and none of
-    them is part of the role's interface. (`#6 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/6>`__)

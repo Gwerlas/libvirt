@@ -1,4 +1,0 @@
-bugfixes:
-  - >-
-    On Gentoo, ``libvirt_manage_firewall: false`` no longer stops the play when
-    the USE flags are written.

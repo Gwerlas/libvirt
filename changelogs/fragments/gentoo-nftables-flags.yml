@@ -1,5 +1,0 @@
-bugfixes:
-  - >-
-    On Gentoo, with the firewall managed, the role declares the ``json``,
-    ``python`` and ``xtables`` USE flags that ``net-firewall/nftables`` needs
-    for firewalld, so the installation no longer stops asking for them.

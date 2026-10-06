@@ -1,5 +1,0 @@
-breaking_changes:
-  - >-
-    The variable that picks firewalld's packet filtering backend is
-    ``libvirt_firewall_backend``, no longer ``firewall_backend``. An inventory
-    that sets the old name keeps firewalld's own backend until it is renamed. (`#6 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/6>`__)

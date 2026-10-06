@@ -1,4 +1,0 @@
-minor_changes:
-  - >-
-    The archive Galaxy installs no longer holds the test scenarios, the CI
-    configuration and the contributor files.

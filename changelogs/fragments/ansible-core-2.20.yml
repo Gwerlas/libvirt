@@ -1,5 +1,0 @@
-breaking_changes:
-  - >-
-    The role needs ``ansible-core`` 2.20 or later, up from 2.18. Earlier
-    versions read a Gentoo host as ClearLinux, so none of the role's variables
-    for it were loaded.

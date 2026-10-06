@@ -1,5 +1,0 @@
-bugfixes:
-  - >-
-    On Gentoo, firewalld is restarted after the packages are built, so it
-    knows the ``libvirt`` zone libvirt installs and the network driver can start
-    a network.
