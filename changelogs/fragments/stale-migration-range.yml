@@ -1,0 +1,7 @@
+bugfixes:
+  - >-
+    firewalld no longer keeps ``19215-49152/tcp``, the mistyped migration range
+    that 0.3.0 to 0.6.2 opened instead of the real one. The role removes that
+    entry, and only it, from the zone it manages, reloads firewalld and warns
+    once per host. Run the role once on every host that predates 0.7.0 before
+    upgrading to 1.0.0, which drops this cleanup.

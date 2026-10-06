@@ -17,13 +17,13 @@ When `libvirt_manage_firewall` is `true`, the role enables:
 - the migration data port range `49152-49215/tcp`, always, so
   [live migration](migration.md) between hosts works without further tuning.
 
-Versions 0.3.0 to 0.6.2 opened `19215-49152/tcp` instead of the migration
-range. On a host where that entry is still in firewalld's permanent
-configuration, the role removes it, and only it, from the zone it manages, then
-reloads firewalld and prints a warning naming the host; a check run reports
-the removal and says the entry would be closed. A host without the entry sees
-nothing. This cleanup goes away in 1.0.0, so run the role once on
-every host that predates 0.7.0 before upgrading past it.
+Earlier versions opened `19215-49152/tcp` instead of the migration range. On a
+host where that entry is still in firewalld's permanent configuration, the role
+removes it, and only it, from the zone it manages, then reloads firewalld and
+prints a warning naming the host; a check run reports the removal and says the
+entry would be closed. A host without the entry sees nothing. This cleanup goes
+away in 1.0.0, so run the role once on every host that predates 0.7.0 before
+upgrading to 1.0.0.
 
 Set `libvirt_firewall_backend` to pick firewalld's packet filtering backend:
 the role installs the package it names and writes `FirewallBackend=<value>` in
