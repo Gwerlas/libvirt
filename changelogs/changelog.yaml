@@ -1,8 +1,159 @@
 ancestor: null
 releases:
+  0.1.0:
+    changes:
+      minor_changes:
+      - >-
+        First release. The role installs libvirt with the ``qemu`` backend, grants
+        ``libvirt_users`` access to it, and provisions the storage pools, volumes,
+        networks and domains listed in ``libvirt_pools``, ``libvirt_volumes``,
+        ``libvirt_networks`` and ``libvirt_domains``.
+    release_date: '2023-03-12'
+  0.1.1:
+    changes:
+      minor_changes:
+      - >-
+        Domain disks and network interfaces take a ``boot_order``. A domain no
+        longer forces a boot from the network then the disk, so a domain without
+        any ``boot_order`` boots as libvirt decides.
+    release_date: '2023-03-15'
+  0.2.0:
+    changes:
+      minor_changes:
+      - >-
+        Domains take an ``autostart`` key to start with the host.
+    release_date: '2023-06-28'
+  0.3.0:
+    changes:
+      minor_changes:
+      - >-
+        Gentoo is supported, including its Portage USE flags.
+      - >-
+        The role opens the ``libvirt`` and ``libvirt-tls`` firewalld services and
+        the migration port range, in the zone ``libvirt_firewall_zone`` names.
+        Setting ``libvirt_manage_firewall`` to ``false`` leaves the firewall alone.
+    release_date: '2023-11-13'
+  0.3.1:
+    changes:
+      bugfixes:
+      - >-
+        The tag ``provision`` selects the provisioning tasks, and only them.
+    release_date: '2024-04-24'
+  0.3.2:
+    changes:
+      minor_changes:
+      - >-
+        The tag ``users`` runs the user access tasks alone.
+    release_date: '2024-10-30'
+  0.3.3:
+    changes:
+      bugfixes:
+      - >-
+        Check mode no longer fails on the tasks that read the state of domains,
+        pools, services and the QEMU user.
+    release_date: '2024-12-06'
+  0.4.0:
+    changes:
+      bugfixes:
+      - >-
+        dnsmasq no longer prevents libvirt's default network from starting.
+        ``libvirt_dnsmasq_management_method`` (``auto``, ``bind``, ``disable`` or
+        ``none``) chooses what the role does with dnsmasq, and
+        ``libvirt_dnsmasq_interface_types`` lists the interface types it binds.
+        ``auto`` binds dnsmasq on Debian bookworm and leaves it alone elsewhere.
+      minor_changes:
+      - >-
+        Raw block devices can be attached to domains, system wide.
+    release_date: '2025-02-20'
+  0.4.1:
+    changes:
+      bugfixes:
+      - >-
+        On Arch Linux, firewalld uses the ``iptables-nft`` backend instead of
+        ``iptables``.
+    release_date: '2025-03-04'
+  0.4.2:
+    changes:
+      bugfixes:
+      - >-
+        The dnsmasq binding finds the network interfaces whose name holds a dash.
+    release_date: '2025-03-04'
+  0.4.3:
+    changes:
+      bugfixes:
+      - >-
+        ``libvirt_dnsmasq_interface_types`` defaults to ``[ether]``, so dnsmasq no
+        longer binds bonding interfaces.
+    release_date: '2025-03-04'
+  0.5.0:
+    changes:
+      breaking_changes:
+      - >-
+        The default type of a domain disk changes from ``volume`` to ``file``.
+      - >-
+        The internal variable ``pools`` is renamed ``libvirt_pools``, which affects
+        custom task includes.
+      - >-
+        The loop variable ``pool`` is renamed ``libvirt_pool`` in the pool templates.
+      minor_changes:
+      - >-
+        Add ``libvirt_default_disk_format``, which defaults to ``qcow2``.
+      - >-
+        Add the cached facts ``libvirt_system_users`` and ``libvirt_system_groups``.
+      - >-
+        The role configures QEMU's security driver, AppArmor or SELinux, by itself.
+      - >-
+        Each storage pool takes an explicit owner, group and mode.
+      - >-
+        The volume format is written in the volume XML.
+      - >-
+        The role requires ``community.libvirt`` 2.0 or later.
+      - >-
+        The role reads facts from the ``ansible_facts`` namespace.
+      - >-
+        Pool permissions are resolved with ``getent`` instead of shell commands.
+      - >-
+        The role waits for libvirtd to answer after restarting it.
+      - >-
+        Package lists are updated across distributions.
+    release_date: '2026-02-13'
+  0.5.1:
+    changes:
+      bugfixes:
+      - >-
+        The role manages the services of libvirt whether the distribution ships
+        the modular daemons or the monolithic one.
+    release_date: '2026-03-16'
+  0.6.0:
+    changes:
+      minor_changes:
+      - >-
+        ``netfs`` pools support NFS and CIFS, and the NFS version.
+    release_date: '2026-05-19'
+  0.6.1:
+    changes:
+      bugfixes:
+      - >-
+        The role activates only the libvirt units the host provides. Debian
+        bookworm ships libvirt 6.0 or later without the modular daemon units, and
+        the role no longer fails on them.
+    release_date: '2026-05-19'
+  0.6.2:
+    changes:
+      bugfixes:
+      - >-
+        The ``source`` of a ``netfs`` pool follows libvirt's XML, where
+        ``source.version`` becomes ``source.protocol`` and ``source.format``
+        becomes ``source.type``.
+    release_date: '2026-05-20'
   0.7.0:
     changes:
       breaking_changes:
+      - >-
+        Each entry of ``libvirt_users`` is a dictionary, so ``- alice`` becomes
+        ``- {name: alice}``.
+      - >-
+        The role requires ansible-core 2.18 or later, and no longer claims 2.13.
       - 'Domains follow libvirt''s XML structure: ``disks[].size: 2G`` becomes ``disks[].capacity:
         2G`` and ``networks: [...]`` becomes ``interfaces: [...]``.'
       - 'Networks follow libvirt''s XML structure: ``forward_mode: nat`` becomes ``forward:
@@ -17,4 +168,58 @@ releases:
         {ver: 4}``.'
       - 'Volumes follow libvirt''s XML structure: ``size: 200G`` becomes ``capacity:
         200G`` and ``format: qcow2`` becomes ``target: {format: {type: qcow2}}``.'
+      bugfixes:
+      - >-
+        The role reads the facts of the provisioned resources from
+        ``ansible_facts.libvirt_pools`` and ``ansible_facts.libvirt_networks``,
+        which ansible-core 2.19 and later require.
+      - >-
+        The role declares the ``ansible.posix`` and ``community.general``
+        collections it uses.
+      - >-
+        The libvirt sockets start from the installed unit files, so
+        ``qemu:///system`` has its socket on a fresh install.
+      - >-
+        The package ``bridge-utils`` is no longer installed on EL9 and later and
+        on Arch Linux, where it no longer exists.
+      - >-
+        The role reloads dbus instead of restarting it, which dropped every
+        connected client and wedged the desktop.
+      - >-
+        The role opens the migration port range ``49152-49215/tcp``, where it
+        opened ``19215-49152/tcp`` before.
+      - >-
+        A pool under a user's home is reachable by the QEMU user, which gets an
+        execute-only ACL on the home directories leading to it.
+      - >-
+        The tag ``users`` reaches all the user access tasks, and no longer stops
+        on an undefined ``libvirt_system_groups``.
+      minor_changes:
+      - >-
+        Add ``libvirt_config``, which writes directives to
+        ``/etc/libvirt/<file>.conf``.
+      - >-
+        Configure the daemon over TLS. ``libvirt_ca_file``, ``libvirt_servercert``,
+        ``libvirt_serverkey``, ``libvirt_clientcert`` and ``libvirt_clientkey``
+        deploy the certificates and keys from the controller to libvirt's standard
+        locations.
+      - >-
+        With ``listen_tls`` enabled, the role starts the TLS socket of the daemon
+        and opens the ``libvirt-tls`` firewalld service.
+      - >-
+        Re-running the role after rotating the CA restarts the daemon that serves
+        TLS.
+      - >-
+        The tags ``ca`` and ``ssl`` redeploy and apply the certificates.
+      - >-
+        A ``libvirt_users`` entry takes ``ca_file``, ``clientcert`` and
+        ``clientkey``, deployed under the user's ``~/.pki`` with the least
+        privileges, so the user reaches a remote daemon over TLS.
+      - >-
+        The role detects whether the host runs the monolithic daemon or the
+        modular ones from the installed units, and manages the services in a
+        single place.
+      - >-
+        On Gentoo, ``app-emulation/qemu`` is built with ``virtfs`` for the
+        ``qemu`` backend.
     release_date: '2026-08-11'
