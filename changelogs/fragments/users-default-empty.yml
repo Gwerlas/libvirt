@@ -1,0 +1,8 @@
+breaking_changes:
+  - >-
+    ``libvirt_users`` defaults to ``[]``, so the account Ansible connects as is
+    no longer added to the ``libvirt``, ``kvm`` and ``qemu`` groups and no
+    longer gets a ``qemu:///session`` default pool. Memberships already granted
+    stay. To keep the previous behaviour, set ``libvirt_users`` to
+    ``[{name: "{{ ansible_facts.user_id }}"}]``, and list the account that
+    provisions over ``qemu:///system`` when it is not root.

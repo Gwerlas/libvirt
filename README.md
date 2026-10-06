@@ -110,23 +110,6 @@ Documentation
 - [Users][] — grant users libvirt access
 - [Pools][], [Volumes][], [Networks][] and [Domains][] — provisioning resources
 
-Upgrading to 0.8.0
-------------------
-
-`0.8.0` no longer grants the account Ansible connects as access to libvirt:
-`libvirt_users` defaults to `[]`. Without editing a variable, a host that is
-provisioned from now on leaves that account out of the `libvirt`, `kvm` and
-`qemu` groups and gives it no `qemu:///session` default pool. To keep the
-previous behaviour, say so:
-
-```yaml
-libvirt_users:
-  - name: "{{ ansible_facts.user_id }}"
-```
-
-Memberships already granted stay, and provisioning over `qemu:///system` as a
-non-root account needs that account listed. See [users][] for both.
-
 Changelog
 ---------
 
