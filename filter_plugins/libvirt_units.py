@@ -10,7 +10,7 @@
 # Which layout a host runs cannot be derived from the libvirt version: Debian
 # ships the monolithic daemon even at 9.x. Detect it from the unit files that are
 # actually installed so the role starts/restarts the right units and enables the
-# matching TLS socket. virtlogd/virtlockd are shared by both layouts, so the
+# matching TLS and TCP sockets. virtlogd/virtlockd are shared by both layouts, so the
 # modular probe only looks at units that exist exclusively in the modular split.
 
 _HELPERS = ['virtlogd', 'virtlockd', 'virtnetworkd', 'virtnodedevd', 'virtstoraged']
@@ -37,7 +37,8 @@ class FilterModule(object):
           * ``restart_units`` - daemon services to restart for a libvirtd.conf
                                 change to take effect;
           * ``tls_socket``    - the socket that makes the daemon listen on TLS,
-                                or ``None`` when the host has no such unit.
+                                or ``None`` when the host has no such unit;
+          * ``tcp_socket``    - likewise for the unencrypted TCP socket.
         All lists are filtered to the units actually installed.
         """
         backends = backends or []
@@ -54,15 +55,18 @@ class FilterModule(object):
             boot_units = ['libvirt-guests.service'] + [d + '.socket' for d in daemons]
             restart_units = [d + '.service' for d in daemons + ['virtproxyd']]
             tls_socket = 'virtproxyd-tls.socket'
+            tcp_socket = 'virtproxyd-tcp.socket'
         elif socket_activated:
             boot_units = ['libvirt-guests.service', 'libvirtd.socket',
                           'virtlockd.socket', 'virtlogd.socket']
             restart_units = ['libvirtd.service', 'virtlogd.service', 'virtlockd.service']
             tls_socket = 'libvirtd-tls.socket'
+            tcp_socket = 'libvirtd-tcp.socket'
         else:  # legacy: no socket activation, libvirtd runs as a plain service
             boot_units = ['libvirtd.service']
             restart_units = ['libvirtd.service']
             tls_socket = None
+            tcp_socket = None
 
         def keep(units):
             return [unit for unit in units if unit in available]
@@ -72,4 +76,5 @@ class FilterModule(object):
             'boot_units': keep(boot_units),
             'restart_units': keep(restart_units),
             'tls_socket': tls_socket if tls_socket in available else None,
+            'tcp_socket': tcp_socket if tcp_socket in available else None,
         }

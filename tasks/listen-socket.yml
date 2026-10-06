@@ -1,0 +1,40 @@
+---
+# A socket-activated daemon ignores `listen_tls` and `listen_tcp` in
+# libvirtd.conf, so the directive alone never opens the port. Enable the socket
+# resolved for this host's layout (libvirtd-tls.socket monolithic,
+# virtproxyd-tls.socket modular, and likewise for tcp). The socket is ordered
+# Before=libvirtd.service and can't be added while libvirtd holds the socket
+# set, so the monolithic daemon is stopped, the socket started, then the daemon
+# brought back listening on it. Modular hosts activate virtproxyd on demand,
+# nothing needs stopping there.
+#
+# Expects `_libvirt_listen_socket`, the unit to enable.
+- name: Listen socket - Current state  # noqa command-instead-of-module
+  # service_facts does not enumerate .socket units, so query systemd directly
+  # to keep the stop/start below idempotent.
+  ansible.builtin.command:
+    cmd: systemctl is-active {{ _libvirt_listen_socket }}
+  register: _libvirt_listen_socket_state
+  changed_when: false
+  failed_when: false
+
+- name: Listen socket - Free the socket set on the monolithic daemon
+  when:
+    - not _libvirt_daemon_layout.modular
+    - _libvirt_listen_socket_state.stdout != 'active'
+  ansible.builtin.systemd_service:
+    name: libvirtd.service
+    state: stopped
+
+- name: Listen socket - Enable and start
+  ansible.builtin.systemd_service:
+    name: "{{ _libvirt_listen_socket }}"
+    state: started
+    enabled: true
+  notify: Restart libvirt service
+
+- name: Listen socket - Bring the monolithic daemon back to serve the socket
+  when: not _libvirt_daemon_layout.modular
+  ansible.builtin.systemd_service:
+    name: libvirtd.service
+    state: started

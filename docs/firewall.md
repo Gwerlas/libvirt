@@ -13,9 +13,8 @@ With no variable set, the role opens nothing. When `libvirt_manage_firewall` is
 
 - the `libvirt` firewalld service (`16509/tcp`, libvirtd's unencrypted remote
   access) **only when the daemon is configured to listen on TCP**, i.e. when
-  `listen_tcp: 1` is set under `libvirt_config.libvirtd`. The role enables no
-  TCP socket: on a socket-activated daemon, nothing listens on the port until
-  you enable the daemon's TCP socket yourself;
+  `listen_tcp: 1` is set under `libvirt_config.libvirtd`, which also makes the
+  role enable the daemon's TCP socket (see the [TLS](tls.md) guide);
 - the `libvirt-tls` service (TLS port `16514/tcp`) **only when the daemon is
   configured to listen on TLS**, i.e. when `listen_tls: 1` is set under
   `libvirt_config.libvirtd` (see the [TLS](tls.md) guide). Without it the port

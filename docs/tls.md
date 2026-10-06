@@ -68,6 +68,13 @@ Clients can then reach the daemon over TLS:
 virsh -c qemu://node.example.com/system list
 ```
 
+Setting `listen_tcp: 1` likewise makes the role enable the daemon's TCP socket
+(`libvirtd-tcp.socket`, or `virtproxyd-tcp.socket` on hosts running the modular
+daemons), so the daemon listens on `16509/tcp`. That access is **unencrypted**.
+libvirt's default `auth_tcp` is `sasl`, so clients are refused until you set
+SASL up: the role does not. Hosts where the unit is not installed, such as
+those running a legacy daemon, are left as they are.
+
 Per-user client credentials
 ---------------------------
 

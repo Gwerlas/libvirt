@@ -4,6 +4,28 @@
   become: true
   gather_facts: false
   tasks:
+    - name: Read the active TCP socket units
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - list-units
+          - --state=active
+          - --plain
+          - --no-legend
+          - libvirtd-tcp.socket
+          - virtproxyd-tcp.socket
+      register: _tcp_sockets
+      changed_when: false
+
+    - name: The daemon listens on TCP
+      ansible.builtin.assert:
+        that: _tcp_sockets.stdout_lines | length == 1
+
+    - name: Libvirt's TCP port accepts connections
+      ansible.builtin.wait_for:
+        port: 16509
+        timeout: 30
+
     - name: Read the ports and services of the zone
       ansible.builtin.command:
         argv: >-

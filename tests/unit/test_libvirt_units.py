@@ -37,6 +37,7 @@ MODULAR = units(
     'virtnodedevd.service', 'virtnodedevd.socket',
     'virtstoraged.service', 'virtstoraged.socket',
     'virtproxyd.service', 'virtproxyd.socket', 'virtproxyd-tls.socket',
+    'virtproxyd-tcp.socket',
     'virtlogd.service', 'virtlogd.socket',
     'virtlockd.service', 'virtlockd.socket',
 )
@@ -104,6 +105,20 @@ def test_lists_are_filtered_to_installed_units():
 def test_tls_socket_absent_yields_none():
     no_tls = [u for u in DEBIAN if not u.startswith('libvirtd-tls')]
     assert layout(no_tls)['tls_socket'] is None
+
+
+def test_tcp_socket_follows_the_layout():
+    assert layout(DEBIAN)['tcp_socket'] == 'libvirtd-tcp.socket'
+    assert layout(MODULAR)['tcp_socket'] == 'virtproxyd-tcp.socket'
+
+
+def test_tcp_socket_absent_yields_none():
+    no_tcp = [u for u in DEBIAN if not u.startswith('libvirtd-tcp')]
+    assert layout(no_tcp)['tcp_socket'] is None
+
+
+def test_legacy_has_no_tcp_socket():
+    assert layout(LEGACY)['tcp_socket'] is None
 
 
 def test_lxc_backend_adds_its_daemon():
