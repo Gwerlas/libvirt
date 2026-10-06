@@ -4,4 +4,4 @@ breaking_changes:
     as ``listen_tls`` does: the role enables the TCP socket unit. A host whose
     inventory already sets it listens on ``16509/tcp``, unencrypted, and
     libvirt's default ``auth_tcp`` is ``sasl``, so clients are refused until
-    SASL is set up.
+    SASL is set up. (`#31 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/31>`__)

@@ -5,4 +5,4 @@ breaking_changes:
     longer gets a ``qemu:///session`` default pool. Memberships already granted
     stay. To keep the previous behaviour, set ``libvirt_users`` to
     ``[{name: "{{ ansible_facts.user_id }}"}]``, and list the account that
-    provisions over ``qemu:///system`` when it is not root.
+    provisions over ``qemu:///system`` when it is not root. (`#2 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/2>`__)

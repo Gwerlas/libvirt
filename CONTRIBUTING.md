@@ -379,9 +379,12 @@ Here, a new variable or a change in behaviour is not finished until:
 - a change a user can notice has a fragment in `changelogs/fragments/`, under
   the section that fits it, as the handbook's
   [Changelog](https://gitlab.com/yoanncolin/handbook/-/blob/main/releases.md#changelog)
-  says. A fragment is reStructuredText, so a literal takes two backticks.
+  says. A fragment is reStructuredText, so a literal takes two backticks. An
+  entry that settles an issue ends with a link to it,
+  ``(`#4 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/4>`__)``,
+  which `CHANGELOG.md` shows as `[#4](…)`, as the handbook's Changelog says.
 
-The issue is referenced from the commit body, and only from there. `Closes #4`
+Outside a fragment, the issue is referenced from the commit body. `Closes #4`
 if the commit settles the whole ticket; a bare `#4` if it settles one of the
 three things the ticket asks for, so the other two stay visible.
 

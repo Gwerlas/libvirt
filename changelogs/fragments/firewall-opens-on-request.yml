@@ -9,4 +9,4 @@ breaking_changes:
     of them; close them with ``firewall-cmd --permanent --remove-service=libvirt``,
     ``firewall-cmd --permanent --remove-port=49152-49215/tcp`` and
     ``firewall-cmd --reload``, adding ``--zone=<zone>`` to the first two when
-    ``libvirt_firewall_zone`` is set.
+    ``libvirt_firewall_zone`` is set. (`#12 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/12>`__)
