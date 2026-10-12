@@ -10,7 +10,7 @@
         loop_var: _libvirt_config_file
 
     - name: TLS CA
-      when: libvirt_ca_file is defined
+      when: libvirt_ca_file is not none
       vars:
         _libvirt_ca_src_file: "{{ libvirt_ca_file }}"
         _libvirt_ca_dest_file: "{{ libvirt_config.libvirtd.ca_file | default('/etc/pki/CA/cacert.pem') }}"
@@ -23,7 +23,7 @@
         - ca
 
     - name: TLS Server certificate
-      when: libvirt_servercert is defined
+      when: libvirt_servercert is not none
       vars:
         _libvirt_src_cert: "{{ libvirt_servercert }}"
         _libvirt_dest_cert: "{{ libvirt_config.libvirtd.cert_file | default('/etc/pki/libvirt/servercert.pem') }}"
@@ -36,7 +36,7 @@
         - ssl
 
     - name: TLS Client certificate
-      when: libvirt_clientcert is defined
+      when: libvirt_clientcert is not none
       vars:
         _libvirt_src_cert: "{{ libvirt_clientcert }}"
         _libvirt_dest_cert: /etc/pki/libvirt/clientcert.pem

@@ -9,6 +9,26 @@ argument_specs:
           /etc/libvirt/<file>.conf.
         type: dict
         default: {}
+      libvirt_ca_file:
+        description: Path on the controller to the CA certificate to deploy, none when null.
+        type: str
+        default: null
+      libvirt_servercert:
+        description: Path on the controller to the server certificate to deploy, none when null.
+        type: str
+        default: null
+      libvirt_serverkey:
+        description: Path on the controller to the server private key to deploy, none when null.
+        type: str
+        default: null
+      libvirt_clientcert:
+        description: Path on the controller to the client certificate to deploy, none when null.
+        type: str
+        default: null
+      libvirt_clientkey:
+        description: Path on the controller to the client private key to deploy, none when null.
+        type: str
+        default: null
       libvirt_firewall_zone:
         description: Firewalld zone to open ports in, the default zone when null.
         type: str

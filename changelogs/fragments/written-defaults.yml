@@ -1,0 +1,14 @@
+breaking_changes:
+  - >-
+    ``libvirt_config``, ``libvirt_firewall_zone`` and the five TLS paths
+    (``libvirt_ca_file``, ``libvirt_servercert``, ``libvirt_serverkey``,
+    ``libvirt_clientcert`` and ``libvirt_clientkey``) are now declared with a
+    type, so a value of the wrong type for one of them stops the run before any
+    task, where it used to work by accident. ``libvirt_config`` is a dictionary
+    and the six others are strings. (`#23 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/23>`__)
+minor_changes:
+  - >-
+    ``libvirt_config`` (``{}``), ``libvirt_firewall_zone`` and the five TLS
+    paths (``null``) now have a default written in ``defaults/``. Setting one
+    to its default, such as ``libvirt_firewall_zone: null`` for a host whose
+    group chose a zone, undoes the group's value. (`#23 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/23>`__)

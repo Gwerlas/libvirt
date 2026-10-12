@@ -10,14 +10,14 @@ opens the TLS socket.
 Variables
 ---------
 
-| Variable             | Default   | Description                                                                                       |
-| -------------------- | --------- | ------------------------------------------------------------------------------------------------- |
-| `libvirt_config`     | `{}`      | Per-file directives, as `{ <file>: { directive: value } }`, written to `/etc/libvirt/<file>.conf` |
-| `libvirt_ca_file`    | _(unset)_ | Path **on the controller** to the CA certificate to deploy                                        |
-| `libvirt_servercert` | _(unset)_ | Path **on the controller** to the server certificate to deploy                                    |
-| `libvirt_serverkey`  | _(unset)_ | Path **on the controller** to the server private key to deploy                                    |
-| `libvirt_clientcert` | _(unset)_ | Path **on the controller** to the client certificate to deploy                                    |
-| `libvirt_clientkey`  | _(unset)_ | Path **on the controller** to the client private key to deploy                                    |
+| Variable             | Default | Description                                                                                       |
+| -------------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| `libvirt_config`     | `{}`    | Per-file directives, as `{ <file>: { directive: value } }`, written to `/etc/libvirt/<file>.conf` |
+| `libvirt_ca_file`    | `null`  | Path **on the controller** to the CA certificate to deploy                                        |
+| `libvirt_servercert` | `null`  | Path **on the controller** to the server certificate to deploy                                    |
+| `libvirt_serverkey`  | `null`  | Path **on the controller** to the server private key to deploy                                    |
+| `libvirt_clientcert` | `null`  | Path **on the controller** to the client certificate to deploy                                    |
+| `libvirt_clientkey`  | `null`  | Path **on the controller** to the client private key to deploy                                    |
 
 The TLS files are deployed to the standard libvirt locations:
 
