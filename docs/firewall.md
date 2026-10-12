@@ -1,12 +1,12 @@
 Firewall
 ========
 
-| Variable                     | Default   | Description                                                  |
-| ---------------------------- | --------- | ------------------------------------------------------------ |
-| `libvirt_manage_firewall`    | `true`    | Whether to manage firewalld rules                            |
-| `libvirt_firewall_migration` | `false`   | Whether to open the live migration data port range           |
-| `libvirt_firewall_zone`      | _(unset)_ | Firewalld zone to use (defaults to firewalld's default zone) |
-| `libvirt_firewall_backend`   | _(unset)_ | Firewalld packet filtering backend to install and select     |
+| Variable                     | Default   | Description                                               |
+| ---------------------------- | --------- | --------------------------------------------------------- |
+| `libvirt_manage_firewall`    | `true`    | Whether to manage firewalld rules                         |
+| `libvirt_firewall_migration` | `false`   | Whether to open the live migration data port range        |
+| `libvirt_firewall_zone`      | `null`    | Firewalld zone to use; `null` is firewalld's default zone |
+| `libvirt_firewall_backend`   | _(unset)_ | Firewalld packet filtering backend to install and select  |
 
 With no variable set, the role opens nothing. When `libvirt_manage_firewall` is
 `true`, it enables:
@@ -33,8 +33,8 @@ firewall-cmd --permanent --remove-port=49152-49215/tcp
 firewall-cmd --reload
 ```
 
-Add `--zone=<zone>` to the first two commands when `libvirt_firewall_zone` is
-set.
+Add `--zone=<zone>` to the first two commands when `libvirt_firewall_zone`
+names a zone.
 
 Earlier versions opened `19215-49152/tcp` instead of the migration range. On a
 host where that entry is still in firewalld's permanent configuration, the role

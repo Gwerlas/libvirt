@@ -12,7 +12,7 @@
       ansible.posix.firewalld:
         port: "{{ item }}"
         state: enabled
-        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        zone: "{{ libvirt_firewall_zone }}"
         immediate: true
         permanent: true
       loop:

@@ -4,8 +4,8 @@ dependency:
 driver:
   name: default
 # Feature scenario: a representative Debian-like + RedHat-like pair is enough.
-# alma9 also targets a zone of its own, so the pair covers both the default zone
-# and `libvirt_firewall_zone`.
+# The group asks for the `work` zone; bookworm sets `null` after it and must
+# fall back to firewalld's default zone, while alma9 keeps `work`.
 platforms:
   - name: bookworm
     groups:
@@ -19,9 +19,13 @@ platforms:
 provisioner:
   name: ansible
   inventory:
-    host_vars:
-      alma9:
+    # verify.yml reads the zone without the role's defaults.
+    group_vars:
+      all:
         libvirt_firewall_zone: work
+    host_vars:
+      bookworm:
+        libvirt_firewall_zone: null
   playbooks:
     create: ../shared/create.yml
     destroy: ../shared/destroy.yml

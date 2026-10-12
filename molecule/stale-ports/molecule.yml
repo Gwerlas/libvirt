@@ -19,6 +19,10 @@ platforms:
 provisioner:
   name: ansible
   inventory:
+    # prepare.yml and verify.yml read the zone without the role's defaults.
+    group_vars:
+      all:
+        libvirt_firewall_zone: null
     host_vars:
       alma9:
         libvirt_firewall_zone: work

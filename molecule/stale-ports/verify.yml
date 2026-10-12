@@ -9,7 +9,7 @@
         argv: >-
           {{ ['firewall-cmd']
           + (['--permanent'] if item.0 == 'permanent' else [])
-          + (['--zone=' ~ libvirt_firewall_zone] if libvirt_firewall_zone is defined else [])
+          + (['--zone=' ~ libvirt_firewall_zone] if libvirt_firewall_zone is not none else [])
           + ['--list-' ~ item.1] }}
       loop: "{{ ['permanent', 'runtime'] | product(['ports', 'services']) | list }}"
       loop_control:

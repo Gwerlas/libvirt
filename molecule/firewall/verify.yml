@@ -26,13 +26,24 @@
         port: 16509
         timeout: 30
 
+    - name: Read firewalld's default zone
+      ansible.builtin.command:
+        argv:
+          - firewall-cmd
+          - --get-default-zone
+      register: _default_zone
+      changed_when: false
+
+    - name: Name the zone the role manages on this host
+      ansible.builtin.set_fact:
+        _zone_name: "{{ _default_zone.stdout if libvirt_firewall_zone is none else libvirt_firewall_zone }}"
+
     - name: Read the ports and services of the zone
       ansible.builtin.command:
         argv: >-
           {{ ['firewall-cmd']
           + (['--permanent'] if item.0 == 'permanent' else [])
-          + (['--zone=' ~ libvirt_firewall_zone] if libvirt_firewall_zone is defined else [])
-          + ['--list-' ~ item.1] }}
+          + ['--zone=' ~ _zone_name, '--list-' ~ item.1] }}
       loop: "{{ ['permanent', 'runtime'] | product(['ports', 'services']) | list }}"
       loop_control:
         label: "{{ item.0 }} {{ item.1 }}"
@@ -51,3 +62,30 @@
       loop: "{{ _zone.results }}"
       loop_control:
         label: "{{ item.item.0 }} {{ item.item.1 }}"
+
+    - name: Read the ports and services of the zone the group asked for
+      ansible.builtin.command:
+        argv: >-
+          {{ ['firewall-cmd']
+          + (['--permanent'] if item.0 == 'permanent' else [])
+          + ['--zone=work', '--list-' ~ item.1] }}
+      loop: "{{ ['permanent', 'runtime'] | product(['ports', 'services']) | list }}"
+      loop_control:
+        label: "{{ item.0 }} {{ item.1 }}"
+      register: _work
+      changed_when: false
+      when: libvirt_firewall_zone is none
+
+    - name: A host that unset the group's zone opens nothing in it
+      ansible.builtin.assert:
+        that:
+          - >-
+            '49152-49215/tcp' not in item.stdout.split()
+            if item.item.1 == 'ports'
+            else 'libvirt' not in item.stdout.split()
+        success_msg: "{{ item.item.0 }} {{ item.item.1 }}: {{ item.stdout }}"
+        fail_msg: "{{ item.item.0 }} {{ item.item.1 }} are {{ item.stdout }}"
+      loop: "{{ _work.results }}"
+      loop_control:
+        label: "{{ item.item.0 }} {{ item.item.1 }}"
+      when: libvirt_firewall_zone is none

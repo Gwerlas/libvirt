@@ -6,7 +6,7 @@
       ansible.posix.firewalld:
         service: "{{ _libvirt_firewalld_service }}"
         state: enabled
-        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        zone: "{{ libvirt_firewall_zone }}"
         immediate: true
         permanent: true
       loop: >-
@@ -22,7 +22,7 @@
       ansible.posix.firewalld:
         port: 49152-49215/tcp
         state: enabled
-        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        zone: "{{ libvirt_firewall_zone }}"
         immediate: true
         permanent: true
       when: libvirt_firewall_migration
@@ -33,7 +33,7 @@
       ansible.builtin.command:
         argv: >-
           {{ ['firewall-cmd', '--permanent']
-          + (['--zone=' ~ libvirt_firewall_zone] if libvirt_firewall_zone is defined else [])
+          + (['--zone=' ~ libvirt_firewall_zone] if libvirt_firewall_zone is not none else [])
           + ['--list-ports'] }}
       register: _libvirt_permanent_ports
       changed_when: false
@@ -43,7 +43,7 @@
       ansible.posix.firewalld:
         port: 19215-49152/tcp
         state: disabled
-        zone: "{{ libvirt_firewall_zone | default(omit) }}"
+        zone: "{{ libvirt_firewall_zone }}"
         permanent: true
       when: "'19215-49152/tcp' in _libvirt_permanent_ports.stdout.split()"
       notify:

@@ -1,5 +1,13 @@
 ---
 argument_specs:
+  main:
+    short_description: Install and configure libvirt.
+    options:
+      libvirt_firewall_zone:
+        description: Firewalld zone to open ports in, the default zone when null.
+        type: str
+        default: null
+
   vars:
     short_description: Export roles variables.
     options:
