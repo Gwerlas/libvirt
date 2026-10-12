@@ -12,7 +12,7 @@ Variables
 
 | Variable             | Default   | Description                                                                                       |
 | -------------------- | --------- | ------------------------------------------------------------------------------------------------- |
-| `libvirt_config`     | _(unset)_ | Per-file directives, as `{ <file>: { directive: value } }`, written to `/etc/libvirt/<file>.conf` |
+| `libvirt_config`     | `{}`      | Per-file directives, as `{ <file>: { directive: value } }`, written to `/etc/libvirt/<file>.conf` |
 | `libvirt_ca_file`    | _(unset)_ | Path **on the controller** to the CA certificate to deploy                                        |
 | `libvirt_servercert` | _(unset)_ | Path **on the controller** to the server certificate to deploy                                    |
 | `libvirt_serverkey`  | _(unset)_ | Path **on the controller** to the server private key to deploy                                    |

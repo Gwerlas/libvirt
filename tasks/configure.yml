@@ -3,7 +3,6 @@
   become: true
   block:
     - name: Configure
-      when: libvirt_config is defined
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/tasks/config-file.yml"
       with_dict: "{{ libvirt_config }}"

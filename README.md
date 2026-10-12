@@ -77,9 +77,9 @@ Role Variables
 
 ### Configuration
 
-| Variable         | Default   | Description                                                                                       |
-| ---------------- | --------- | ------------------------------------------------------------------------------------------------- |
-| `libvirt_config` | _(unset)_ | Per-file directives, as `{ <file>: { directive: value } }`, written to `/etc/libvirt/<file>.conf` |
+| Variable         | Default | Description                                                                                       |
+| ---------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| `libvirt_config` | `{}`    | Per-file directives, as `{ <file>: { directive: value } }`, written to `/etc/libvirt/<file>.conf` |
 
 Enabling TLS on the daemon (certificates, socket, per-user access, rotation) is
 covered in the [TLS][] guide, and the firewalld rules in the [firewall][] one.

@@ -3,6 +3,12 @@ argument_specs:
   main:
     short_description: Install and configure libvirt.
     options:
+      libvirt_config:
+        description: >-
+          Per-file directives, as { <file>: { directive: value } }, written to
+          /etc/libvirt/<file>.conf.
+        type: dict
+        default: {}
       libvirt_firewall_zone:
         description: Firewalld zone to open ports in, the default zone when null.
         type: str

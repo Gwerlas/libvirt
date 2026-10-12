@@ -25,6 +25,9 @@ libvirt_dnsmasq_management_method: auto
 libvirt_dnsmasq_interface_types:
   - ether
 
+# Directives written to /etc/libvirt/<file>.conf, as { <file>: { directive: value } }
+libvirt_config: {}
+
 # TLS files paths on the controller to copy to the nodes
 # https://libvirt.org/kbase/tlscerts.html
 #libvirt_ca_file:
