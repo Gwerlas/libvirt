@@ -375,7 +375,7 @@
             cmd: |
               set -o pipefail
               virsh -c {{ libvirt_uri }} domiflist {{ inventory_hostname }} \
-                | awk 'NR>2 && $5 != "" {print $5; exit}'
+                | awk 'NR>2 && $5 != "" && !found++ {print $5}'
           changed_when: false
           register: vm_mac
 
@@ -385,7 +385,7 @@
             cmd: |
               set -o pipefail
               virsh -c {{ libvirt_uri }} net-dhcp-leases {{ molecule_network }} --mac {{ vm_mac.stdout }} \
-                | awk 'NR>2 && $5 != "" {print $5; exit}' \
+                | awk 'NR>2 && $5 != "" && !found++ {print $5}' \
                 | cut -d/ -f1
           changed_when: false
           register: vm_ip
