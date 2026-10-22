@@ -49,6 +49,39 @@
         that:
           - "'default' not in session_pools.list_pools"
 
+    - name: A wrong type stops the run before any task
+      block:
+        - name: Run the role with a string where libvirt_users expects a list
+          ansible.builtin.include_role:
+            name: gwerlas.libvirt
+          vars:
+            libvirt_users: alice
+            # Would remove the default network if any task ran.
+            libvirt_remove_default_network: true
+
+        - name: The run did not fail
+          ansible.builtin.fail:
+            msg: A string for libvirt_users was accepted.
+
+      rescue:
+        - name: Read the default network
+          become: true
+          ansible.builtin.command:
+            cmd: virsh --connect qemu:///system net-info default
+          register: default_network
+          changed_when: false
+
+        - name: The failure comes from argument validation
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_task.action == 'ansible.builtin.validate_argument_spec'
+              - ansible_failed_result.argument_errors | select('search', 'libvirt_users') | length > 0
+
+        - name: The default network is still there
+          ansible.builtin.assert:
+            that:
+              - default_network.stdout is search('Active:\s+yes')
+
     - name: An empty inventory builds nothing with policykit on Gentoo
       when: "'gentoo' in group_names"
       ansible.builtin.command:

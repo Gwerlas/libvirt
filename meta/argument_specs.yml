@@ -1,8 +1,63 @@
 ---
 argument_specs:
   main:
-    short_description: Install and configure libvirt.
+    short_description: Install and configure libvirt, grant access to it and provision resources.
+    description:
+      - Installs the packages of the requested backends, starts the daemon,
+        opens in firewalld the ports the daemon listens on unless
+        C(libvirt_manage_firewall) is false, writes the daemon's configuration,
+        grants the listed users access and creates the networks, pools,
+        volumes and domains asked for.
     options:
+      libvirt_backends:
+        description: Virtualization technologies to support.
+        type: list
+        elements: str
+        default: [qemu]
+      libvirt_install:
+        description: >-
+          Parts of the project to install, among C(libvirtd), C(clients),
+          C(virt-manager), C(gnome-boxes) and C(qemu).
+        type: list
+        elements: str
+        default: [libvirtd, clients]
+      libvirt_users:
+        description: Users granted libvirt access.
+        type: list
+        elements: dict
+        default: []
+        options:
+          name:
+            description: User name to add to the libvirt and kvm groups.
+            type: str
+            required: true
+          ca_file:
+            description: Path on the controller to the CA certificate to deploy for the user.
+            type: str
+          clientcert:
+            description: Path on the controller to the client certificate to deploy for the user.
+            type: str
+          clientkey:
+            description: Path on the controller to the client private key to deploy for the user.
+            type: str
+      libvirt_retries:
+        description: >-
+          Number of retries for package installation. Computed from
+          C(system_retries) when it is set, 2 otherwise.
+        type: int
+      libvirt_dnsmasq_management_method:
+        description: >-
+          How the role manages dnsmasq. C(auto) lets the role choose, C(bind)
+          sets dnsmasq to bind the default interface, C(disable) disables it and
+          C(none) does nothing.
+        type: str
+        default: auto
+        choices: [auto, bind, disable, none]
+      libvirt_dnsmasq_interface_types:
+        description: Interface types for dnsmasq to listen on, when the method is C(bind).
+        type: list
+        elements: str
+        default: [ether]
       libvirt_config:
         description: >-
           Per-file directives, as { <file>: { directive: value } }, written to
@@ -29,79 +84,128 @@ argument_specs:
         description: Path on the controller to the client private key to deploy, none when null.
         type: str
         default: null
+      libvirt_manage_firewall:
+        description: >-
+          Whether to manage firewalld rules. Computed from
+          C(system_manage_firewall) when it is set, true otherwise.
+        type: bool
+      libvirt_firewall_migration:
+        description: Whether to open the live migration data port range.
+        type: bool
+        default: false
       libvirt_firewall_zone:
         description: Firewalld zone to open ports in, the default zone when null.
         type: str
         default: null
-
-  vars:
-    short_description: Export roles variables.
-    options:
-      libvirt_backends:
-        description: Virtualization technologies to support.
-        type: list
-        elements: str
-        default: "[qemu]"
-
-  install:
-    short_description: Configure node for rootless mode.
-    options:
-      libvirt_backends:
-        description: Virtualization technologies to support.
-        type: list
-        elements: str
-        default: "[qemu]"
-      libvirt_install:
-        description: Parts of the project to install.
-        type: list
-        elements: str
-        default: "['libvirtd', 'clients']"
-      libvirt_users:
-        description: List of users that can run libvirt
-        type: list
-        elements: dict
-        default: "[]"
-      libvirt_active_default_network:
-        description: Active or not the default network.
-        type: bool
-        default: "true"
-      libvirt_remove_default_network:
-        description: Remove or not the default network.
-        type: bool
-        default: "false"
-
-  provision:
-    short_description: Configure node for rootless mode.
-    options:
-      libvirt_networks:
-        description: List of networks to create system wide.
-        type: list
-        elements: dict
-        default: "[]"
+      libvirt_firewall_backend:
+        description: >-
+          Firewalld packet filtering backend to install and select, the
+          distribution's own when unset.
+        type: str
       libvirt_pools:
-        description: List of volumes pools to create.
+        description: List of storage pools to create.
         type: list
         elements: dict
-        default: "[]"
+        default: []
       libvirt_volumes:
-        description: List of volumes to create.
+        description: List of storage volumes to create.
         type: list
         elements: dict
-        default: "[]"
+        default: []
+      libvirt_networks:
+        description: List of virtual networks to create.
+        type: list
+        elements: dict
+        default: []
       libvirt_domains:
         description: List of domains (virtual machines) to create.
         type: list
         elements: dict
-        default: "[]"
+        default: []
+      libvirt_default_disk_format:
+        description: Default disk image format for volumes and domains.
+        type: str
+        default: qcow2
       libvirt_default_keymap:
-        description: Keyboard map to set at domains creations.
+        description: Keymap to set on a domain's VNC graphics when it has none.
         type: str
         default: en-us
       libvirt_default_cpu:
-        description: Default CPU model to use when a domain doesn't specify it. 
+        description: Default CPU configuration for a domain that does not specify one.
         type: dict
-        default: "{model: 'host-model'}"
+        default:
+          mode: host-model
       libvirt_uri:
-        description: Libvirt connection uri.
+        description: Libvirt connection URI.
         type: str
         default: qemu:///system
+      libvirt_remove_default_network:
+        description: Remove libvirt's C(default) network.
+        type: bool
+        default: false
+      libvirt_active_default_network:
+        description: >-
+          Keep libvirt's C(default) network active. Computed as the opposite of
+          C(libvirt_remove_default_network).
+        type: bool
+
+  provision:
+    short_description: Create the networks, pools, volumes and domains asked for.
+    description:
+      - Creates the resources listed in the inventory, over the connection
+        C(libvirt_uri) names. Installs nothing.
+    options:
+      libvirt_backends:
+        description: Virtualization technologies to support.
+        type: list
+        elements: str
+        default: [qemu]
+      libvirt_uri:
+        description: Libvirt connection URI.
+        type: str
+        default: qemu:///system
+      libvirt_networks:
+        description: List of virtual networks to create.
+        type: list
+        elements: dict
+        default: []
+      libvirt_pools:
+        description: List of storage pools to create.
+        type: list
+        elements: dict
+        default: []
+      libvirt_volumes:
+        description: List of storage volumes to create.
+        type: list
+        elements: dict
+        default: []
+      libvirt_domains:
+        description: List of domains (virtual machines) to create.
+        type: list
+        elements: dict
+        default: []
+      libvirt_default_disk_format:
+        description: Default disk image format for volumes and domains.
+        type: str
+        default: qcow2
+      libvirt_default_keymap:
+        description: Keymap to set on a domain's VNC graphics when it has none.
+        type: str
+        default: en-us
+      libvirt_default_cpu:
+        description: Default CPU configuration for a domain that does not specify one.
+        type: dict
+        default:
+          mode: host-model
+
+  facts:
+    short_description: Load the variables that describe the target.
+    description:
+      - Loads the variables of the target's service manager, distribution and
+        requested backends, without changing the target.
+    options:
+      libvirt_backends:
+        description: Virtualization technologies to support.
+        type: list
+        elements: str
+        default: [qemu]

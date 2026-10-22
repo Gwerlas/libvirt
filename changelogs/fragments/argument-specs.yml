@@ -1,0 +1,12 @@
+breaking_changes:
+  - >-
+    Every variable of the role is now declared with a type, so a value of the
+    wrong type, such as a string for ``libvirt_users``, stops the run before any
+    task, where it used to work by accident. (`#10 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/10>`__)
+minor_changes:
+  - >-
+    ``ansible-doc -t role gwerlas.libvirt`` now lists three entry points,
+    ``main``, ``provision`` and ``facts``, each with a description and the
+    variables it reads, with the defaults written in ``defaults/``. The
+    ``vars`` and ``install`` entry points, which had no task file, are gone.
+    (`#10 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/10>`__)
