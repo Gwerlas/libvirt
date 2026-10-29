@@ -1,11 +1,11 @@
 ---
-# A qemu:///system pool whose target sits under a user's home is unreachable by
-# the qemu process (it runs as a dedicated, unprivileged user): even though the
-# pool directory itself is owned/permissioned correctly, an intermediate home
-# directory is usually not world-traversable (e.g. ~/.local and ~/.local/share
-# are 0700), so the VM gets "Permission denied" opening its disk. Grant the qemu
-# user execute-only (traverse, no read) access on those ancestor directories,
-# which fixes the access without loosening the directories for everyone else.
+# The qemu process runs as an unprivileged user, so it must be able to traverse
+# every directory between the owner's home and the pool target, and a home
+# is usually not world-traversable (~/.local and ~/.local/share are 0700), so
+# the VM gets "Permission denied" opening its disk:
+# https://libvirt.org/drvqemu.html#posix-users-groups
+# Grant it execute-only access on those ancestors, so no directory is loosened
+# for anyone else.
 - name: Pools - Traversal
   vars:
     _libvirt_pool_owner: "{{ (_libvirt_pool.target.permissions | default({})).owner | default(_libvirt_system_users.qemu) }}"

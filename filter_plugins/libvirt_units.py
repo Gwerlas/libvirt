@@ -1,17 +1,13 @@
 #!/usr/bin/python
 
-# The libvirt daemon ships in two layouts:
-#   * monolithic - a single libvirtd, reached through the libvirtd*.socket units
-#                  (Debian/Ubuntu, Gentoo's default) or, on old releases, run as
-#                  a plain service with no socket activation at all;
-#   * modular    - one daemon per driver (virtqemud, virtnetworkd, ...) with
-#                  virtproxyd fronting remote access (EL9+, Arch, Fedora).
+# The libvirt daemon ships in a monolithic and a modular layout, see
+# https://libvirt.org/daemons.html
 #
-# Which layout a host runs cannot be derived from the libvirt version: Debian
-# ships the monolithic daemon even at 9.x. Detect it from the unit files that are
-# actually installed so the role starts/restarts the right units and enables the
-# matching TLS and TCP sockets. virtlogd/virtlockd are shared by both layouts, so the
-# modular probe only looks at units that exist exclusively in the modular split.
+# The libvirt version does not say which one a host runs. Detect it from the
+# installed unit files, so the role starts and restarts the right units and
+# enables the matching TLS and TCP sockets. virtlogd and virtlockd are shared by
+# both layouts, so the modular probe only looks at units that exist in the
+# modular split alone.
 
 _HELPERS = ['virtlogd', 'virtlockd', 'virtnetworkd', 'virtnodedevd', 'virtstoraged']
 _BACKEND_DAEMONS = {'qemu': 'virtqemud', 'lxc': 'virtlxcd'}

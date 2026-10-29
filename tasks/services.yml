@@ -55,9 +55,9 @@
   become: true
   block:
     - name: Services - List installed libvirt units  # noqa command-instead-of-module
-      # service_facts only enumerates .service units, never .socket, so the
-      # modular sockets would all be dropped. List the unit files directly to
-      # match both services and sockets, then resolve the layout from them.
+      # The layout needs the sockets as well as the services, and service_facts
+      # lists only services:
+      # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/service_facts_module.html
       ansible.builtin.command:
         cmd: systemctl list-unit-files --no-legend --type=service,socket
       register: _libvirt_unit_files
@@ -68,9 +68,8 @@
         - ca
         - ssl
 
-    # Resolve the daemon layout (monolithic vs modular) from the units actually
-    # installed rather than from the libvirt version -- Debian ships the
-    # monolithic daemon even at 9.x. See filter_plugins/libvirt_units.py.
+    # Resolve the daemon layout (monolithic vs modular) from the installed units,
+    # not from the libvirt version. See filter_plugins/libvirt_units.py.
     - name: Services - Resolve the libvirt unit layout
       ansible.builtin.set_fact:
         _libvirt_daemon_layout: "{{ _libvirt_unit_files.stdout_lines | libvirt_units(libvirt_backends) }}"
