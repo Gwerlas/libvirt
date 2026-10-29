@@ -239,6 +239,7 @@ Test each provisioning use-case:
 molecule test -s add-user          # role adds a user to the libvirt group
 molecule test -s attached-volume   # extra disk created in a pool and attached
 molecule test -s block-disk        # raw /dev/vdb attached as a block device
+molecule test -s home-pool         # qemu:///system pool under a user's home, qemu granted traversal
 molecule test -s qemu-user         # domains provisioned over qemu:///session
 molecule test -s firewall          # TCP service and migration range opened on request
 molecule test -s stale-ports       # empty inventory opens no port, mistyped range closed
@@ -355,7 +356,8 @@ one of these, the others pointing at it:
 | Code comment             | what this line does, and under which rule           |
 | `CONTRIBUTING` / `docs/` | what the reader has to be able to predict or do     |
 | Commit message           | what changes, and why it is right                   |
-| Issue / merge request    | how we know: what was run, measured, tried, dropped |
+| Issue                    | the need: what is missing, and why it matters       |
+| Merge request            | how we know: what was run, measured, tried, dropped |
 | Upstream documentation   | the rule itself, whenever the rule is not ours      |
 
 Write in that order, narrowest first. A merge request is written **against**
@@ -384,9 +386,12 @@ Here, a new variable or a change in behaviour is not finished until:
   ``(`#4 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/4>`__)``,
   which `CHANGELOG.md` shows as `[#4](…)`, as the handbook's Changelog says.
 
-Outside a fragment, the issue is referenced from the commit body. `Closes #4`
-if the commit settles the whole ticket; a bare `#4` if it settles one of the
-three things the ticket asks for, so the other two stay visible.
+Outside a fragment, the issue is referenced from the commit body, as the
+handbook's
+[Issue references](https://gitlab.com/yoanncolin/handbook/-/blob/main/git.md#issue-references)
+say: `Closes #4` if the commit settles the whole ticket; `Relates to #4` if it
+settles one of the three things the ticket asks for, so the other two stay
+visible.
 
 <!-- Links section -->
 [var-naming]: https://docs.ansible.com/projects/lint/rules/var-naming/
