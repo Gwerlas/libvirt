@@ -112,7 +112,7 @@
             url: "https://download.cirros-cloud.net/{{ cirros_version }}/cirros-{{ cirros_version }}-x86_64-{{ item.file }}"
             checksum: "md5:{{ item.md5 }}"
             dest: "{{ tmpdir.path }}/{{ item.file }}"
-            mode: 0644
+            mode: "0644"
           loop: "{{ cirros_files }}"
 
     - name: Tests

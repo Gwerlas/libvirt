@@ -8,9 +8,9 @@ _libvirt_packages:
   clients:
     - libvirt-client
     - virt-install
-  "virt-manager":
+  virt-manager:
     - virt-manager
-  "gnome-boxes":
+  gnome-boxes:
     - gnome-boxes
   qemu:
     - qemu-kvm

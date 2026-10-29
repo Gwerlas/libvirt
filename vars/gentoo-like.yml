@@ -77,9 +77,9 @@ _libvirt_packages:
   clients:
     - app-emulation/libvirt
     - app-emulation/virt-manager
-  "virt-manager":
+  virt-manager:
     - app-emulation/virt-manager
-  "gnome-boxes":
+  gnome-boxes:
     - gnome-extra/gnome-boxes
   qemu:
     - app-emulation/qemu
