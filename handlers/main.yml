@@ -103,5 +103,4 @@
     msg: >-
       {{ inventory_hostname }}: {{ 'would close' if ansible_check_mode else 'closed' }}
       19215-49152/tcp, a firewalld port range opened by mistake by
-      gwerlas.libvirt 0.3.0 to 0.6.2, see
-      https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/5
+      gwerlas.libvirt 0.3.0 to 0.6.2, see the role's CHANGELOG.md

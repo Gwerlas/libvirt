@@ -22,8 +22,7 @@ it usable right away:
   to its own interfaces so that it leaves libvirt's networks alone.
 
 One more change is made today and is on its way out, because nothing needs
-it: the QEMU security driver written in `qemu.conf`
-([#13](https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/13)).
+it: the QEMU security driver written in `qemu.conf`.
 
 Everything else happens only when You describe it.
 
