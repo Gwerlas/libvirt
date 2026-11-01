@@ -244,3 +244,33 @@ releases:
     - users-default-empty.yml
     - wait-for-restarted-libvirtd.yml
     release_date: '2026-10-06'
+  0.9.0:
+    changes:
+      breaking_changes:
+      - 'Every variable of the role is now declared with a type, so a value of the
+        wrong type, such as a string for ``libvirt_users``, stops the run before any
+        task, where it used to work by accident; ``libvirt_config`` is a dictionary,
+        ``libvirt_firewall_zone`` and the five TLS paths are strings. Two declarations
+        also restrict values of the right type: an entry of ``libvirt_users`` takes
+        only ``name``, which it requires, ``ca_file``, ``clientcert`` and ``clientkey``,
+        so a users list shared with another role whose entries hold other keys now
+        stops the run; and ``libvirt_dnsmasq_management_method`` takes only ``auto``,
+        ``bind``, ``disable`` and ``none``, where another value did nothing (beware
+        an unquoted ``off``, which YAML reads as ``false``). (`#10 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/10>`__,
+        `#23 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/23>`__)'
+      minor_changes:
+      - '``ansible-doc -t role gwerlas.libvirt`` now lists three entry points, ``main``,
+        ``provision`` and ``facts``, each with a description and the variables it
+        reads, with the defaults written in ``defaults/``. The ``vars`` and ``install``
+        entry points, which had no task file, are gone. (`#10 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/10>`__)'
+      - '``libvirt_config`` (``{}``), ``libvirt_firewall_zone`` and the five TLS paths
+        (``null``) now have a default written in ``defaults/``. Setting one to its
+        default, such as ``libvirt_firewall_zone: null`` for a host whose group chose
+        a zone, undoes the group''s value. (`#23 <https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/issues/23>`__)'
+      release_summary: Declare every variable with its type, and write down the defaults
+        of seven of them.
+    fragments:
+    - 0.9.0.yml
+    - argument-specs.yml
+    - written-defaults.yml
+    release_date: '2026-11-01'

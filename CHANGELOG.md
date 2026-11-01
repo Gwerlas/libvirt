@@ -2,25 +2,29 @@
 
 **Topics**
 
-- <a href="#v0-8-0">v0\.8\.0</a>
+- <a href="#v0-9-0">v0\.9\.0</a>
+    - <a href="#release-summary">Release Summary</a>
     - <a href="#minor-changes">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
-    - <a href="#bugfixes">Bugfixes</a>
-- <a href="#v0-7-0">v0\.7\.0</a>
+- <a href="#v0-8-0">v0\.8\.0</a>
     - <a href="#minor-changes-1">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide-1">Breaking Changes / Porting Guide</a>
+    - <a href="#bugfixes">Bugfixes</a>
+- <a href="#v0-7-0">v0\.7\.0</a>
+    - <a href="#minor-changes-2">Minor Changes</a>
+    - <a href="#breaking-changes--porting-guide-2">Breaking Changes / Porting Guide</a>
     - <a href="#bugfixes-1">Bugfixes</a>
 - <a href="#v0-6-2">v0\.6\.2</a>
     - <a href="#bugfixes-2">Bugfixes</a>
 - <a href="#v0-6-1">v0\.6\.1</a>
     - <a href="#bugfixes-3">Bugfixes</a>
 - <a href="#v0-6-0">v0\.6\.0</a>
-    - <a href="#minor-changes-2">Minor Changes</a>
+    - <a href="#minor-changes-3">Minor Changes</a>
 - <a href="#v0-5-1">v0\.5\.1</a>
     - <a href="#bugfixes-4">Bugfixes</a>
 - <a href="#v0-5-0">v0\.5\.0</a>
-    - <a href="#minor-changes-3">Minor Changes</a>
-    - <a href="#breaking-changes--porting-guide-2">Breaking Changes / Porting Guide</a>
+    - <a href="#minor-changes-4">Minor Changes</a>
+    - <a href="#breaking-changes--porting-guide-3">Breaking Changes / Porting Guide</a>
 - <a href="#v0-4-3">v0\.4\.3</a>
     - <a href="#bugfixes-5">Bugfixes</a>
 - <a href="#v0-4-2">v0\.4\.2</a>
@@ -28,27 +32,46 @@
 - <a href="#v0-4-1">v0\.4\.1</a>
     - <a href="#bugfixes-7">Bugfixes</a>
 - <a href="#v0-4-0">v0\.4\.0</a>
-    - <a href="#minor-changes-4">Minor Changes</a>
+    - <a href="#minor-changes-5">Minor Changes</a>
     - <a href="#bugfixes-8">Bugfixes</a>
 - <a href="#v0-3-3">v0\.3\.3</a>
     - <a href="#bugfixes-9">Bugfixes</a>
 - <a href="#v0-3-2">v0\.3\.2</a>
-    - <a href="#minor-changes-5">Minor Changes</a>
+    - <a href="#minor-changes-6">Minor Changes</a>
 - <a href="#v0-3-1">v0\.3\.1</a>
     - <a href="#bugfixes-10">Bugfixes</a>
 - <a href="#v0-3-0">v0\.3\.0</a>
-    - <a href="#minor-changes-6">Minor Changes</a>
-- <a href="#v0-2-0">v0\.2\.0</a>
     - <a href="#minor-changes-7">Minor Changes</a>
-- <a href="#v0-1-1">v0\.1\.1</a>
+- <a href="#v0-2-0">v0\.2\.0</a>
     - <a href="#minor-changes-8">Minor Changes</a>
-- <a href="#v0-1-0">v0\.1\.0</a>
+- <a href="#v0-1-1">v0\.1\.1</a>
     - <a href="#minor-changes-9">Minor Changes</a>
+- <a href="#v0-1-0">v0\.1\.0</a>
+    - <a href="#minor-changes-10">Minor Changes</a>
+
+<a id="v0-9-0"></a>
+## v0\.9\.0
+
+<a id="release-summary"></a>
+### Release Summary
+
+Declare every variable with its type\, and write down the defaults of seven of them\.
+
+<a id="minor-changes"></a>
+### Minor Changes
+
+* <code>ansible\-doc \-t role gwerlas\.libvirt</code> now lists three entry points\, <code>main</code>\, <code>provision</code> and <code>facts</code>\, each with a description and the variables it reads\, with the defaults written in <code>defaults/</code>\. The <code>vars</code> and <code>install</code> entry points\, which had no task file\, are gone\. \([\#10](https\://gitlab\.com/yoanncolin/ansible/roles/libvirt/\-/issues/10)\)
+* <code>libvirt\_config</code> \(<code>\{\}</code>\)\, <code>libvirt\_firewall\_zone</code> and the five TLS paths \(<code>null</code>\) now have a default written in <code>defaults/</code>\. Setting one to its default\, such as <code>libvirt\_firewall\_zone\: null</code> for a host whose group chose a zone\, undoes the group\'s value\. \([\#23](https\://gitlab\.com/yoanncolin/ansible/roles/libvirt/\-/issues/23)\)
+
+<a id="breaking-changes--porting-guide"></a>
+### Breaking Changes / Porting Guide
+
+* Every variable of the role is now declared with a type\, so a value of the wrong type\, such as a string for <code>libvirt\_users</code>\, stops the run before any task\, where it used to work by accident\; <code>libvirt\_config</code> is a dictionary\, <code>libvirt\_firewall\_zone</code> and the five TLS paths are strings\. Two declarations also restrict values of the right type\: an entry of <code>libvirt\_users</code> takes only <code>name</code>\, which it requires\, <code>ca\_file</code>\, <code>clientcert</code> and <code>clientkey</code>\, so a users list shared with another role whose entries hold other keys now stops the run\; and <code>libvirt\_dnsmasq\_management\_method</code> takes only <code>auto</code>\, <code>bind</code>\, <code>disable</code> and <code>none</code>\, where another value did nothing \(beware an unquoted <code>off</code>\, which YAML reads as <code>false</code>\)\. \([\#10](https\://gitlab\.com/yoanncolin/ansible/roles/libvirt/\-/issues/10)\, [\#23](https\://gitlab\.com/yoanncolin/ansible/roles/libvirt/\-/issues/23)\)
 
 <a id="v0-8-0"></a>
 ## v0\.8\.0
 
-<a id="minor-changes"></a>
+<a id="minor-changes-1"></a>
 ### Minor Changes
 
 * On Gentoo\, the <code>policykit</code> USE flag\, which creates the <code>libvirt</code> group\, is requested on <code>app\-emulation/libvirt</code> and <code>sys\-apps/systemd</code> only when <code>libvirt\_users</code> is not empty\. With an empty list the daemon stays reachable by root alone\.
@@ -56,7 +79,7 @@
 * The role\'s metadata now declares the platforms its tests run on\: Debian trixie and EL 10 are added\, and Debian bullseye\, which is neither tested nor supported upstream any more\, is dropped\.
 * <code>libvirt\_</code> now names only what an inventory may set\: every variable\, fact\, register and loop variable the role keeps for itself carries <code>\_libvirt\_</code>\. A playbook that read one of those\, such as <code>libvirt\_layout</code> \(now <code>\_libvirt\_daemon\_layout</code>\)\, has to follow the new name\, and none of them is part of the role\'s interface\. \([\#6](https\://gitlab\.com/yoanncolin/ansible/roles/libvirt/\-/issues/6)\)
 
-<a id="breaking-changes--porting-guide"></a>
+<a id="breaking-changes--porting-guide-1"></a>
 ### Breaking Changes / Porting Guide
 
 * The role needs <code>ansible\-core</code> 2\.20 or later\, up from 2\.18\. Earlier versions read a Gentoo host as ClearLinux\, so none of the role\'s variables for it were loaded\.
@@ -77,7 +100,7 @@
 <a id="v0-7-0"></a>
 ## v0\.7\.0
 
-<a id="minor-changes-1"></a>
+<a id="minor-changes-2"></a>
 ### Minor Changes
 
 * A <code>libvirt\_users</code> entry takes <code>ca\_file</code>\, <code>clientcert</code> and <code>clientkey</code>\, deployed under the user\'s <code>\~/\.pki</code> with the least privileges\, so the user reaches a remote daemon over TLS\.
@@ -89,7 +112,7 @@
 * The tags <code>ca</code> and <code>ssl</code> redeploy and apply the certificates\.
 * With <code>listen\_tls</code> enabled\, the role starts the TLS socket of the daemon and opens the <code>libvirt\-tls</code> firewalld service\.
 
-<a id="breaking-changes--porting-guide-1"></a>
+<a id="breaking-changes--porting-guide-2"></a>
 ### Breaking Changes / Porting Guide
 
 * Domains follow libvirt\'s XML structure\: <code>disks\[\]\.size\: 2G</code> becomes <code>disks\[\]\.capacity\: 2G</code> and <code>networks\: \[\.\.\.\]</code> becomes <code>interfaces\: \[\.\.\.\]</code>\.
@@ -130,7 +153,7 @@
 <a id="v0-6-0"></a>
 ## v0\.6\.0
 
-<a id="minor-changes-2"></a>
+<a id="minor-changes-3"></a>
 ### Minor Changes
 
 * <code>netfs</code> pools support NFS and CIFS\, and the NFS version\.
@@ -146,7 +169,7 @@
 <a id="v0-5-0"></a>
 ## v0\.5\.0
 
-<a id="minor-changes-3"></a>
+<a id="minor-changes-4"></a>
 ### Minor Changes
 
 * Add <code>libvirt\_default\_disk\_format</code>\, which defaults to <code>qcow2</code>\.
@@ -160,7 +183,7 @@
 * The role waits for libvirtd to answer after restarting it\.
 * The volume format is written in the volume XML\.
 
-<a id="breaking-changes--porting-guide-2"></a>
+<a id="breaking-changes--porting-guide-3"></a>
 ### Breaking Changes / Porting Guide
 
 * The default type of a domain disk changes from <code>volume</code> to <code>file</code>\.
@@ -194,7 +217,7 @@
 <a id="v0-4-0"></a>
 ## v0\.4\.0
 
-<a id="minor-changes-4"></a>
+<a id="minor-changes-5"></a>
 ### Minor Changes
 
 * Raw block devices can be attached to domains\, system wide\.
@@ -215,7 +238,7 @@
 <a id="v0-3-2"></a>
 ## v0\.3\.2
 
-<a id="minor-changes-5"></a>
+<a id="minor-changes-6"></a>
 ### Minor Changes
 
 * The tag <code>users</code> runs the user access tasks alone\.
@@ -231,7 +254,7 @@
 <a id="v0-3-0"></a>
 ## v0\.3\.0
 
-<a id="minor-changes-6"></a>
+<a id="minor-changes-7"></a>
 ### Minor Changes
 
 * Gentoo is supported\, including its Portage USE flags\.
@@ -240,7 +263,7 @@
 <a id="v0-2-0"></a>
 ## v0\.2\.0
 
-<a id="minor-changes-7"></a>
+<a id="minor-changes-8"></a>
 ### Minor Changes
 
 * Domains take an <code>autostart</code> key to start with the host\.
@@ -248,7 +271,7 @@
 <a id="v0-1-1"></a>
 ## v0\.1\.1
 
-<a id="minor-changes-8"></a>
+<a id="minor-changes-9"></a>
 ### Minor Changes
 
 * Domain disks and network interfaces take a <code>boot\_order</code>\. A domain no longer forces a boot from the network then the disk\, so a domain without any <code>boot\_order</code> boots as libvirt decides\.
@@ -256,7 +279,7 @@
 <a id="v0-1-0"></a>
 ## v0\.1\.0
 
-<a id="minor-changes-9"></a>
+<a id="minor-changes-10"></a>
 ### Minor Changes
 
 * First release\. The role installs libvirt with the <code>qemu</code> backend\, grants <code>libvirt\_users</code> access to it\, and provisions the storage pools\, volumes\, networks and domains listed in <code>libvirt\_pools</code>\, <code>libvirt\_volumes</code>\, <code>libvirt\_networks</code> and <code>libvirt\_domains</code>\.
