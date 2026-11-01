@@ -274,3 +274,14 @@ releases:
     - argument-specs.yml
     - written-defaults.yml
     release_date: '2026-11-01'
+  0.9.1:
+    changes:
+      bugfixes:
+      - 'The role''s Ansible Galaxy page links to the license and to the issue tracker
+        at their address on GitLab: the license link was relative and led nowhere
+        there, and the tracker pointed to a group the role left.'
+      release_summary: Fix the license and issue tracker links on the Galaxy page.
+    fragments:
+    - 0.9.1.yml
+    - galaxy-links.yml
+    release_date: '2026-11-01'

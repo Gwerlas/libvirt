@@ -1,5 +1,0 @@
-bugfixes:
-  - >-
-    The role's Ansible Galaxy page links to the license and to the issue
-    tracker at their address on GitLab: the license link was relative and led
-    nowhere there, and the tracker pointed to a group the role left.

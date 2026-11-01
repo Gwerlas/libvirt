@@ -2,44 +2,47 @@
 
 **Topics**
 
-- <a href="#v0-9-0">v0\.9\.0</a>
+- <a href="#v0-9-1">v0\.9\.1</a>
     - <a href="#release-summary">Release Summary</a>
+    - <a href="#bugfixes">Bugfixes</a>
+- <a href="#v0-9-0">v0\.9\.0</a>
+    - <a href="#release-summary-1">Release Summary</a>
     - <a href="#minor-changes">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
 - <a href="#v0-8-0">v0\.8\.0</a>
     - <a href="#minor-changes-1">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide-1">Breaking Changes / Porting Guide</a>
-    - <a href="#bugfixes">Bugfixes</a>
+    - <a href="#bugfixes-1">Bugfixes</a>
 - <a href="#v0-7-0">v0\.7\.0</a>
     - <a href="#minor-changes-2">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide-2">Breaking Changes / Porting Guide</a>
-    - <a href="#bugfixes-1">Bugfixes</a>
-- <a href="#v0-6-2">v0\.6\.2</a>
     - <a href="#bugfixes-2">Bugfixes</a>
-- <a href="#v0-6-1">v0\.6\.1</a>
+- <a href="#v0-6-2">v0\.6\.2</a>
     - <a href="#bugfixes-3">Bugfixes</a>
+- <a href="#v0-6-1">v0\.6\.1</a>
+    - <a href="#bugfixes-4">Bugfixes</a>
 - <a href="#v0-6-0">v0\.6\.0</a>
     - <a href="#minor-changes-3">Minor Changes</a>
 - <a href="#v0-5-1">v0\.5\.1</a>
-    - <a href="#bugfixes-4">Bugfixes</a>
+    - <a href="#bugfixes-5">Bugfixes</a>
 - <a href="#v0-5-0">v0\.5\.0</a>
     - <a href="#minor-changes-4">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide-3">Breaking Changes / Porting Guide</a>
 - <a href="#v0-4-3">v0\.4\.3</a>
-    - <a href="#bugfixes-5">Bugfixes</a>
-- <a href="#v0-4-2">v0\.4\.2</a>
     - <a href="#bugfixes-6">Bugfixes</a>
-- <a href="#v0-4-1">v0\.4\.1</a>
+- <a href="#v0-4-2">v0\.4\.2</a>
     - <a href="#bugfixes-7">Bugfixes</a>
+- <a href="#v0-4-1">v0\.4\.1</a>
+    - <a href="#bugfixes-8">Bugfixes</a>
 - <a href="#v0-4-0">v0\.4\.0</a>
     - <a href="#minor-changes-5">Minor Changes</a>
-    - <a href="#bugfixes-8">Bugfixes</a>
-- <a href="#v0-3-3">v0\.3\.3</a>
     - <a href="#bugfixes-9">Bugfixes</a>
+- <a href="#v0-3-3">v0\.3\.3</a>
+    - <a href="#bugfixes-10">Bugfixes</a>
 - <a href="#v0-3-2">v0\.3\.2</a>
     - <a href="#minor-changes-6">Minor Changes</a>
 - <a href="#v0-3-1">v0\.3\.1</a>
-    - <a href="#bugfixes-10">Bugfixes</a>
+    - <a href="#bugfixes-11">Bugfixes</a>
 - <a href="#v0-3-0">v0\.3\.0</a>
     - <a href="#minor-changes-7">Minor Changes</a>
 - <a href="#v0-2-0">v0\.2\.0</a>
@@ -49,10 +52,23 @@
 - <a href="#v0-1-0">v0\.1\.0</a>
     - <a href="#minor-changes-10">Minor Changes</a>
 
+<a id="v0-9-1"></a>
+## v0\.9\.1
+
+<a id="release-summary"></a>
+### Release Summary
+
+Fix the license and issue tracker links on the Galaxy page\.
+
+<a id="bugfixes"></a>
+### Bugfixes
+
+* The role\'s Ansible Galaxy page links to the license and to the issue tracker at their address on GitLab\: the license link was relative and led nowhere there\, and the tracker pointed to a group the role left\.
+
 <a id="v0-9-0"></a>
 ## v0\.9\.0
 
-<a id="release-summary"></a>
+<a id="release-summary-1"></a>
 ### Release Summary
 
 Declare every variable with its type\, and write down the defaults of seven of them\.
@@ -88,7 +104,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 * <code>libvirt\_config\.libvirtd\.listen\_tcp</code> set to 1 now makes the daemon listen\, as <code>listen\_tls</code> does\: the role enables the TCP socket unit\. A host whose inventory already sets it listens on <code>16509/tcp</code>\, unencrypted\, and libvirt\'s default <code>auth\_tcp</code> is <code>sasl</code>\, so clients are refused until SASL is set up\. \([\#31](https\://gitlab\.com/yoanncolin/ansible/roles/libvirt/\-/issues/31)\)
 * <code>libvirt\_users</code> defaults to <code>\[\]</code>\, so the account Ansible connects as is no longer added to the <code>libvirt</code>\, <code>kvm</code> and <code>qemu</code> groups and no longer gets a <code>qemu\:///session</code> default pool\. Memberships already granted stay\. To keep the previous behaviour\, set <code>libvirt\_users</code> to <code>\[\{name\: \"\{\{ ansible\_facts\.user\_id \}\}\"\}\]</code>\, and list the account that provisions over <code>qemu\:///system</code> when it is not root\. \([\#2](https\://gitlab\.com/yoanncolin/ansible/roles/libvirt/\-/issues/2)\)
 
-<a id="bugfixes"></a>
+<a id="bugfixes-1"></a>
 ### Bugfixes
 
 * On Gentoo\, <code>libvirt\_manage\_firewall\: false</code> no longer stops the play when the USE flags are written\.
@@ -122,7 +138,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 * The role requires ansible\-core 2\.18 or later\, and no longer claims 2\.13\.
 * Volumes follow libvirt\'s XML structure\: <code>size\: 200G</code> becomes <code>capacity\: 200G</code> and <code>format\: qcow2</code> becomes <code>target\: \{format\: \{type\: qcow2\}\}</code>\.
 
-<a id="bugfixes-1"></a>
+<a id="bugfixes-2"></a>
 ### Bugfixes
 
 * A pool under a user\'s home is reachable by the QEMU user\, which gets an execute\-only ACL on the home directories leading to it\.
@@ -137,7 +153,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 <a id="v0-6-2"></a>
 ## v0\.6\.2
 
-<a id="bugfixes-2"></a>
+<a id="bugfixes-3"></a>
 ### Bugfixes
 
 * The <code>source</code> of a <code>netfs</code> pool follows libvirt\'s XML\, where <code>source\.version</code> becomes <code>source\.protocol</code> and <code>source\.format</code> becomes <code>source\.type</code>\.
@@ -145,7 +161,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 <a id="v0-6-1"></a>
 ## v0\.6\.1
 
-<a id="bugfixes-3"></a>
+<a id="bugfixes-4"></a>
 ### Bugfixes
 
 * The role activates only the libvirt units the host provides\. Debian bookworm ships libvirt 6\.0 or later without the modular daemon units\, and the role no longer fails on them\.
@@ -161,7 +177,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 <a id="v0-5-1"></a>
 ## v0\.5\.1
 
-<a id="bugfixes-4"></a>
+<a id="bugfixes-5"></a>
 ### Bugfixes
 
 * The role manages the services of libvirt whether the distribution ships the modular daemons or the monolithic one\.
@@ -193,7 +209,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 <a id="v0-4-3"></a>
 ## v0\.4\.3
 
-<a id="bugfixes-5"></a>
+<a id="bugfixes-6"></a>
 ### Bugfixes
 
 * <code>libvirt\_dnsmasq\_interface\_types</code> defaults to <code>\[ether\]</code>\, so dnsmasq no longer binds bonding interfaces\.
@@ -201,7 +217,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 <a id="v0-4-2"></a>
 ## v0\.4\.2
 
-<a id="bugfixes-6"></a>
+<a id="bugfixes-7"></a>
 ### Bugfixes
 
 * The dnsmasq binding finds the network interfaces whose name holds a dash\.
@@ -209,7 +225,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 <a id="v0-4-1"></a>
 ## v0\.4\.1
 
-<a id="bugfixes-7"></a>
+<a id="bugfixes-8"></a>
 ### Bugfixes
 
 * On Arch Linux\, firewalld uses the <code>iptables\-nft</code> backend instead of <code>iptables</code>\.
@@ -222,7 +238,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 
 * Raw block devices can be attached to domains\, system wide\.
 
-<a id="bugfixes-8"></a>
+<a id="bugfixes-9"></a>
 ### Bugfixes
 
 * dnsmasq no longer prevents libvirt\'s default network from starting\. <code>libvirt\_dnsmasq\_management\_method</code> \(<code>auto</code>\, <code>bind</code>\, <code>disable</code> or <code>none</code>\) chooses what the role does with dnsmasq\, and <code>libvirt\_dnsmasq\_interface\_types</code> lists the interface types it binds\. <code>auto</code> binds dnsmasq on Debian bookworm and leaves it alone elsewhere\.
@@ -230,7 +246,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 <a id="v0-3-3"></a>
 ## v0\.3\.3
 
-<a id="bugfixes-9"></a>
+<a id="bugfixes-10"></a>
 ### Bugfixes
 
 * Check mode no longer fails on the tasks that read the state of domains\, pools\, services and the QEMU user\.
@@ -246,7 +262,7 @@ Declare every variable with its type\, and write down the defaults of seven of t
 <a id="v0-3-1"></a>
 ## v0\.3\.1
 
-<a id="bugfixes-10"></a>
+<a id="bugfixes-11"></a>
 ### Bugfixes
 
 * The tag <code>provision</code> selects the provisioning tasks\, and only them\.
