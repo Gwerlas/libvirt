@@ -7,7 +7,11 @@ set -eu
 
 cd "$(dirname "$0")/.."
 
-pending=$(find changelogs/fragments -type f \( -name '*.yml' -o -name '*.yaml' \))
+# The directory is missing once a release consumed every fragment and git kept
+# no empty directory. `find` still fails on one it cannot read.
+pending=
+[ ! -d changelogs/fragments ] ||
+  pending=$(find changelogs/fragments -type f \( -name '*.yml' -o -name '*.yaml' \))
 if [ -n "$pending" ]; then
   echo "Fragments are still pending, run 'antsibull-changelog release':" >&2
   echo "$pending" >&2
