@@ -144,10 +144,11 @@ It's only possible to add physical disk to domain in `qemu:///system` connection
 License
 -------
 
-[BSD 3-Clause License](LICENSE).
+[BSD 3-Clause License][license].
 
 <!-- Documentation links -->
 [changelog]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/CHANGELOG.md
+[license]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/LICENSE
 [TLS]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/docs/tls.md
 [migration]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/docs/migration.md
 [firewall]: https://gitlab.com/yoanncolin/ansible/roles/libvirt/-/blob/main/docs/firewall.md
