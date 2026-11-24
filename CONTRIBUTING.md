@@ -269,6 +269,24 @@ does:
 CI_COMMIT_TAG=0.8.0 jobs/changelog-release
 ```
 
+Publishing to Galaxy
+--------------------
+
+Pushing a protected tag runs the `import` job. Galaxy imports the role from its
+GitHub mirror, which GitLab updates on its own schedule, so the job first waits
+until `git ls-remote --tags https://github.com/Gwerlas/libvirt refs/tags/<tag>`
+lists the tag. It checks every 15 seconds and gives up after ten minutes with
+"does not have the tag yet". `MIRROR_URL`, `MIRROR_WAIT_ATTEMPTS` and
+`MIRROR_WAIT_DELAY` (in seconds) change the mirror and the bound, for a retry.
+
+If it fails, force a sync of the project's GitHub mirror (**Settings** →
+**Repository** → **Mirroring repositories**), then retry the job. To import by
+hand instead, once the mirror has the tag:
+
+```sh
+ansible-galaxy role import --token "$GALAXY_TOKEN" Gwerlas libvirt
+```
+
 Develop / Debug
 ---------------
 

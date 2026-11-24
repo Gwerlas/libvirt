@@ -1,0 +1,36 @@
+#!/bin/sh
+# Import the role into Ansible Galaxy once the GitHub mirror holds the tag.
+# Galaxy imports from the mirror, which GitLab pushes to on its own schedule:
+# an import that runs first ends green and misses the release. Waiting needs
+# no token on the mirror, unlike asking GitLab to sync it.
+# The bound is long enough for a slow sync and short enough not to tie up a
+# runner for long. The mirror and the bound are variables (MIRROR_URL,
+# MIRROR_WAIT_ATTEMPTS and MIRROR_WAIT_DELAY) so a retry can change them.
+set -eu
+
+tag=${CI_COMMIT_TAG:?CI_COMMIT_TAG is not set}
+# Checked now: a missing token must not show up after the wait.
+: "${GALAXY_TOKEN:?GALAXY_TOKEN is not set}"
+mirror=${MIRROR_URL:-https://github.com/Gwerlas/libvirt}
+attempts=${MIRROR_WAIT_ATTEMPTS:-40}
+delay=${MIRROR_WAIT_DELAY:-15}
+
+# A wrong URL must fail with its message, not wait for a credentials prompt.
+GIT_TERMINAL_PROMPT=0
+export GIT_TERMINAL_PROMPT
+
+n=1
+# A failed `ls-remote` counts as a tag not there yet: the next try may pass.
+# Its stderr stays in the log, so a permanent failure shows its cause.
+until [ -n "$(git ls-remote --tags "$mirror" "refs/tags/$tag" || true)" ]; do
+  if [ "$n" -ge "$attempts" ]; then
+    echo "The mirror $mirror does not have the tag $tag yet, after $attempts tries" >&2
+    exit 1
+  fi
+  echo "The mirror does not have the tag $tag yet (try $n of $attempts), waiting ${delay}s"
+  n=$((n + 1))
+  sleep "$delay"
+done
+echo "The mirror has the tag $tag"
+
+ansible-galaxy role import --token "$GALAXY_TOKEN" Gwerlas libvirt
